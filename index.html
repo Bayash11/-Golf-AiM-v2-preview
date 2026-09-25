@@ -442,33 +442,49 @@ button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-v
 
 <style id="golf-aim-home-v2-step2">
 /* =========================================================
-   GOLF AiM v2 — STEP2
-   Adopted home screen + fixed bottom navigation.
+   GOLF AiM v2 — STEP2.1
+   Home refinement: compact sticky hero + recent-practice empty state.
    iPhone 14 base: 390 x 844pt.
    ========================================================= */
+/* Home owns its own safe-area spacing; remove the legacy root padding only while home is mounted. */
+#root:has(.ga-home-v2){padding-top:0!important;padding-bottom:0!important;}
+body:has(.ga-home-v2){overflow-x:hidden;}
 .ga-home-v2{
   position:relative;
   width:100%;
   min-height:100dvh;
   margin:0 auto;
-  padding:calc(18px + env(safe-area-inset-top,0px)) 16px calc(var(--ga-bottom-total) + 26px);
-  overflow:hidden;
+  padding:0 16px calc(var(--ga-bottom-total) + 26px);
+  overflow:visible;
   background:
-    radial-gradient(circle at 82px 84px, rgba(47,111,228,.045), transparent 120px),
+    radial-gradient(circle at 82px 72px, rgba(47,111,228,.045), transparent 110px),
     linear-gradient(180deg,#FBFDFF 0%,#F8FAFC 55%,#F8FAFC 100%);
   color:var(--ga-text);
   box-sizing:border-box;
 }
-.ga-home-hero{position:relative;min-height:190px;padding:14px 4px 8px;overflow:hidden;}
-.ga-home-brand{position:relative;z-index:2;padding-top:12px;}
-.ga-home-logo{display:flex;align-items:baseline;gap:8px;margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:43px;line-height:1;font-weight:850;letter-spacing:-2.3px;color:#10233D;}
+.ga-home-hero{
+  position:sticky;
+  top:0;
+  z-index:55;
+  min-height:158px;
+  margin:0 -16px;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) 20px 4px;
+  overflow:hidden;
+  background:rgba(251,253,255,.98);
+  border-bottom:1px solid rgba(221,227,234,.55);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  box-sizing:border-box;
+}
+.ga-home-brand{position:relative;z-index:2;padding-top:3px;}
+.ga-home-logo{display:flex;align-items:baseline;gap:6px;margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:34px;line-height:1;font-weight:850;letter-spacing:-1.8px;color:#10233D;}
 .ga-home-logo .aim{color:var(--ga-orange);font-style:italic;font-weight:850;}
-.ga-home-tagline{margin:11px 0 0;color:#7B879B;font-size:15px;font-weight:700;letter-spacing:.02em;}
-.ga-home-life{position:absolute;z-index:2;top:20px;right:5px;width:62px;color:#738098;font:700 10px/1.25 Inter,-apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;}
-.ga-home-life:after{content:"";display:block;width:28px;height:2px;margin-top:9px;background:var(--ga-orange);border-radius:99px;}
-.ga-home-scenery{position:absolute;left:-16px;right:-16px;bottom:0;height:100px;opacity:.78;pointer-events:none;}
+.ga-home-tagline{margin:8px 0 0;color:#7B879B;font-size:13px;font-weight:700;letter-spacing:.02em;}
+.ga-home-life{position:absolute;z-index:2;top:calc(env(safe-area-inset-top,0px) + 9px);right:20px;width:54px;color:#738098;font:700 9px/1.22 Inter,-apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;}
+.ga-home-life:after{content:"";display:block;width:25px;height:2px;margin-top:7px;background:var(--ga-orange);border-radius:99px;}
+.ga-home-scenery{position:absolute;left:0;right:0;bottom:0;height:70px;opacity:.78;pointer-events:none;}
 .ga-home-scenery svg{width:100%;height:100%;display:block;}
-.ga-home-practice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
+.ga-home-practice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
 .ga-home-tile{position:relative;min-width:0;min-height:216px;padding:18px 15px 16px;border:0;border-radius:22px;text-align:left;overflow:hidden;box-shadow:0 7px 22px rgba(23,32,51,.065);transition:transform .12s ease,box-shadow .12s ease;}
 .ga-home-tile:active{transform:scale(.985);}
 .ga-home-tile--random{background:linear-gradient(165deg,#FFFDFB 0%,#FFF5EF 57%,#FFE2CF 100%);}
@@ -495,6 +511,11 @@ button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-v
 .ga-home-small-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:50%;background:#F6F8FB;color:#63738A;}
 .ga-home-small-card--data .ga-home-small-icon{background:#EEF5FF;color:#2174D8;}
 .ga-home-recent{width:100%;margin-top:12px;padding:15px 16px 16px;border:0;border-radius:20px;background:#fff;text-align:left;box-shadow:0 6px 18px rgba(23,32,51,.055);}
+.ga-home-recent--empty{cursor:default;}
+.ga-home-recent-empty{display:flex;align-items:center;gap:12px;padding:2px 0 1px;color:#7E8AA0;}
+.ga-home-recent-empty-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:50%;background:#F1F4F8;color:#8B98AA;}
+.ga-home-recent-empty strong{display:block;margin-bottom:3px;color:#526176;font-size:13px;}
+.ga-home-recent-empty span{display:block;color:#8A96A8;font-size:11px;line-height:1.45;}
 .ga-home-recent-head{display:flex;align-items:center;gap:9px;margin-bottom:12px;color:#12243F;}
 .ga-home-recent-head strong{font-size:16px;font-weight:800;}
 .ga-home-recent-date{margin-left:auto;color:#7E8AA0;font-size:11px;font-weight:600;}
@@ -696,7 +717,7 @@ function GaHomeScenery(){return AH('div',{className:'ga-home-scenery','aria-hidd
  AH('path',{d:'M337 37v35',stroke:'#7EB4E7',strokeWidth:2}),AH('path',{d:'M338 37l18 6-18 6z',fill:'#7EB4E7'}),AH('ellipse',{cx:337,cy:73,rx:13,ry:2.7,fill:'#BFDDF2'})
  ));}
 function GaHomeRecent({recent,onOpen}){
- if(!recent)return null;
+ if(!recent)return AH('section',{className:'ga-home-recent ga-home-recent--empty','aria-label':'前回の練習'},AH('div',{className:'ga-home-recent-head'},gaSvgIcon('clock',20),AH('strong',null,'前回の練習')),AH('div',{className:'ga-home-recent-empty'},AH('div',{className:'ga-home-recent-empty-icon'},gaSvgIcon('practice',22)),AH('div',null,AH('strong',null,'まだ練習記録がありません'),AH('span',null,'練習を完了すると、ここに直近の結果が表示されます。'))));
  if(recent.kind==='random'){
   const x=recent.entry||{},shots=x.shots||[],total=x.totalShots||shots.length||10,success=Number.isFinite(x.success)?x.success:shots.filter(s=>s.success||s.resultSuccess).length;
   const avgD=Number.isFinite(x.avgDistanceError)?x.avgDistanceError:(shots.length?Math.round(shots.reduce((a,s)=>a+(Number(s.distanceError)||0),0)/shots.length*10)/10:0);
