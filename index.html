@@ -1332,7 +1332,7 @@ Ap=function({onStart,onResume,onDiscard,hasActive,onHistory,clubs=[],onData,onSe
 
 
 /* =========================================================
-   GOLF AiM v2 — STEP4
+   GOLF AiM v2 — STEP4.1
    Random mode aim / shot planning screen
    ========================================================= */
 const gaRandomAimStyle=document.createElement('style');
@@ -1368,9 +1368,10 @@ gaRandomAimStyle.textContent=`
 .ga-random-choice{display:grid;gap:7px;}
 .ga-random-choice.cols3{grid-template-columns:repeat(3,1fr);}
 .ga-random-choice.cols5{grid-template-columns:repeat(5,1fr);}
+.ga-random-choice.cols9{grid-template-columns:repeat(3,1fr);}
 .ga-random-choice.cols6{grid-template-columns:repeat(3,1fr);}
 .ga-random-choice button{min-height:43px;padding:8px 5px;border:1px solid var(--ga-border);border-radius:12px;background:#fff;color:var(--ga-sub);font-size:12px;font-weight:700;line-height:1.2;}
-.ga-random-choice button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange-soft);color:var(--ga-orange);box-shadow:inset 0 0 0 1px var(--ga-orange);}
+.ga-random-choice button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange);color:#fff;box-shadow:0 3px 10px rgba(255,106,36,.16);}
 .ga-random-choice.cols6 button[aria-pressed="true"]{background:var(--ga-orange);color:white;}
 .ga-random-hit{width:100%;min-height:56px;margin-top:22px;border:0;border-radius:999px;background:var(--ga-orange);color:white;font-size:16px;font-weight:800;box-shadow:0 6px 16px rgba(255,106,36,.22);}
 .ga-random-hit:disabled{background:#D7DCE4;box-shadow:none;}
@@ -1383,7 +1384,11 @@ function gaAimChoices(items,value,onChange,cols='cols3'){
 zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,clubs,isApproach,plan,onPlanField,onStartShot}){
  P.useEffect(()=>{if(plan.style==='普通')onPlanField('style','ノーマル')},[plan.style]);
  const aimItems=target.isGreenShot
-  ?[{label:'手前',value:'グリーン手前'},{label:'中央',value:'グリーン中央'},{label:'奥',value:'グリーン奥'},{label:'左',value:'グリーン左'},{label:'右',value:'グリーン右'}]
+  ?[
+    {label:'左奥',value:'グリーン左奥'},{label:'中央奥',value:'グリーン中央奥'},{label:'右奥',value:'グリーン右奥'},
+    {label:'左',value:'グリーン左'},{label:'中央',value:'グリーン中央'},{label:'右',value:'グリーン右'},
+    {label:'左手前',value:'グリーン左手前'},{label:'手前',value:'グリーン手前'},{label:'右手前',value:'グリーン右手前'}
+   ]
   :[{label:'左',value:'フェアウェイ左'},{label:'中央',value:'フェアウェイセンター'},{label:'右',value:'フェアウェイ右'}];
  const ballItems=[{label:'ドロー',value:'ドロー'},{label:'ストレート',value:'ストレート'},{label:'フェード',value:'フェード'}];
  const shotItems=['ノーマル','フル','ライン出し','ロブ','スティンガー','バニラ'].map(x=>({label:x,value:x}));
@@ -1394,7 +1399,6 @@ zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,c
      AH('div',null,AH('small',null,'今回の距離'),AH('strong',null,target.targetDistance,AH('span',null,'yd'))),
      selectedClub?AH('div',{style:{textAlign:'right'}},AH('small',null,'クラブ'),AH('strong',{style:{fontSize:'19px'}},selectedClub)):null
    ),
-   AH('img',{className:'ga-random-scene',src:ASSET[aimSceneKey(target)]||ASSET.range,alt:aimSceneAlt[aimSceneKey(target)],width:960,height:320}),
    target.courseInfo?.length?AH('section',{className:'ga-random-situation'},AH('h3',null,'状況'),...target.courseInfo.map((x,idx)=>AH('p',{key:idx},AH('strong',null,x.label),AH('span',null,x.value)))):null,
 
    AH('section',{className:'ga-random-form-section'},
@@ -1405,8 +1409,8 @@ zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,c
    ),
 
    AH('section',{className:'ga-random-form-section'},
-     AH('h2',{className:'ga-random-form-title'},'狙う場所'),
-     gaAimChoices(aimItems,plan.aimTarget,v=>onPlanField('aimTarget',v),target.isGreenShot?'cols5':'cols3')
+     AH('h2',{className:'ga-random-form-title'},'方向'),
+     gaAimChoices(aimItems,plan.aimTarget,v=>onPlanField('aimTarget',v),target.isGreenShot?'cols9':'cols3')
    ),
 
    AH('section',{className:'ga-random-form-section'},
