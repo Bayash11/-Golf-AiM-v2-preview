@@ -442,30 +442,33 @@ button:focus-visible, summary:focus-visible, input:focus-visible, select:focus-v
 
 <style id="golf-aim-home-v2-step2">
 /* =========================================================
-   GOLF AiM v2 — STEP2.3
-   Home refinement: stronger orange and cobalt visual accents.
+   GOLF AiM v2 — STEP2.4
+   Home refinement: true fixed hero header + overscroll lock.
    iPhone 14 base: 390 x 844pt.
    ========================================================= */
 /* Home owns its own safe-area spacing; remove the legacy root padding only while home is mounted. */
 #root:has(.ga-home-v2){padding-top:0!important;padding-bottom:0!important;}
-body:has(.ga-home-v2){overflow-x:hidden;}
+body:has(.ga-home-v2){overflow-x:hidden;overscroll-behavior-y:none;}
 .ga-home-v2{
   position:relative;
   width:100%;
   min-height:100dvh;
   margin:0 auto;
-  padding:0 16px calc(var(--ga-bottom-total) + 26px);
+  padding:158px 16px calc(var(--ga-bottom-total) + 26px);
   overflow:visible;
   background:var(--ga-bg);
   color:var(--ga-text);
   box-sizing:border-box;
 }
 .ga-home-hero{
-  position:sticky;
+  position:fixed;
   top:0;
+  left:50%;
   z-index:55;
+  width:min(100vw,390px);
   min-height:158px;
-  margin:0 -16px;
+  margin:0;
+  transform:translateX(-50%);
   padding:calc(env(safe-area-inset-top,0px) + 8px) 20px 4px;
   overflow:hidden;
   background:var(--ga-bg);
