@@ -1686,6 +1686,174 @@ Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
  );
 };
 
+
+/* =========================================================
+   GOLF AiM v2 — STEP6
+   Random mode result summary screen
+   ========================================================= */
+const gaRandomSummaryStyle=document.createElement('style');
+gaRandomSummaryStyle.textContent=`
+#root:has(.ga-random-summary-page){padding-top:0!important;padding-bottom:0!important;}
+.ga-random-summary-page{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 18px) 16px calc(var(--ga-bottom-total) + 34px);background:var(--ga-bg);color:var(--ga-text);box-sizing:border-box;}
+.ga-random-summary-head{position:fixed;top:0;left:50%;z-index:75;width:min(100vw,390px);height:var(--ga-header-total);transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 11px;background:var(--ga-bg);border-bottom:1px solid var(--ga-border);box-sizing:border-box;}
+.ga-random-summary-head h1{margin:0;font-size:20px;line-height:44px;font-weight:800;color:var(--ga-text);}
+.ga-random-summary-content{display:grid;gap:14px;}
+.ga-random-summary-hero{padding:19px 16px 17px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);text-align:center;}
+.ga-random-summary-hero small{display:block;color:var(--ga-sub);font-size:11px;font-weight:600;}
+.ga-random-summary-score{display:flex;align-items:baseline;justify-content:center;gap:5px;margin:5px 0 3px;}
+.ga-random-summary-score strong{font-size:48px;line-height:1;font-weight:850;color:var(--ga-orange);letter-spacing:-.04em;}
+.ga-random-summary-score span{font-size:18px;color:var(--ga-sub);font-weight:700;}
+.ga-random-summary-hero p{margin:5px 0 0;color:var(--ga-sub);font-size:12px;}
+.ga-random-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ga-random-stat{min-width:0;padding:13px 7px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);text-align:center;}
+.ga-random-stat small{display:block;min-height:30px;color:var(--ga-sub);font-size:10px;line-height:1.35;font-weight:600;}
+.ga-random-stat strong{display:block;margin-top:4px;color:var(--ga-text);font-size:20px;line-height:1;font-weight:800;white-space:nowrap;}
+.ga-random-stat strong.blue{color:var(--ga-blue);}
+.ga-random-summary-card{padding:16px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);}
+.ga-random-summary-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 12px;}
+.ga-random-summary-title strong{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:800;color:var(--ga-text);}
+.ga-random-summary-title strong:before{content:"";width:4px;height:19px;border-radius:999px;background:var(--ga-orange);}
+.ga-random-summary-title small{color:var(--ga-sub);font-size:10px;}
+.ga-dispersion-wrap{position:relative;width:100%;max-width:280px;margin:0 auto;}
+.ga-dispersion-svg{display:block;width:100%;height:auto;aspect-ratio:0.72;background:#F8FAFC;border-radius:16px;border:1px solid var(--ga-border);}
+.ga-dispersion-label{position:absolute;color:var(--ga-sub);font-size:9px;font-weight:700;pointer-events:none;}
+.ga-dispersion-label.top{top:8px;left:50%;transform:translateX(-50%);}
+.ga-dispersion-label.bottom{bottom:8px;left:50%;transform:translateX(-50%);}
+.ga-dispersion-label.left{left:8px;top:50%;transform:translateY(-50%);}
+.ga-dispersion-label.right{right:8px;top:50%;transform:translateY(-50%);}
+.ga-dispersion-note{margin:10px 0 0;text-align:center;color:var(--ga-sub);font-size:10px;line-height:1.5;}
+.ga-trend-list{display:grid;gap:9px;}
+.ga-trend-row{display:grid;grid-template-columns:88px 1fr;gap:10px;align-items:center;padding:10px 11px;border-radius:12px;background:var(--ga-soft);}
+.ga-trend-row span{color:var(--ga-sub);font-size:10px;font-weight:600;}
+.ga-trend-row strong{color:var(--ga-text);font-size:12px;font-weight:750;line-height:1.45;}
+.ga-shot-list{display:grid;gap:8px;}
+.ga-shot-row{display:grid;grid-template-columns:28px 1fr auto;gap:9px;align-items:center;padding:10px 11px;border-radius:12px;background:var(--ga-soft);}
+.ga-shot-num{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;background:#fff;color:var(--ga-sub);font-size:11px;font-weight:800;}
+.ga-shot-main strong{display:block;color:var(--ga-text);font-size:12px;font-weight:750;}
+.ga-shot-main span{display:block;margin-top:2px;color:var(--ga-sub);font-size:10px;line-height:1.4;}
+.ga-shot-result{min-width:44px;text-align:right;font-size:11px;font-weight:800;}
+.ga-shot-result.ok{color:var(--ga-success);}.ga-shot-result.ng{color:var(--ga-error);}
+.ga-random-summary-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ga-random-summary-actions button{min-height:48px;border-radius:16px;font-size:13px;font-weight:800;}
+.ga-random-summary-actions .primary{border:0;background:var(--ga-orange);color:#fff;}
+.ga-random-summary-actions .secondary{border:1px solid var(--ga-border);background:#fff;color:var(--ga-text);}
+.ga-random-json{margin-top:2px;}
+.ga-random-json button{width:100%;min-height:42px;border:1px solid var(--ga-border)!important;border-radius:14px!important;background:#fff!important;color:var(--ga-sub)!important;box-shadow:none!important;font-size:11px!important;font-weight:700!important;}
+`;
+document.head.appendChild(gaRandomSummaryStyle);
+
+function gaSigned(v,unit='yd'){
+ const n=Math.round(Number(v||0)*10)/10;
+ if(n===0)return 'ほぼ中央';
+ return (n<0?'左 ':'右 ')+Math.abs(n)+unit;
+}
+function gaDistanceBias(shots){
+ if(!shots?.length)return {label:'—',value:0};
+ const avg=shots.reduce((sum,x)=>sum+(Number(x.forward||0)-Number(x.targetDistance||0)),0)/shots.length;
+ const n=Math.round(avg*10)/10;
+ return {value:n,label:Math.abs(n)<1?'ほぼ狙い通り':n<0?`平均 ${Math.abs(n)}yd ショート`:`平均 ${n}yd オーバー`};
+}
+function gaLateralBias(shots){
+ if(!shots?.length)return {label:'—',value:0};
+ const avg=shots.reduce((sum,x)=>sum+Number(x.lateral||0),0)/shots.length;
+ const n=Math.round(avg*10)/10;
+ return {value:n,label:Math.abs(n)<1?'左右の偏りは小さい':n<0?`平均 ${Math.abs(n)}yd 左寄り`:`平均 ${n}yd 右寄り`};
+}
+function GaDispersion({shots=[]}){
+ const W=260,H=360,cx=W/2,cy=H/2;
+ const maxLat=Math.max(20,...shots.map(x=>Math.abs(Number(x.lateral||0))));
+ const maxDist=Math.max(20,...shots.map(x=>Math.abs(Number(x.forward||0)-Number(x.targetDistance||0))));
+ const sx=(W-54)/(maxLat*2),sy=(H-64)/(maxDist*2);
+ const x=v=>cx+Number(v||0)*sx;
+ const y=v=>cy-(Number(v||0))*sy;
+ return AH('div',{className:'ga-dispersion-wrap'},
+   AH('svg',{className:'ga-dispersion-svg',viewBox:`0 0 ${W} ${H}`,'aria-label':'ショット分布図'},
+     AH('line',{x1:cx,y1:22,x2:cx,y2:H-22,stroke:'#DDE3EA',strokeWidth:1}),
+     AH('line',{x1:24,y1:cy,x2:W-24,y2:cy,stroke:'#DDE3EA',strokeWidth:1}),
+     AH('ellipse',{cx,cy,rx:46,ry:62,fill:'none',stroke:'#C9D6EA',strokeWidth:1.5,strokeDasharray:'5 5'}),
+     AH('circle',{cx,cy,r:5,fill:'#FF6A24'}),
+     ...shots.map((shot,idx)=>{
+       const de=Number(shot.forward||0)-Number(shot.targetDistance||0);
+       const px=Math.max(24,Math.min(W-24,x(shot.lateral)));
+       const py=Math.max(24,Math.min(H-24,y(de)));
+       return AH('g',{key:idx},
+         AH('circle',{cx:px,cy:py,r:6.5,fill:shot.success?'#2F6FE4':'#FFFFFF',stroke:shot.success?'#2F6FE4':'#EF4444',strokeWidth:2}),
+         AH('text',{x:px,y:py+3.1,textAnchor:'middle',fontSize:7,fontWeight:800,fill:shot.success?'#FFFFFF':'#EF4444'},String(idx+1))
+       );
+     })
+   ),
+   AH('span',{className:'ga-dispersion-label top'},'オーバー'),
+   AH('span',{className:'ga-dispersion-label bottom'},'ショート'),
+   AH('span',{className:'ga-dispersion-label left'},'左'),
+   AH('span',{className:'ga-dispersion-label right'},'右')
+ );
+}
+Dp=function({session:t,onRestart,onMenu,onHome,onPractice,onData,onSettings,warning}){
+ const shots=t.shots||[];
+ const total=t.totalShots||shots.length||10;
+ const success=Number(t.success||0);
+ const rate=Number.isFinite(Number(t.successRate))?Number(t.successRate):Math.round(success/Math.max(1,total)*100);
+ const avgDist=Number(t.avgDistanceError||0);
+ const avgLat=Number(t.avgLateralError||0);
+ const distBias=gaDistanceBias(shots),latBias=gaLateralBias(shots);
+ const mostMiss=(()=>{
+   const counts={};
+   shots.forEach(s=>(s.contactOther||[]).forEach(x=>counts[x]=(counts[x]||0)+1));
+   const arr=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+   return arr.length?`${arr[0][0]} ${arr[0][1]}球`:'大きなミス傾向なし';
+ })();
+ return AH('main',{className:'ga-random-summary-page'},
+   AH('header',{className:'ga-random-summary-head'},AH('h1',null,'練習結果')),
+   AH('div',{className:'ga-random-summary-content'},
+     warning?AH('div',{className:'ga-random-summary-card',style:{background:'#FFF7ED',color:'#9A3412',fontSize:'11px',fontWeight:700}},warning):null,
+     AH('section',{className:'ga-random-summary-hero'},
+       AH('small',null,`ランダムモード・${total}球`),
+       AH('div',{className:'ga-random-summary-score'},AH('strong',null,success),AH('span',null,`/ ${total} 成功`)),
+       AH('p',null,`成功率 ${rate}%`)
+     ),
+     AH('div',{className:'ga-random-stat-grid'},
+       AH('div',{className:'ga-random-stat'},AH('small',null,'成功率'),AH('strong',{className:'blue'},rate+'%')),
+       AH('div',{className:'ga-random-stat'},AH('small',null,'平均距離誤差'),AH('strong',null,avgDist+'yd')),
+       AH('div',{className:'ga-random-stat'},AH('small',null,'平均横ズレ'),AH('strong',null,avgLat+'yd'))
+     ),
+     AH('section',{className:'ga-random-summary-card'},
+       AH('div',{className:'ga-random-summary-title'},AH('strong',null,'ショット分布'),AH('small',null,'狙いを中心に表示')),
+       AH(GaDispersion,{shots}),
+       AH('p',{className:'ga-dispersion-note'},'中央が狙い位置。番号はショット順です。青は成功、赤枠は失敗。')
+     ),
+     AH('section',{className:'ga-random-summary-card'},
+       AH('div',{className:'ga-random-summary-title'},AH('strong',null,'今回の傾向')),
+       AH('div',{className:'ga-trend-list'},
+         AH('div',{className:'ga-trend-row'},AH('span',null,'距離'),AH('strong',null,distBias.label)),
+         AH('div',{className:'ga-trend-row'},AH('span',null,'左右'),AH('strong',null,latBias.label)),
+         AH('div',{className:'ga-trend-row'},AH('span',null,'ミス'),AH('strong',null,mostMiss))
+       )
+     ),
+     AH('section',{className:'ga-random-summary-card'},
+       AH('div',{className:'ga-random-summary-title'},AH('strong',null,`${total}球の結果`)),
+       AH('div',{className:'ga-shot-list'},...shots.map((shot,idx)=>{
+         const de=Math.abs(Number(shot.forward||0)-Number(shot.targetDistance||0));
+         const le=Math.abs(Number(shot.lateral||0));
+         return AH('div',{className:'ga-shot-row',key:idx},
+           AH('div',{className:'ga-shot-num'},idx+1),
+           AH('div',{className:'ga-shot-main'},
+             AH('strong',null,`${shot.club} ・ ${shot.targetDistance}yd → ${shot.forward}yd`),
+             AH('span',null,`距離誤差 ${Math.round(de*10)/10}yd / 横ズレ ${Math.round(le*10)/10}yd`)
+           ),
+           AH('div',{className:'ga-shot-result '+(shot.success?'ok':'ng')},shot.success?'成功':'失敗')
+         );
+       }))
+     ),
+     AH('div',{className:'ga-random-json'},AH(sn,{getData:()=>my(t),label:'この練習結果をJSONでコピー'})),
+     AH('div',{className:'ga-random-summary-actions'},
+       AH('button',{type:'button',className:'secondary',onClick:onMenu},'メニューへ'),
+       AH('button',{type:'button',className:'primary',onClick:onRestart},'もう一度')
+     )
+   ),
+   AH(GaBottomNav,{active:'data',onHome:onHome,onPractice:onPractice,onData:onData,onSettings:onSettings})
+ );
+};
+
 try{let t=document.getElementById("root");(0,py.createRoot)(t).render(gy.default.createElement(xf))}catch(t){Rp(t)}window.addEventListener("error",function(t){console.error("Uncaught error:",t.error||t.message)});})();
 /*! Bundled license information:
 
