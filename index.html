@@ -1230,44 +1230,55 @@ xp=function({round:t,onRestart:l,onMenu:e,warning:a,skillLevel:n,history:history
 
 
 /* =========================================================
-   GOLF AiM v2 — STEP3
-   Random mode setup screen
+   GOLF AiM v2 — STEP3.1
+   Random mode setup screen — adopted layout
    ========================================================= */
 const gaRandomSetupStyle=document.createElement('style');
 gaRandomSetupStyle.textContent=`
 #root:has(.ga-random-setup){padding-top:0!important;padding-bottom:0!important;}
-.ga-random-setup{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 18px) 16px calc(var(--ga-bottom-total) + 28px);background:var(--ga-bg);color:var(--ga-text);box-sizing:border-box;}
-.ga-random-header{position:fixed;top:0;left:50%;z-index:70;width:min(100vw,390px);height:var(--ga-header-total);transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 11px;background:var(--ga-bg);border-bottom:1px solid var(--ga-border);box-sizing:border-box;}
-.ga-random-header h1{margin:0;font-size:20px;line-height:44px;font-weight:800;color:var(--ga-text);}
-.ga-random-back{position:absolute;left:10px;bottom:11px;width:44px;height:44px;min-height:44px;display:grid;place-items:center;border:0;background:transparent;color:var(--ga-text);font-size:31px;line-height:1;}
-.ga-random-content{display:grid;gap:14px;}
-.ga-random-intro{padding:0 2px 2px;}
-.ga-random-intro strong{display:block;font-size:23px;line-height:1.25;font-weight:800;letter-spacing:-.02em;}
-.ga-random-intro p{margin:6px 0 0;color:var(--ga-sub);font-size:13px;line-height:1.6;}
-.ga-random-card{background:#fff;border-radius:16px;padding:16px;box-shadow:var(--ga-shadow-light);}
-.ga-random-card-title{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-.ga-random-card-title strong{font-size:15px;font-weight:800;}
-.ga-random-card-title small{color:var(--ga-sub);font-size:11px;}
-.ga-random-segment{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-.ga-random-segment.count{grid-template-columns:repeat(3,1fr);}
-.ga-random-segment button{min-height:46px;border:1px solid var(--ga-border);border-radius:14px;background:var(--ga-soft);color:var(--ga-sub);font-size:14px;font-weight:700;}
-.ga-random-segment button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange-soft);color:var(--ga-orange);box-shadow:inset 0 0 0 1px var(--ga-orange);}
-.ga-random-help{margin:9px 1px 0;color:var(--ga-sub);font-size:11px;line-height:1.55;}
-.ga-random-club-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:12px;}
-.ga-random-club-grid button{min-width:0;min-height:44px;padding:8px 2px;border:1px solid var(--ga-border);border-radius:12px;background:#fff;color:var(--ga-text);font-size:13px;font-weight:700;}
-.ga-random-club-grid button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange-soft);color:var(--ga-orange);box-shadow:inset 0 0 0 1px var(--ga-orange);}
-.ga-random-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 15px;border-radius:16px;background:var(--ga-blue-soft);color:var(--ga-text);}
-.ga-random-summary small{display:block;color:var(--ga-sub);font-size:10px;font-weight:600;margin-bottom:2px;}
-.ga-random-summary strong{font-size:14px;font-weight:800;}
-.ga-random-summary b{font-size:24px;color:var(--ga-blue);white-space:nowrap;}
-.ga-random-start{width:100%;min-height:54px;border:0;border-radius:999px;background:var(--ga-orange);color:#fff;font-size:16px;font-weight:800;box-shadow:0 5px 14px rgba(255,106,36,.22);}
-.ga-random-start:disabled{background:#D7DCE4;color:#fff;box-shadow:none;}
+.ga-random-setup{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 22px) 16px calc(28px + env(safe-area-inset-bottom,0px));background:var(--ga-bg);color:var(--ga-text);box-sizing:border-box;}
+.ga-random-header{position:fixed;top:0;left:50%;z-index:70;width:min(100vw,390px);height:var(--ga-header-total);transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 10px;background:var(--ga-bg);border-bottom:1px solid var(--ga-border);box-sizing:border-box;}
+.ga-random-header-copy{text-align:center;line-height:1.15;}
+.ga-random-header h1{margin:0;font-size:20px;font-weight:800;color:var(--ga-text);}
+.ga-random-header p{margin:4px 0 0;color:var(--ga-sub);font-size:11px;font-weight:600;}
+.ga-random-back{position:absolute;left:10px;bottom:10px;width:44px;height:44px;min-height:44px;display:grid;place-items:center;border:0;background:transparent;color:var(--ga-text);font-size:32px;line-height:1;}
+.ga-random-content{display:grid;gap:22px;}
+.ga-random-section{display:grid;gap:12px;}
+.ga-random-section-title{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 1px;}
+.ga-random-section-title strong{display:flex;align-items:center;gap:9px;font-size:17px;font-weight:800;color:var(--ga-text);}
+.ga-random-section-title strong:before{content:"";width:4px;height:22px;border-radius:999px;background:var(--ga-orange);}
+.ga-random-section-title small{color:var(--ga-sub);font-size:10px;font-weight:600;}
+.ga-random-mode-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+.ga-random-mode-card{position:relative;min-height:164px;padding:18px 12px 16px;border:1px solid transparent;border-radius:18px;background:#fff;box-shadow:var(--ga-shadow-light);text-align:center;color:var(--ga-text);}
+.ga-random-mode-card[aria-pressed="true"]{border:2px solid var(--ga-orange);background:linear-gradient(180deg,#FFFDFC,#FFF3EC);box-shadow:0 6px 16px rgba(255,106,36,.12);}
+.ga-random-mode-icon{width:64px;height:64px;margin:0 auto 12px;display:grid;place-items:center;border-radius:50%;background:#EEF4FF;color:var(--ga-blue);}
+.ga-random-mode-card.fixed .ga-random-mode-icon{background:#FFF0E7;color:var(--ga-orange);}
+.ga-random-mode-card h2{margin:0 0 6px;font-size:17px;line-height:1.25;font-weight:800;}
+.ga-random-mode-card p{margin:0;color:var(--ga-sub);font-size:11px;line-height:1.5;font-weight:500;}
+.ga-random-check{position:absolute;right:10px;top:10px;width:23px;height:23px;display:grid;place-items:center;border-radius:50%;background:var(--ga-orange);color:white;font-size:15px;font-weight:800;}
+.ga-random-club-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
+.ga-random-club-grid button{min-width:0;min-height:44px;padding:7px 2px;border:1px solid var(--ga-border);border-radius:13px;background:#fff;color:var(--ga-text);font-size:13px;font-weight:700;box-shadow:0 2px 8px rgba(23,32,51,.035);}
+.ga-random-club-grid button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange);color:#fff;box-shadow:0 4px 12px rgba(255,106,36,.18);}
+.ga-random-count-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ga-random-count-grid button{min-height:48px;border:1px solid var(--ga-border);border-radius:14px;background:#fff;color:var(--ga-text);font-size:14px;font-weight:750;}
+.ga-random-count-grid button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange);color:white;box-shadow:0 4px 12px rgba(255,106,36,.18);}
+.ga-random-summary{display:flex;align-items:center;justify-content:center;gap:4px;padding:13px 14px;border-radius:14px;background:#F1F4F8;color:var(--ga-sub);font-size:12px;font-weight:600;text-align:center;}
+.ga-random-summary b{color:var(--ga-text);font-weight:800;}
+.ga-random-start{position:relative;width:100%;min-height:58px;border:0;border-radius:18px;background:var(--ga-orange);color:white;font-size:17px;font-weight:800;box-shadow:0 7px 18px rgba(255,106,36,.22);}
+.ga-random-start:after{content:"›";position:absolute;right:18px;top:50%;transform:translateY(-53%);font-size:31px;font-weight:300;line-height:1;}
+.ga-random-start:disabled{background:#D7DCE4;color:white;box-shadow:none;}
 .ga-random-resume{display:grid;gap:8px;padding:14px 15px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);}
-.ga-random-resume button:first-of-type{width:100%;min-height:48px;border:0;border-radius:14px;background:var(--ga-blue);color:#fff;font-size:14px;font-weight:800;}
+.ga-random-resume button:first-of-type{width:100%;min-height:46px;border:0;border-radius:14px;background:var(--ga-blue);color:#fff;font-size:14px;font-weight:800;}
 .ga-random-resume button:last-of-type{justify-self:center;min-height:34px;border:0;background:transparent;color:var(--ga-error);font-size:11px;font-weight:700;}
 `;
 document.head.appendChild(gaRandomSetupStyle);
 
+function gaRandomClubIcon(){
+ return AH('svg',{viewBox:'0 0 48 48',width:42,height:42,'aria-hidden':true},
+   AH('path',{d:'M31 7L20 34',fill:'none',stroke:'currentColor',strokeWidth:4,strokeLinecap:'round'}),
+   AH('path',{d:'M19 33c-5 0-8 2-8 5 0 2 2 3 5 3h8c3 0 5-2 5-5 0-2-2-3-4-3z',fill:'currentColor'})
+ );
+}
 Ap=function({onStart,onResume,onDiscard,hasActive,onHistory,clubs=[],onData,onSettings,onBack}){
  const clubNames=(clubs||[]).map(c=>typeof c==='string'?c:c.name).filter(Boolean);
  const [count,setCount]=P.useState(10);
@@ -1276,31 +1287,46 @@ Ap=function({onStart,onResume,onDiscard,hasActive,onHistory,clubs=[],onData,onSe
  P.useEffect(()=>{if(mode==='fixed'&&!fixed&&clubNames.length)setFixed(clubNames[0])},[mode,clubNames.join('|')]);
  const canStart=mode!=='fixed'||!!fixed;
  const start=()=>canStart&&onStart({totalShots:count,clubMode:mode,fixedClub:mode==='fixed'?fixed:null});
+ const summary=mode==='fixed'?`同じクラブ / ${fixed||'未選択'} / ${count}球`:`ランダム / ${count}球`;
  return AH('main',{className:'ga-random-setup'},
-   AH('header',{className:'ga-random-header'},AH('button',{type:'button',className:'ga-random-back',onClick:onBack,'aria-label':'戻る'},'‹'),AH('h1',null,'ランダムモード')),
-   AH('div',{className:'ga-random-content'},
-     AH('section',{className:'ga-random-intro'},AH('strong',null,'練習内容を設定'),AH('p',null,'球数とクラブの使い方を選んでスタートします。')),
-     hasActive?AH('section',{className:'ga-random-resume'},AH('button',{type:'button',onClick:onResume},'前回の続きから再開'),AH('button',{type:'button',onClick:()=>{if(window.confirm('再開待ちの練習を破棄しますか？'))onDiscard()}},'保存中の練習を破棄')):null,
-     AH('section',{className:'ga-random-card'},
-       AH('div',{className:'ga-random-card-title'},AH('strong',null,'球数'),AH('small',null,'3 / 5 / 10球')),
-       AH('div',{className:'ga-random-segment count'},...[3,5,10].map(n=>AH('button',{type:'button',key:n,'aria-pressed':count===n,onClick:()=>setCount(n)},n+'球')))
-     ),
-     AH('section',{className:'ga-random-card'},
-       AH('div',{className:'ga-random-card-title'},AH('strong',null,'クラブ'),AH('small',null,'使い方を選択')),
-       AH('div',{className:'ga-random-segment'},
-         AH('button',{type:'button','aria-pressed':mode==='random',onClick:()=>setMode('random')},'毎球選ぶ'),
-         AH('button',{type:'button','aria-pressed':mode==='fixed',onClick:()=>setMode('fixed')},'同じ番手')
-       ),
-       AH('p',{className:'ga-random-help'},mode==='random'?'出題された距離に合わせて、毎球クラブを選びます。':'選んだ1本のクラブに集中して練習します。'),
-       mode==='fixed'?AH('div',{className:'ga-random-club-grid'},...clubNames.map(club=>AH('button',{type:'button',key:club,'aria-pressed':fixed===club,onClick:()=>setFixed(club)},club))):null
-     ),
-     AH('section',{className:'ga-random-summary'},
-       AH('div',null,AH('small',null,'今回の設定'),AH('strong',null,mode==='fixed'?(fixed?fixed+'・同じ番手':'同じ番手'):'毎球クラブを選択')),
-       AH('b',null,count+'球')
-     ),
-     AH('button',{type:'button',className:'ga-random-start',disabled:!canStart,onClick:start},'練習をスタート')
+   AH('header',{className:'ga-random-header'},
+     AH('button',{type:'button',className:'ga-random-back',onClick:onBack,'aria-label':'戻る'},'‹'),
+     AH('div',{className:'ga-random-header-copy'},AH('h1',null,'ランダムモード'),AH('p',null,'練習方法を選択'))
    ),
-   AH(GaBottomNav,{active:'practice',onHome:onBack,onPractice:()=>{},onData:onData||onHistory,onSettings})
+   AH('div',{className:'ga-random-content'},
+     hasActive?AH('section',{className:'ga-random-resume'},AH('button',{type:'button',onClick:onResume},'前回の続きから再開'),AH('button',{type:'button',onClick:()=>{if(window.confirm('再開待ちの練習を破棄しますか？'))onDiscard()}},'保存中の練習を破棄')):null,
+
+     AH('section',{className:'ga-random-section'},
+       AH('div',{className:'ga-random-section-title'},AH('strong',null,'クラブの選び方')),
+       AH('div',{className:'ga-random-mode-grid'},
+         AH('button',{type:'button',className:'ga-random-mode-card','aria-pressed':mode==='random',onClick:()=>setMode('random')},
+           mode==='random'?AH('span',{className:'ga-random-check'},'✓'):null,
+           AH('div',{className:'ga-random-mode-icon'},gaSvgIcon('random',38)),
+           AH('h2',null,'ランダム'),
+           AH('p',null,'複数クラブから',AH('br'), '毎球ランダム出題')
+         ),
+         AH('button',{type:'button',className:'ga-random-mode-card fixed','aria-pressed':mode==='fixed',onClick:()=>setMode('fixed')},
+           mode==='fixed'?AH('span',{className:'ga-random-check'},'✓'):null,
+           AH('div',{className:'ga-random-mode-icon'},gaRandomClubIcon()),
+           AH('h2',null,'同じクラブ'),
+           AH('p',null,'1本のクラブを',AH('br'),'集中練習')
+         )
+       )
+     ),
+
+     mode==='fixed'?AH('section',{className:'ga-random-section'},
+       AH('div',{className:'ga-random-section-title'},AH('strong',null,'クラブを選択'),AH('small',null,'登録クラブから選択')),
+       AH('div',{className:'ga-random-club-grid'},...clubNames.map(club=>AH('button',{type:'button',key:club,'aria-pressed':fixed===club,onClick:()=>setFixed(club)},club)))
+     ):null,
+
+     AH('section',{className:'ga-random-section'},
+       AH('div',{className:'ga-random-section-title'},AH('strong',null,'球数')),
+       AH('div',{className:'ga-random-count-grid'},...[3,5,10].map(n=>AH('button',{type:'button',key:n,'aria-pressed':count===n,onClick:()=>setCount(n)},n+'球')))
+     ),
+
+     AH('div',{className:'ga-random-summary'},'選択内容：',AH('b',null,summary)),
+     AH('button',{type:'button',className:'ga-random-start',disabled:!canStart,onClick:start},'練習を開始')
+   )
  );
 };
 
