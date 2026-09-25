@@ -1430,7 +1430,7 @@ zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,c
 
 
 /* =========================================================
-   GOLF AiM v2 — STEP5
+   GOLF AiM v2 — STEP5.1
    Random mode result input screen
    ========================================================= */
 const gaRandomResultStyle=document.createElement('style');
@@ -1459,9 +1459,8 @@ gaRandomResultStyle.textContent=`
 .ga-result-adjust button{min-height:42px;border:1px solid var(--ga-border);border-radius:12px;background:var(--ga-soft);color:var(--ga-text);font-size:13px;font-weight:750;}
 .ga-result-fine-note{margin:7px 0 0;text-align:center;color:var(--ga-sub);font-size:10px;}
 .ga-result-lateral-now{text-align:center;margin:2px 0 10px;font-size:16px;font-weight:800;color:var(--ga-text);}
-.ga-result-direction{display:grid;grid-template-columns:1fr 1fr 72px;gap:8px;}
-.ga-result-direction button{min-height:42px;border:1px solid var(--ga-border);border-radius:12px;background:#fff;color:var(--ga-sub);font-size:13px;font-weight:750;}
-.ga-result-direction button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange);color:white;}
+.ga-result-direction{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ga-result-direction button{min-height:46px;border:1px solid var(--ga-border);border-radius:12px;background:#fff;color:var(--ga-text);font-size:13px;font-weight:750;}
 .ga-result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
 .ga-result-grid button,.ga-result-grid .blank{min-height:42px;border:1px solid var(--ga-border);border-radius:11px;background:#fff;color:var(--ga-sub);font-size:11px;font-weight:700;line-height:1.2;}
 .ga-result-grid button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange);color:white;}
@@ -1541,16 +1540,9 @@ Cp=function({target,shotIndex=0,totalShots=10,pending,onField,onToggleOther,onTo
    ),
 
    gaResultSection('横ズレ',lat===0?'中央':`${lat<0?'左':'右'} ${mag}yd`,
-     AH(P.Fragment,null,
-       AH('div',{className:'ga-result-direction'},
-         AH('button',{type:'button','aria-pressed':side==='left',onClick:()=>setSide('left')},'左'),
-         AH('button',{type:'button','aria-pressed':side==='right',onClick:()=>setSide('right')},'右'),
-         AH('button',{type:'button','aria-pressed':side==='center',onClick:()=>setSide('center')},'中央')
-       ),
-       AH('div',{className:'ga-result-adjust'},
-         AH('button',{type:'button',onClick:()=>adjustMag(-step)},`−${step}yd`),
-         AH('button',{type:'button',onClick:()=>adjustMag(step)},`＋${step}yd`)
-       )
+     AH('div',{className:'ga-result-direction'},
+       AH('button',{type:'button',onClick:()=>onField('lateral',lat-step)},`左${step}yd`),
+       AH('button',{type:'button',onClick:()=>onField('lateral',lat+step)},`右${step}yd`)
      )
    ),
 
