@@ -1332,7 +1332,7 @@ Ap=function({onStart,onResume,onDiscard,hasActive,onHistory,clubs=[],onData,onSe
 
 
 /* =========================================================
-   GOLF AiM v2 — STEP4.1
+   GOLF AiM v2 — STEP4.2
    Random mode aim / shot planning screen
    ========================================================= */
 const gaRandomAimStyle=document.createElement('style');
@@ -1392,6 +1392,7 @@ zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,c
   :[{label:'左',value:'フェアウェイ左'},{label:'中央',value:'フェアウェイセンター'},{label:'右',value:'フェアウェイ右'}];
  const ballItems=[{label:'ドロー',value:'ドロー'},{label:'ストレート',value:'ストレート'},{label:'フェード',value:'フェード'}];
  const shotItems=['ノーマル','フル','ライン出し','ロブ','スティンガー','バニラ'].map(x=>({label:x,value:x}));
+ const situationItems=(target.courseInfo||[]).filter(x=>!(target.isGreenShot&&/OB/i.test(`${x.label||''} ${x.value||''}`)));
  const clubReady=!!selectedClub;
  return AH('main',{className:'ga-random-aim'},
    AH('header',{className:'ga-random-aim-head'},AH('h1',null,'狙いを決める'),AH('div',{className:'ga-random-aim-progress'},`${shotIndex+1} / ${totalShots}`)),
@@ -1399,7 +1400,7 @@ zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,c
      AH('div',null,AH('small',null,'今回の距離'),AH('strong',null,target.targetDistance,AH('span',null,'yd'))),
      selectedClub?AH('div',{style:{textAlign:'right'}},AH('small',null,'クラブ'),AH('strong',{style:{fontSize:'19px'}},selectedClub)):null
    ),
-   target.courseInfo?.length?AH('section',{className:'ga-random-situation'},AH('h3',null,'状況'),...target.courseInfo.map((x,idx)=>AH('p',{key:idx},AH('strong',null,x.label),AH('span',null,x.value)))):null,
+   situationItems.length?AH('section',{className:'ga-random-situation'},AH('h3',null,'状況'),...situationItems.map((x,idx)=>AH('p',{key:idx},AH('strong',null,x.label),AH('span',null,x.value)))):null,
 
    AH('section',{className:'ga-random-form-section'},
      AH('h2',{className:'ga-random-form-title'},'クラブ'),
