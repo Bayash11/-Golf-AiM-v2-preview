@@ -998,3 +998,198 @@ function _gaLevelFor(recentMetrics,aggregate,mode){
     }
     if(!agg)continue;
     if(req){const available=mode==='approach'?recentMetrics.filter(m=>m.approachCount>0):recentMetrics;const needed=mode==='approach'?Math.min(req,available.length):req;const passes=available.filter(m=>_gaSessionPass(m,cfg,mode)).length;if(needed>0&&passes<needed)continue}
+    return cfg.key;
+  }
+  return 'below100';
+}
+function _gaLevelText(level){return level==='below100'?'100切り未達':`${bf[level]||'-'}レベル`}
+function _gaRecentAssessment(round,history){
+  const current={date:round.date||new Date().toLocaleDateString('ja-JP'),sessionId:round.sessionId,holeCount:round.holeCount,holes:round.holes,totalScore:(round.holes||[]).reduce((a,h)=>a+(h.total||0),0),diff:(round.holes||[]).reduce((a,h)=>a+((h.total||0)-(h.par||0)),0)};
+  const all=[current,...(history||[])].filter(x=>x&&!x.incomplete&&Array.isArray(x.holes)&&x.holes.length);
+  const seen=new Set(),recent=[];
+  for(const x of all){const key=x.sessionId||`${x.date}-${x.totalScore}-${x.holeCount}`;if(seen.has(key))continue;seen.add(key);recent.push(x);if(recent.length>=5)break}
+  const metrics=recent.map(x=>_gaSessionMetrics(x.holes));
+  const pooledHoles=recent.flatMap(x=>x.holes||[]),aggregate=_gaSessionMetrics(pooledHoles);
+  const pace9=metrics.map(m=>m.holes?m.diff*9/m.holes:null).filter(Number.isFinite);
+  const shotLevel=_gaLevelFor(metrics,aggregate,'shot'),managementLevel=_gaLevelFor(metrics,aggregate,'management'),approachLevel=_gaLevelFor(metrics,aggregate,'approach'),overallLevel=_gaLevelFor(metrics,aggregate,'overall');
+  const status=recent.length<3?'暫定評価':recent.length<5?'実力評価':'通常評価';
+  const stable90=_gaClubStableRate(aggregate,1);
+  return {sessionsUsed:recent.length,status,shotLevel,managementLevel,approachLevel,overallLevel,metrics:aggregate,median9HDiff:_gaMedian(pace9),clubStable90:stable90};
+}
+function _gaCurrentResult(round,skillLevel){
+  const metrics=_gaSessionMetrics(round.holes),legacy=_gaLegacyCoursePerformance(round.holes,skillLevel),score=legacy?.overall?.score??null;
+  return {score,legacy,metrics};
+}
+function _gaPerfRow(label,value,sub){return AH('div',{className:'flex items-center justify-between text-xs'},AH('span',{className:'font-bold',style:{color:s.ink}},label),AH('span',{className:'font-black',style:{color:s.goldDim}},value,sub?AH('span',{className:'font-normal ml-1',style:{color:s.inkSoft}},sub):null))}
+
+xp=function({round:t,onRestart:l,onMenu:e,warning:a,skillLevel:n,history:history=[]}){
+  const u=t.holes,c=u.reduce((x,N)=>x+N.total,0),o=u.reduce((x,N)=>x+N.par,0),f=c-o,r=u.filter(x=>x.total-x.par===0).length,d=u.filter(x=>x.total-x.par===-1).length,h=u.filter(x=>x.total-x.par<=-2).length,m=u.filter(x=>x.total-x.par===1).length,g=u.filter(x=>x.total-x.par>=2).length,S=u.reduce((x,N)=>x+N.obCount,0),z=u.reduce((x,N)=>x+N.waterCount,0),H=u.filter(x=>x.gir).length;
+  const clubCount={},missCount={};u.forEach(x=>(x.shots||[]).forEach(N=>{clubCount[N.club]=(clubCount[N.club]||0)+1;ra(N).forEach(D=>missCount[D]=(missCount[D]||0)+1)}));
+  const clubs=Object.entries(clubCount).sort((x,N)=>N[1]-x[1]),misses=Object.entries(missCount).sort((x,N)=>N[1]-x[1]),lost=u.filter(x=>x.total>x.par);
+  const current=_gaCurrentResult(t,n),cm=current.metrics,recent=_gaRecentAssessment(t,history),rm=recent.metrics;
+  const approachText=cm.approachMedianM===null?'-':`${cm.approachMedianM.toFixed(1)}m`,ratioText=cm.medianRatio===null?'-':`×${cm.medianRatio.toFixed(2)}`;
+  const statusNote=recent.sessionsUsed<3?'3セッション未満のため暫定です。':recent.sessionsUsed<5?'直近データが5回に達するまでは参考評価です。':'直近5セッションの再現性で判定しています。';
+  const getData=()=>({profileVersion:da,evaluationVersion:2,generatedAt:new Date().toISOString(),mode:'course',date:t.date||new Date().toLocaleDateString('ja-JP'),sessionId:t.sessionId,holeCount:t.holeCount,totalScore:c,totalPar:o,diff:f,holes:u.map(x=>({number:x.number,par:x.par,distance:x.distance,pinPosition:x.pinLabel,elevation:x.elevation,hazards:{ob:x.obFlag,water:x.waterFlag},total:x.total,holeExpectedScore:x.holeExpectedScore,holeScoreToPar:x.holeScoreToPar,expectedPutts:x.expectedPutts,remainingAtGreenM:x.remainingAtGreenM,gir:x.gir,shots:(x.shots||[]).map(N=>({mode:'course',num:N.num,club:N.club,isApproach:N.isApproach,style:N.isApproach?N.style:void 0,trajectoryHeight:N.isApproach?void 0:N.trajectoryHeight,aimCurve:N.isApproach?void 0:N.curveBase,resultCurve:N.isApproach?void 0:N.resultCurve,contactVertical:N.contactVertical,contactHorizontal:N.contactHorizontal,majorMiss:ra(N)[0]||null,positiveFeedback:si(N),forwardYd:N.forward,lateralYd:N.lateral,direction:N.lateral===0?'センター':`${fn(N.lateral)}${Math.abs(N.lateral)}yd`,approachResult:N.isApproach?N.approachResult:void 0,resultLie:N.lie,remainingYd:N.remaining,penalty:N.penalty,before:N.before,evaluation:N.evaluation,context:N.context}))})),unifiedShots:u.flatMap(x=>(x.shots||[]).map(N=>fi(N,{date:t.date,sessionId:t.sessionId,holeNumber:x.number}))),performance:{schemeVersion:2,current:{resultScore:current.score,scoreResult:{total:c,par:o,diff:f,gir:H,holes:u.length,penalties:cm.penaltyCount,approachMedianM:cm.approachMedianM},shotQuality:{medianErrorRatio:cm.medianRatio,poorOrCriticalCount:cm.poorCount,poorOrCriticalRate:cm.poorRate,bigMissCount:cm.bigMissCount,bigMissRate:cm.bigMissRate,penaltyRate:cm.penaltyRate,managementMedian:cm.managementMedian}},skillAssessment:{sessionsUsed:recent.sessionsUsed,status:recent.status,shotReproducibility:recent.shotLevel,management:recent.managementLevel,approach:recent.approachLevel,overall:recent.overallLevel,median9HDiff:recent.median9HDiff,bigMissRate:rm.bigMissRate,penaltyRate:rm.penaltyRate,medianErrorRatio:rm.medianRatio,managementMedian:rm.managementMedian,approachMedianM:rm.approachMedianM,clubStable90Rate:recent.clubStable90},shotAccuracy:current.legacy?.shotAccuracy?{score:current.legacy.shotAccuracy.score,level:null}:null,management:current.legacy?.management?{score:current.legacy.management.score,level:null}:null,scoring:current.legacy?.scoring?{score:current.legacy.scoring.score,level:null}:null,missTolerance:current.legacy?.missTolerance??null,approach:current.legacy?.approach?{score:current.legacy.approach.score,level:null}:null,overall:{score:current.score,level:null},comment:`今回の出来 ${current.score??'-'}点。大ミス率 ${_gaPct(cm.bigMissRate)}%。現在の実力は直近${recent.sessionsUsed}回から総合 ${_gaLevelText(recent.overallLevel)} と判定。`,legacyScores:{shotAccuracy:current.legacy?.shotAccuracy?.score??null,management:current.legacy?.management?.score??null,scoring:current.legacy?.scoring?.score??null,missTolerance:current.legacy?.missTolerance?.score??null,approach:current.legacy?.approach?.score??null,overall:current.legacy?.overall?.score??null}},holePerformance:u.map(x=>({number:x.number,par:x.par,holeExpectedScore:x.holeExpectedScore,holeScoreToPar:x.holeScoreToPar,shotAccuracyScore:x.shotAccuracyScore,managementScore:x.managementScore,missToleranceScore:x.missToleranceScore,approachScore:x.approachScore}))});
+  return AH('div',{className:'min-h-screen p-4 pb-10',style:{background:s.bg}},
+    a?AH('div',{className:'rounded-xl p-3 mb-3 text-xs font-bold',style:{background:'#F6DAD3',color:s.ob}},'⚠️ ',a):null,
+    AH('div',{className:'text-center mb-4'},AH('div',{className:'text-xs font-bold tracking-widest',style:{color:s.gold}},'ROUND RESULT'),AH('div',{className:'font-black',style:{fontFamily:"'Oswald', sans-serif",fontSize:48,color:s.panel}},c),AH('div',{className:'text-sm',style:{color:s.panelDim}},`PAR ${o}（${f>=0?'+':''}${f}）`)),
+    AH('div',{className:'grid grid-cols-4 gap-2 mb-3'},...[["EAGLE-",h],["BIRDIE",d],["PAR",r],["BOGEY",m]].map(([x,N])=>AH('div',{className:'rounded-xl py-2 text-center',style:{background:s.panel},key:x},AH('div',{className:'text-[9px] font-bold',style:{color:s.inkSoft}},x),AH('div',{className:'font-black text-lg',style:{color:s.ink}},N)))),
+    AH('div',{className:'grid grid-cols-4 gap-2 mb-4'},...[["DOUBLE+",g],["OB",S],["池",z],["GIR",`${H}/${u.length}`]].map(([x,N])=>AH('div',{className:'rounded-xl py-2 text-center',style:{background:s.panel},key:x},AH('div',{className:'text-[9px] font-bold',style:{color:s.inkSoft}},x),AH('div',{className:'font-black text-lg',style:{color:s.ink}},N)))),
+
+    AH('div',{className:'rounded-2xl p-4 mb-4',style:{background:s.panel}},
+      AH('div',{className:'font-bold text-sm mb-3',style:{color:s.ink}},'今回の評価'),
+      AH('div',{className:'grid grid-cols-2 gap-2 mb-3'},
+        AH('div',{className:'rounded-xl p-3 text-center',style:{background:s.panelDim}},AH('div',{className:'text-[10px] font-bold',style:{color:s.inkSoft}},'今回の出来'),AH('div',{className:'font-black text-2xl',style:{color:s.ink}},current.score??'-',current.score!==null?AH('span',{className:'text-xs font-normal'},'点'):null)),
+        AH('div',{className:'rounded-xl p-3 text-center',style:{background:s.panelDim}},AH('div',{className:'text-[10px] font-bold',style:{color:s.inkSoft}},'スコア結果'),AH('div',{className:'font-black text-2xl',style:{color:s.ink}},`${c} (${f>=0?'+':''}${f})`))
+      ),
+      AH('div',{className:'grid grid-cols-3 gap-2 mb-3'},
+        AH('div',{className:'rounded-lg p-2 text-center',style:{background:'#f4edda'}},AH('div',{className:'text-[9px] font-bold',style:{color:s.inkSoft}},'GIR'),AH('div',{className:'font-black',style:{color:s.ink}},`${H}/${u.length}`)),
+        AH('div',{className:'rounded-lg p-2 text-center',style:{background:'#f4edda'}},AH('div',{className:'text-[9px] font-bold',style:{color:s.inkSoft}},'ペナルティ'),AH('div',{className:'font-black',style:{color:s.ink}},`${cm.penaltyCount}回`)),
+        AH('div',{className:'rounded-lg p-2 text-center',style:{background:'#f4edda'}},AH('div',{className:'text-[9px] font-bold',style:{color:s.inkSoft}},'寄せ中央値'),AH('div',{className:'font-black',style:{color:s.ink}},approachText))
+      ),
+      AH('div',{className:'font-bold text-xs mb-1',style:{color:s.ink}},'ショット品質'),
+      AH('div',{className:'space-y-1.5 mb-3'},
+        _gaPerfRow('距離・横誤差の中央値',ratioText,'（90切り基準=×1.00）'),
+        _gaPerfRow('poor / critical',`${cm.poorCount}/${cm.shots}`,`（${_gaPct(cm.poorRate)}%）`),
+        _gaPerfRow('大ミス',`${cm.bigMissCount}/${cm.shots}`,`（${_gaPct(cm.bigMissRate)}%）`),
+        _gaPerfRow('マネジメント中央値',cm.managementMedian===null?'-':`${Math.round(cm.managementMedian)}点`)
+      ),
+      AH('div',{className:'text-[10px] rounded-lg p-2',style:{background:'#eef0e5',color:s.inkSoft,lineHeight:1.5}},'今回の出来は単発セッションの評価です。ここでは実力レベルを判定しません。')
+    ),
+
+    AH('div',{className:'rounded-2xl p-4 mb-4',style:{background:s.panel}},
+      AH('div',{className:'flex items-center justify-between mb-1'},AH('div',{className:'font-bold text-sm',style:{color:s.ink}},'現在の実力'),AH('span',{className:'px-2 py-1 rounded-full text-[10px] font-bold',style:{background:s.panelDim,color:s.ink}},`${recent.status}・直近${recent.sessionsUsed}回`)),
+      AH('div',{className:'text-[10px] mb-3',style:{color:s.inkSoft}},statusNote),
+      AH('div',{className:'space-y-2 mb-3'},
+        _gaPerfRow('ショット再現性',_gaLevelText(recent.shotLevel)),
+        _gaPerfRow('マネジメント',_gaLevelText(recent.managementLevel)),
+        _gaPerfRow('アプローチ',_gaLevelText(recent.approachLevel)),
+        AH('div',{style:{borderTop:'1px solid #d2c9ad',paddingTop:7}},_gaPerfRow('総合',_gaLevelText(recent.overallLevel)))
+      ),
+      AH('div',{className:'grid grid-cols-2 gap-2 mb-2'},
+        AH('div',{className:'rounded-lg p-2',style:{background:'#f4edda'}},AH('div',{className:'text-[9px] font-bold',style:{color:s.inkSoft}},'直近 大ミス率'),AH('div',{className:'font-black text-lg',style:{color:s.ink}},`${_gaPct(rm.bigMissRate)}%`)),
+        AH('div',{className:'rounded-lg p-2',style:{background:'#f4edda'}},AH('div',{className:'text-[9px] font-bold',style:{color:s.inkSoft}},'9H換算スコア差 中央値'),AH('div',{className:'font-black text-lg',style:{color:s.ink}},recent.median9HDiff===null?'-':`${recent.median9HDiff>=0?'+':''}${recent.median9HDiff.toFixed(1)}`))
+      ),
+      AH('div',{className:'text-[10px] rounded-lg p-2',style:{background:'#eef0e5',color:s.inkSoft,lineHeight:1.5}},'実力判定は直近最大5セッションの中央値・大ミス率・ペナルティ率・マネジメント・アプローチ・クラブ別安定度を使用します。単発の好スコアだけでは上位レベルに上がりません。')
+    ),
+
+    AH('div',{className:'rounded-2xl p-4 mb-3',style:{background:s.panel}},AH('div',{className:'font-bold text-sm mb-2',style:{color:s.ink}},'各ホールスコア'),AH('div',{className:'grid grid-cols-6 gap-1.5 text-center text-xs'},...u.map(x=>AH('div',{className:'rounded-lg py-1.5',style:{background:x.total-x.par<=0?s.fairway:x.total-x.par===1?s.goldDim:s.ob,color:'#fff'},key:x.number},AH('div',{className:'opacity-80',style:{fontSize:9}},`H${x.number}・P${x.par}`),AH('div',{className:'font-black'},x.total))))),
+    misses.length?AH('div',{className:'rounded-2xl p-4 mb-3',style:{background:s.panel}},AH('div',{className:'font-bold text-sm mb-2',style:{color:s.ink}},'ミス内訳'),AH('div',{className:'flex flex-wrap gap-1.5'},...misses.map(([x,N])=>AH('span',{className:'px-2.5 py-1 rounded-full text-xs font-bold',style:{background:'#F6DAD3',color:s.ob},key:x},`${x} ×${N}`)))):null,
+    AH('div',{className:'rounded-2xl p-4 mb-3',style:{background:s.panel}},AH('div',{className:'font-bold text-sm mb-2',style:{color:s.ink}},'使用クラブ'),AH('div',{className:'flex flex-wrap gap-1.5'},...clubs.map(([x,N])=>AH('span',{className:'px-2.5 py-1 rounded-full text-xs font-bold',style:{background:s.panelDim,color:s.ink},key:x},`${x} ×${N}`)))),
+    lost.length?AH('div',{className:'rounded-2xl p-4 mb-4',style:{background:s.panel}},AH('div',{className:'font-bold text-sm mb-2',style:{color:s.ink}},'スコアを失ったホール'),AH('div',{className:'space-y-2 text-xs'},...lost.map(x=>AH('div',{className:'rounded-lg p-2',style:{background:s.panelDim},key:x.number},AH('div',{className:'font-bold mb-1',style:{color:s.ob}},`HOLE ${x.number}　+${x.total-x.par}`),...(x.shots||[]).map((N,D)=>AH('div',{style:{color:s.ink},key:D},uy(N,D))),x.expectedPutts!=null?AH('div',{style:{color:s.ink}},`グリーンオン残り${x.remainingAtGreenM??'-'}m・期待パット${x.expectedPutts}`):null)))):null,
+    AH('div',{className:'mb-3'},AH(sn,{getData,label:'このラウンドをJSONでコピー'})),
+    AH('div',{className:'flex gap-2'},AH(Ot,{onClick:l,color:s.gold},'もう一度'),AH(Ot,{onClick:e,color:s.panelDim,textColor:s.ink},'メニューへ'))
+  );
+};
+/* ===== end evaluation logic v2 ===== */
+
+try{let t=document.getElementById("root");(0,py.createRoot)(t).render(gy.default.createElement(xf))}catch(t){Rp(t)}window.addEventListener("error",function(t){console.error("Uncaught error:",t.error||t.message)});})();
+/*! Bundled license information:
+
+react/cjs/react.production.js:
+  (**
+   * @license React
+   * react.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+scheduler/cjs/scheduler.production.js:
+  (**
+   * @license React
+   * scheduler.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react-dom/cjs/react-dom.production.js:
+  (**
+   * @license React
+   * react-dom.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react-dom/cjs/react-dom-client.production.js:
+  (**
+   * @license React
+   * react-dom-client.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react/cjs/react-jsx-runtime.production.js:
+  (**
+   * @license React
+   * react-jsx-runtime.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+*/
+
+</script>
+
+
+
+<script>
+/* GOLF AiM — screen transition scroll reset
+   Random 10 / Course mode: when an action advances to another screen or shot,
+   return the viewport to the top so target distance / hole information is immediately visible. */
+(function () {
+  const transitionWords = [
+    "打つ", "確定", "次へ", "次の", "次ホール", "開始", "再開",
+    "完了", "終了", "もう一度", "スタート"
+  ];
+
+  function isPracticeScreen() {
+    const t = document.body.innerText || "";
+    return t.includes("RANDOM 10") || /HOLE\s*\d+/i.test(t);
+  }
+
+  function scrollPracticeTop() {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    });
+  }
+
+  document.addEventListener("click", function (event) {
+    if (!isPracticeScreen()) return;
+
+    const button = event.target.closest("button");
+    if (!button) return;
+
+    const label = (button.innerText || button.textContent || "").trim();
+    if (!transitionWords.some(word => label.includes(word))) return;
+
+    // Reactの画面更新後にトップへ戻す
+    setTimeout(scrollPracticeTop, 30);
+    setTimeout(scrollPracticeTop, 120);
+  }, true);
+})();
+</script>
+
+
+<style id="aim-result-refresh-css">
+.aim-result-choice{display:grid;gap:7px}.aim-result-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.aim-result-row button{min-width:0;min-height:42px;padding:8px 5px;border-radius:9px;background:#e9dec1;color:#12382b;font-size:12px;font-weight:700;line-height:1.2;border:1px solid transparent;white-space:normal;word-break:keep-all}.aim-result-row button[aria-pressed="true"]{font-weight:800}.aim-result-empty{display:block;min-height:1px}.aim-result-divider{height:1px;background:#c9bea1;margin:4px 1px 2px}.aim-result-section{margin-bottom:15px!important}@media(max-width:380px){.aim-result-row{gap:5px}.aim-result-row button{font-size:11px;padding:7px 3px}}
+</style>
+</body>
+</html>
