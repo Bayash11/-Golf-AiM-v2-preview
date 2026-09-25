@@ -1230,14 +1230,14 @@ xp=function({round:t,onRestart:l,onMenu:e,warning:a,skillLevel:n,history:history
 
 
 /* =========================================================
-   GOLF AiM v2 — STEP3.1
+   GOLF AiM v2 — STEP3.2
    Random mode setup screen — adopted layout
    ========================================================= */
 const gaRandomSetupStyle=document.createElement('style');
 gaRandomSetupStyle.textContent=`
 #root:has(.ga-random-setup){padding-top:0!important;padding-bottom:0!important;}
-.ga-random-setup{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 22px) 16px calc(28px + env(safe-area-inset-bottom,0px));background:var(--ga-bg);color:var(--ga-text);box-sizing:border-box;}
-.ga-random-header{position:fixed;top:0;left:50%;z-index:70;width:min(100vw,390px);height:var(--ga-header-total);transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 10px;background:var(--ga-bg);border-bottom:1px solid var(--ga-border);box-sizing:border-box;}
+.ga-random-setup{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 34px) 16px calc(28px + env(safe-area-inset-bottom,0px));background:var(--ga-bg);color:var(--ga-text);box-sizing:border-box;}
+.ga-random-header{position:fixed;top:0;left:50%;z-index:70;width:min(100vw,390px);height:calc(var(--ga-header-total) + 12px);transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 10px;background:var(--ga-bg);border-bottom:1px solid var(--ga-border);box-sizing:border-box;}
 .ga-random-header-copy{text-align:center;line-height:1.15;}
 .ga-random-header h1{margin:0;font-size:20px;font-weight:800;color:var(--ga-text);}
 .ga-random-header p{margin:4px 0 0;color:var(--ga-sub);font-size:11px;font-weight:600;}
