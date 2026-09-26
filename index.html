@@ -2467,6 +2467,53 @@ gaDataDashboardStyle.textContent=`
 .ga-data-club-row.is-empty .ga-data-club-row-top span{background:var(--ga-soft);color:var(--ga-disabled);}
 .ga-data-club-row.is-empty .ga-data-club-metric strong{color:var(--ga-disabled);}
 .ga-data-club-note{margin:10px 2px 0;color:var(--ga-sub);font-size:9px;line-height:1.55;text-align:center;}
+
+/* STEP14-B: club detail */
+#root:has(.ga-club-detail){padding-top:0!important;padding-bottom:0!important;background:var(--ga-bg)!important;}
+.ga-club-detail{width:100%;max-width:390px;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 14px) 14px 30px;box-sizing:border-box;background:var(--ga-bg);color:var(--ga-text);}
+.ga-club-detail-head{position:fixed;top:0;left:50%;z-index:85;width:min(100vw,390px);height:var(--ga-header-total);transform:translateX(-50%);display:grid;grid-template-columns:54px 1fr 54px;align-items:flex-end;padding:0 8px 10px;background:rgba(248,250,252,.98);border-bottom:1px solid var(--ga-border);box-sizing:border-box;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+.ga-club-detail-back{height:44px;border:0;background:transparent;color:var(--ga-text);font-size:12px;font-weight:800;text-align:left;padding:0 6px;}
+.ga-club-detail-title{text-align:center;padding-bottom:2px;}
+.ga-club-detail-title small{display:block;color:var(--ga-blue);font-size:8px;line-height:1;font-weight:800;letter-spacing:.12em;}
+.ga-club-detail-title h1{margin:4px 0 0;color:var(--ga-text);font-size:21px;line-height:1;font-weight:900;}
+.ga-club-detail-meta{height:44px;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;color:var(--ga-sub);font-size:9px;font-weight:800;}
+.ga-club-source-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:11px;padding:4px;border-radius:14px;background:#EEF1F5;}
+.ga-club-source-tabs button{min-height:39px;border:0;border-radius:11px;background:transparent;color:var(--ga-sub);font-size:10px;font-weight:800;}
+.ga-club-source-tabs button[aria-pressed="true"]{background:var(--ga-orange);color:#fff;box-shadow:0 4px 12px rgba(255,106,36,.18);}
+.ga-club-card{margin-top:11px;padding:14px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);}
+.ga-club-card:first-of-type{margin-top:0;}
+.ga-club-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.ga-club-card h2{display:flex;align-items:center;gap:8px;margin:0;color:var(--ga-text);font-size:14px;font-weight:850;}
+.ga-club-card h2:before{content:"";width:4px;height:18px;border-radius:99px;background:var(--ga-orange);}
+.ga-club-card-head span{color:var(--ga-sub);font-size:9px;font-weight:750;}
+.ga-club-kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.ga-club-kpi{min-height:75px;padding:11px;border-radius:13px;background:var(--ga-soft);box-sizing:border-box;}
+.ga-club-kpi small{display:block;color:var(--ga-sub);font-size:8px;line-height:1.35;font-weight:650;}
+.ga-club-kpi strong{display:block;margin-top:6px;color:var(--ga-text);font-size:23px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums;}
+.ga-club-kpi strong em{margin-left:2px;color:var(--ga-sub);font-size:9px;font-style:normal;font-weight:700;}
+.ga-club-direction{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.ga-club-direction>div{padding:12px 4px;border-radius:13px;background:var(--ga-soft);text-align:center;}
+.ga-club-direction strong{display:block;color:var(--ga-text);font-size:21px;line-height:1;font-weight:900;}
+.ga-club-direction span{display:block;margin-top:5px;color:var(--ga-text);font-size:10px;font-weight:800;}
+.ga-club-direction small{display:block;margin-top:3px;color:var(--ga-sub);font-size:8px;font-weight:650;}
+.ga-club-miss-list{display:grid;gap:10px;}
+.ga-club-miss-row{display:grid;grid-template-columns:86px 1fr 40px;align-items:center;gap:8px;}
+.ga-club-miss-row span{overflow:hidden;color:var(--ga-text);font-size:10px;font-weight:750;text-overflow:ellipsis;white-space:nowrap;}
+.ga-club-miss-bar{height:8px;border-radius:99px;background:var(--ga-soft);overflow:hidden;}
+.ga-club-miss-bar i{display:block;height:100%;border-radius:99px;background:var(--ga-blue);}
+.ga-club-miss-row strong{color:var(--ga-text);font-size:10px;font-weight:850;text-align:right;}
+.ga-club-empty{padding:28px 14px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);text-align:center;}
+.ga-club-empty strong{display:block;color:var(--ga-text);font-size:14px;font-weight:850;}
+.ga-club-empty p{margin:7px 0 0;color:var(--ga-sub);font-size:10px;line-height:1.6;}
+.ga-club-plot{width:100%;display:block;}
+.ga-club-plot-wrap{padding-top:2px;}
+.ga-club-plot-legend{display:flex;justify-content:center;gap:14px;margin-top:4px;color:var(--ga-sub);font-size:8px;font-weight:650;}
+.ga-club-plot-legend span{display:flex;align-items:center;gap:5px;}
+.ga-club-plot-legend i{width:8px;height:8px;border-radius:50%;display:inline-block;}
+.ga-club-plot-legend i.random{background:var(--ga-orange);}
+.ga-club-plot-legend i.course{background:var(--ga-blue);}
+.ga-data-club-row[data-clickable="true"]{cursor:pointer;}
+.ga-data-club-row[data-clickable="true"]:active{transform:scale(.992);}
 `;
 document.head.appendChild(gaDataDashboardStyle);
 
@@ -2517,8 +2564,118 @@ function gaDataSessionShots(item){
  });
  return rows;
 }
+
+function GaClubDispersion({shots,club}){
+ const pts=(shots||[]).map(aimNormalizeShot);
+ const approach=AIM_APPROACH_CLUBS.has(club);
+ const W=334,H=228,L=34,R=12,T=14,B=28,pw=W-L-R,ph=H-T-B;
+ if(!pts.length)return null;
+ const maxLat=Math.max(10,...pts.map(function(p){return Math.abs(Number(p.lateral)||0)}));
+ const xLim=Math.max(10,Math.ceil(maxLat*1.15/5)*5);
+ const x=function(v){return L+(Math.max(-xLim,Math.min(xLim,v))+xLim)/(xLim*2)*pw};
+ let yMin,yMax,yValue;
+ if(approach){
+   const vals=pts.map(function(p){return Number(p.longitudinal)||0});
+   const lim=Math.max(10,Math.ceil(Math.max(5,...vals.map(Math.abs))*1.2/5)*5);
+   yMin=-lim;yMax=lim;yValue=function(p){return Number(p.longitudinal)||0};
+ }else{
+   const vals=pts.map(function(p){return Number(p.forward)||0});
+   const min=Math.min(...vals),max=Math.max(...vals),pad=Math.max(8,(max-min)*.18);
+   yMin=Math.floor((min-pad)/10)*10;yMax=Math.ceil((max+pad)/10)*10;
+   if(yMin===yMax)yMax=yMin+20;
+   yValue=function(p){return Number(p.forward)||0};
+ }
+ const y=function(v){return T+(yMax-Math.max(yMin,Math.min(yMax,v)))/(yMax-yMin||1)*ph};
+ const midY=approach?y(0):T+ph/2;
+ return AH('div',{className:'ga-club-plot-wrap'},
+   AH('svg',{className:'ga-club-plot',viewBox:'0 0 '+W+' '+H,role:'img','aria-label':'ショット分布'},
+     AH('rect',{x:L,y:T,width:pw,height:ph,rx:14,fill:'#F6F8FB',stroke:'#DDE3EA'}),
+     AH('line',{x1:x(0),y1:T,x2:x(0),y2:T+ph,stroke:'#AAB3C0',strokeWidth:1}),
+     AH('line',{x1:L,y1:midY,x2:L+pw,y2:midY,stroke:'#D5DBE3',strokeWidth:1,strokeDasharray:'4 4'}),
+     AH('text',{x:L,y:H-7,fill:'#667085',fontSize:9},'左 '+xLim+'yd'),
+     AH('text',{x:L+pw,y:H-7,fill:'#667085',fontSize:9,textAnchor:'end'},'右 '+xLim+'yd'),
+     AH('text',{x:L+pw/2,y:11,fill:'#667085',fontSize:8,textAnchor:'middle'},approach?'距離誤差':'飛距離'),
+     ...pts.map(function(p,i){
+       return AH('circle',{key:i,cx:x(Number(p.lateral)||0),cy:y(yValue(p)),r:4.3,fill:p._source==='course'?'#2F6FE4':'#FF6A24',opacity:.86,stroke:'#fff',strokeWidth:1.2});
+     })
+   ),
+   AH('div',{className:'ga-club-plot-legend'},
+     AH('span',null,AH('i',{className:'random'}),'ランダム'),
+     AH('span',null,AH('i',{className:'course'}),'コース想定')
+   )
+ );
+}
+function GaClubDetailV2({club,shots,period,periodControl,onBack}){
+ const filterState=P.useState('all'),filter=filterState[0],setFilter=filterState[1];
+ const filtered=(shots||[]).filter(function(s){return s.club===club&&(filter==='all'||s._source===filter)}).map(aimNormalizeShot);
+ const n=filtered.length;
+ const approach=AIM_APPROACH_CLUBS.has(club);
+ const avgForward=gaDataMean(filtered.map(function(x){return Number(x.forward)}).filter(Number.isFinite));
+ const avgDistError=gaDataMean(filtered.map(function(x){return Math.abs(Number(x.longitudinal))}).filter(Number.isFinite));
+ const avgLatError=gaDataMean(filtered.map(function(x){return Math.abs(Number(x.lateral))}).filter(Number.isFinite));
+ const left=filtered.filter(function(x){return Number(x.lateral)<-5}).length;
+ const center=filtered.filter(function(x){return Math.abs(Number(x.lateral))<=5}).length;
+ const right=filtered.filter(function(x){return Number(x.lateral)>5}).length;
+ const missMap=new Map();
+ filtered.forEach(function(x){ra(x).forEach(function(m){missMap.set(m,(missMap.get(m)||0)+1)})});
+ const missRows=[...missMap.entries()].sort(function(a,b){return b[1]-a[1]}).slice(0,6);
+ const periodLabels={recent10:'直近10回','1m':'1か月','3m':'3か月',all:'すべて'};
+ return AH('main',{className:'ga-club-detail'},
+   AH('header',{className:'ga-club-detail-head'},
+     AH('button',{type:'button',className:'ga-club-detail-back',onClick:onBack},'‹ 戻る'),
+     AH('div',{className:'ga-club-detail-title'},AH('small',null,'CLUB DATA'),AH('h1',null,club)),
+     AH('div',{className:'ga-club-detail-meta'},n+'球')
+   ),
+   periodControl,
+   AH('div',{className:'ga-club-source-tabs','aria-label':'データ種別'},
+     ...[['all','総合'],['random10','ランダム'],['course','コース想定']].map(function(x){
+       return AH('button',{type:'button','aria-pressed':filter===x[0],onClick:function(){setFilter(x[0])},key:x[0]},x[1]);
+     })
+   ),
+   n===0?AH('section',{className:'ga-club-empty'},
+     AH('strong',null,'この条件のデータはありません'),
+     AH('p',null,(periodLabels[period]||'選択期間')+'・'+(filter==='all'?'総合':filter==='random10'?'ランダム':'コース想定')+'のショット記録がありません。')
+   ):AH(P.Fragment,null,
+     AH('section',{className:'ga-club-card'},
+       AH('div',{className:'ga-club-card-head'},AH('h2',null,approach?'狙いに対する分布':'ショット分布'),AH('span',null,n+' SHOTS')),
+       AH(GaClubDispersion,{shots:filtered,club})
+     ),
+     AH('section',{className:'ga-club-card'},
+       AH('div',{className:'ga-club-card-head'},AH('h2',null,'主要データ'),AH('span',null,periodLabels[period]||'')),
+       AH('div',{className:'ga-club-kpis'},
+         AH('div',{className:'ga-club-kpi'},AH('small',null,'ショット数'),AH('strong',null,n,AH('em',null,'球'))),
+         AH('div',{className:'ga-club-kpi'},AH('small',null,'平均飛距離'),AH('strong',null,gaDataMetricText(avgForward),Number.isFinite(avgForward)?AH('em',null,'yd'):null)),
+         AH('div',{className:'ga-club-kpi'},AH('small',null,'平均距離誤差'),AH('strong',null,gaDataMetricText(avgDistError),Number.isFinite(avgDistError)?AH('em',null,'yd'):null)),
+         AH('div',{className:'ga-club-kpi'},AH('small',null,'平均横ズレ'),AH('strong',null,gaDataMetricText(avgLatError),Number.isFinite(avgLatError)?AH('em',null,'yd'):null))
+       )
+     ),
+     AH('section',{className:'ga-club-card'},
+       AH('div',{className:'ga-club-card-head'},AH('h2',null,'方向'),AH('span',null,'中央 ±5yd')),
+       AH('div',{className:'ga-club-direction'},
+         ...[['左',left],['中央',center],['右',right]].map(function(x){
+           return AH('div',{key:x[0]},AH('strong',null,aimPct(x[1],n)+'%'),AH('span',null,x[0]),AH('small',null,x[1]+'球'));
+         })
+       )
+     ),
+     AH('section',{className:'ga-club-card'},
+       AH('div',{className:'ga-club-card-head'},AH('h2',null,'ミス傾向'),AH('span',null,missRows.length?'上位'+missRows.length+'件':'記録なし')),
+       missRows.length?AH('div',{className:'ga-club-miss-list'},
+         ...missRows.map(function(x){
+           const pct=aimPct(x[1],n);
+           return AH('div',{className:'ga-club-miss-row',key:x[0]},
+             AH('span',null,x[0]),
+             AH('div',{className:'ga-club-miss-bar'},AH('i',{style:{width:Math.max(5,pct)+'%'}})),
+             AH('strong',null,pct+'%')
+           );
+         })
+       ):AH('div',{className:'ga-data-empty'},'記録されているミス項目はありません。')
+     )
+   )
+ );
+}
 function GaDataDashboard({courseHistory=[],randomHistory=[],clubs=[],onCourseHistory,onRandomHistory,onHome,onPractice,onSettings}){
  const state=P.useState('recent'),tab=state[0],setTab=state[1];
+ const selectedState=P.useState(null),selectedClub=selectedState[0],setSelectedClub=selectedState[1];
  const periodState=P.useState('recent10'),period=periodState[0],setPeriod=periodState[1];
  const completedCourses=(courseHistory||[]).filter(function(x){return x&&!x.incomplete});
  const completedRandom=(randomHistory||[]).filter(function(x){return x&&!x.incomplete});
@@ -2568,6 +2725,8 @@ function GaDataDashboard({courseHistory=[],randomHistory=[],clubs=[],onCourseHis
    })
  );
 
+ if(selectedClub)return AH(GaClubDetailV2,{club:selectedClub,shots:periodShots,period,periodControl,onBack:function(){setSelectedClub(null)}});
+
  return AH('main',{className:'ga-data-dashboard'},
    AH('header',{className:'ga-data-head'},AH('h1',null,'データ')),
    AH('div',{className:'ga-data-tabs',role:'tablist'},
@@ -2612,7 +2771,7 @@ function GaDataDashboard({courseHistory=[],randomHistory=[],clubs=[],onCourseHis
      ),
      clubRows.length?AH('div',{className:'ga-data-club-list'},...clubRows.map(function(row){
        const hasData=row.count>0;
-       return AH('article',{className:'ga-data-club-row'+(hasData?'':' is-empty'),key:row.club},
+       return AH('article',{className:'ga-data-club-row'+(hasData?'':' is-empty'),key:row.club,'data-clickable':'true',role:'button',tabIndex:0,onClick:function(){setSelectedClub(row.club)},onKeyDown:function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();setSelectedClub(row.club)}}},
          AH('div',{className:'ga-data-club-row-top'},
            AH('strong',null,row.club),
            AH('span',null,row.count+'球')
@@ -2624,7 +2783,7 @@ function GaDataDashboard({courseHistory=[],randomHistory=[],clubs=[],onCourseHis
          )
        );
      })):AH('div',{className:'ga-data-empty'},'クラブが登録されていません。'),
-     AH('p',{className:'ga-data-club-note'},'クラブを選んだ詳細分析は次のSTEPで追加します。')
+     AH('p',{className:'ga-data-club-note'},'クラブをタップすると、期間内のショット分布・距離・方向・ミス傾向を確認できます。')
    ),
 
    AH(GaBottomNav,{active:'data',onHome,onPractice,onData:function(){setTab('recent')},onSettings})
