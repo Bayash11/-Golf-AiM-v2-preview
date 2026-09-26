@@ -1800,7 +1800,7 @@ const gaCourseAimStyle=document.createElement('style');
 gaCourseAimStyle.textContent=`
 #root:has(.ga-course-playing){padding-top:0!important;padding-bottom:0!important;background:var(--ga-bg)!important;}
 #root>div:has(.ga-course-playing){background:var(--ga-bg)!important;}
-.ga-course-playing{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 116px) 16px 30px;background:var(--ga-bg)!important;color:var(--ga-text);box-sizing:border-box;}
+.ga-course-playing{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 146px) 16px 30px;background:var(--ga-bg)!important;color:var(--ga-text);box-sizing:border-box;}
 .ga-course-map-shell{margin:0;padding:0;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
 .ga-course-playing>div:not(.aim-quit):not(.ga-course-fixed):not(.ga-course-map-shell){background:transparent;}
 .ga-course-playing .rounded-2xl{box-shadow:none;}
@@ -1819,6 +1819,8 @@ gaCourseAimStyle.textContent=`
 .ga-course-hole-primary small{display:block;margin-bottom:2px;color:var(--ga-sub);font-size:9px;font-weight:600;}
 .ga-course-hole-primary strong{display:block;color:var(--ga-text);font-size:19px;line-height:1;font-weight:850;white-space:nowrap;}
 .ga-course-hole-primary .score strong{color:var(--ga-orange);}
+.ga-course-remaining{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;padding:7px 10px;border-radius:10px;background:var(--ga-blue-soft);color:var(--ga-sub);font-size:11px;font-weight:700;}
+.ga-course-remaining b{color:var(--ga-blue);font-size:16px;font-weight:850;}
 .ga-course-hole-meta{display:flex;gap:8px 14px;flex-wrap:wrap;margin-top:9px;padding-top:8px;border-top:1px solid var(--ga-border);color:var(--ga-sub);font-size:10px;font-weight:600;}
 .ga-course-hole-meta b{color:var(--ga-text);font-weight:750;}
 
@@ -1827,7 +1829,14 @@ gaCourseAimStyle.textContent=`
 .ga-course-map-card .aim-map-v2{display:block;width:100%;max-height:none;border-radius:0;}
 .ga-course-map-help{margin:0;padding:8px 12px 10px;background:#fff;color:var(--ga-sub);font-size:10px;line-height:1.45;text-align:center;}
 .ga-course-map-help b{color:var(--ga-text);}
-.ga-course-map-card .aim-target-lens{right:8px;top:8px;}
+.ga-course-map-card .aim-target-lens{
+  position:fixed!important;
+  right:max(14px,calc((100vw - 390px)/2 + 14px))!important;
+  top:calc(var(--ga-header-total) + 122px)!important;
+  width:118px!important;
+  z-index:120!important;
+  pointer-events:none!important;
+}
 .ga-course-map-card .aim-target-lens-circle{border-color:#fff;background:#427447;}
 .ga-course-map-card .aim-target-lens-info{background:#fff;color:var(--ga-text);border-color:var(--ga-border);}
 .ga-course-map-card .aim-target-lens-info span{color:var(--ga-sub);}
@@ -1882,6 +1891,12 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
        AH('div',null,AH('small',null,'YARD'),AH('strong',null,`${hole.distance}yd`)),
        AH('div',{className:'score'},AH('small',null,'SCORE'),AH('strong',null,score))
      ),
+     current.strokes>0
+       ?AH('div',{className:'ga-course-remaining'},
+          AH('span',null,`${current.strokes+1}打目`),
+          AH('span',null,'残り ',AH('b',null,`${current.remaining}yd`))
+        )
+       :null,
      AH('div',{className:'ga-course-hole-meta'},
        AH('span',null,'ピン位置 ',AH('b',null,pin)),
        AH('span',null,'グリーン幅 ',AH('b',null,`${gw}yd × ${gd}yd`))
