@@ -2423,15 +2423,18 @@ gaDataDashboardStyle.textContent=`
 .ga-data-tabs{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:14px;padding:4px;border-radius:14px;background:#EEF1F5;}
 .ga-data-tab{min-height:42px;border:0;border-radius:11px;background:transparent;color:var(--ga-sub);font-size:12px;font-weight:800;}
 .ga-data-tab[aria-selected="true"]{background:#fff;color:var(--ga-text);box-shadow:0 2px 8px rgba(23,32,51,.08);}
+.ga-data-range{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px;margin:-2px 0 14px;}
+.ga-data-range button{min-width:0;min-height:38px;padding:6px 3px;border:1px solid var(--ga-border);border-radius:12px;background:#fff;color:var(--ga-sub);font-size:10px;font-weight:800;box-shadow:var(--ga-shadow-light);}
+.ga-data-range button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange);color:#fff;box-shadow:0 4px 12px rgba(255,106,36,.18);}
 .ga-data-section{margin-top:13px;}
 .ga-data-section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px;}
 .ga-data-section-title h2{display:flex;align-items:center;gap:8px;margin:0;color:var(--ga-text);font-size:15px;font-weight:850;}
 .ga-data-section-title h2:before{content:"";width:4px;height:19px;border-radius:99px;background:var(--ga-orange);}
 .ga-data-section-title button{min-height:34px;border:0;background:transparent;color:var(--ga-blue);font-size:10px;font-weight:800;}
 .ga-data-overview{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-.ga-data-overview-card{padding:13px;border-radius:15px;background:#fff;box-shadow:var(--ga-shadow-light);}
-.ga-data-overview-card small{display:block;color:var(--ga-sub);font-size:9px;font-weight:700;}
-.ga-data-overview-card strong{display:block;margin-top:4px;color:var(--ga-text);font-size:20px;font-weight:900;}
+.ga-data-overview-card{min-height:78px;padding:12px 13px;border-radius:15px;background:#fff;box-shadow:var(--ga-shadow-light);box-sizing:border-box;}
+.ga-data-overview-card small{display:block;color:var(--ga-sub);font-size:9px;font-weight:700;line-height:1.35;}
+.ga-data-overview-card strong{display:block;margin-top:6px;color:var(--ga-text);font-size:23px;line-height:1.05;font-weight:900;font-variant-numeric:tabular-nums;}
 .ga-data-overview-card strong em{margin-left:2px;color:var(--ga-sub);font-size:10px;font-style:normal;font-weight:700;}
 .ga-data-list{display:grid;gap:8px;}
 .ga-data-session{padding:12px 13px;border-radius:15px;background:#fff;box-shadow:var(--ga-shadow-light);}
@@ -2457,14 +2460,81 @@ function gaDataCourseDiff(entry){
  if(!Number.isFinite(d))return '—';
  return d===0?'E':(d>0?'+':'')+d;
 }
+
+function gaDataDateValue(value){
+ const m=String(value||'').match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/);
+ if(!m)return 0;
+ const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+ return Number.isFinite(d.getTime())?d.getTime():0;
+}
+function gaDataMean(values){
+ const a=values.filter(Number.isFinite);
+ return a.length?a.reduce(function(x,y){return x+y},0)/a.length:null;
+}
+function gaDataMetricText(value){
+ if(!Number.isFinite(value))return '—';
+ const v=Math.round(value*10)/10;
+ return Number.isInteger(v)?String(v):v.toFixed(1);
+}
+function gaDataSessionShots(item){
+ if(item.kind==='random')return (item.entry.shots||[]).map(function(s){
+   const dist=Number(s.distanceError);
+   const lat=Number(s.lateralError);
+   const success=typeof s.success==='boolean'?s.success:(typeof s.resultSuccess==='boolean'?s.resultSuccess:null);
+   return {dist:Number.isFinite(dist)?Math.abs(dist):null,lat:Number.isFinite(lat)?Math.abs(lat):null,success};
+ });
+ const rows=[];
+ (item.entry.holes||[]).forEach(function(h){
+   (h.shots||[]).forEach(function(s){
+     const ev=s.evaluation||{};
+     let dist=Number(ev.distanceError),lat=Number(ev.lateralError);
+     if(!Number.isFinite(dist)){
+       const target=Number(s.before&&s.before.targetDistance),actual=Number(s.forward);
+       if(Number.isFinite(target)&&Number.isFinite(actual))dist=Math.abs(actual-target);
+     }
+     if(!Number.isFinite(lat)){
+       const lateral=Number(s.lateral);
+       if(Number.isFinite(lateral))lat=Math.abs(lateral);
+     }
+     const success=typeof ev.success==='boolean'?ev.success:null;
+     rows.push({dist:Number.isFinite(dist)?Math.abs(dist):null,lat:Number.isFinite(lat)?Math.abs(lat):null,success});
+   });
+ });
+ return rows;
+}
 function GaDataDashboard({courseHistory=[],randomHistory=[],onCourseHistory,onRandomHistory,onHome,onPractice,onSettings}){
  const state=P.useState('recent'),tab=state[0],setTab=state[1];
+ const periodState=P.useState('recent10'),period=periodState[0],setPeriod=periodState[1];
  const completedCourses=(courseHistory||[]).filter(function(x){return x&&!x.incomplete});
  const completedRandom=(randomHistory||[]).filter(function(x){return x&&!x.incomplete});
- const recentRandom=completedRandom.slice(0,3);
- const recentCourse=completedCourses.slice(0,3);
- const randomShots=completedRandom.reduce(function(a,x){return a+(Number(x.totalShots)||0)},0);
- const courseHoles=completedCourses.reduce(function(a,x){return a+(Number(x.holeCount)||((x.holes||[]).length)||0)},0);
+
+ const allSessions=[];
+ completedCourses.forEach(function(entry,index){allSessions.push({kind:'course',entry,sort:gaDataDateValue(entry.date),order:index})});
+ completedRandom.forEach(function(entry,index){allSessions.push({kind:'random',entry,sort:gaDataDateValue(entry.date),order:completedCourses.length+index})});
+ allSessions.sort(function(a,b){return (b.sort-a.sort)||(a.order-b.order)});
+
+ let selectedSessions=allSessions;
+ if(period==='recent10')selectedSessions=allSessions.slice(0,10);
+ if(period==='1m'||period==='3m'){
+   const days=period==='1m'?30:90;
+   const cutoff=Date.now()-days*24*60*60*1000;
+   selectedSessions=allSessions.filter(function(x){return x.sort>=cutoff});
+ }
+ const selectedSet=new Set(selectedSessions.map(function(x){return x.entry}));
+ const filteredRandom=completedRandom.filter(function(x){return selectedSet.has(x)});
+ const filteredCourses=completedCourses.filter(function(x){return selectedSet.has(x)});
+ const recentRandom=filteredRandom.slice(0,3);
+ const recentCourse=filteredCourses.slice(0,3);
+
+ const shotRows=[];
+ selectedSessions.forEach(function(item){shotRows.push(...gaDataSessionShots(item))});
+ const successRows=shotRows.filter(function(x){return typeof x.success==='boolean'});
+ const distanceRows=shotRows.map(function(x){return x.dist}).filter(Number.isFinite);
+ const lateralRows=shotRows.map(function(x){return x.lat}).filter(Number.isFinite);
+ const successRate=successRows.length?Math.round(successRows.filter(function(x){return x.success}).length/successRows.length*100):null;
+ const avgDistance=gaDataMean(distanceRows);
+ const avgLateral=gaDataMean(lateralRows);
+
  return AH('main',{className:'ga-data-dashboard'},
    AH('header',{className:'ga-data-head'},AH('h1',null,'データ')),
    AH('div',{className:'ga-data-tabs',role:'tablist'},
@@ -2473,9 +2543,17 @@ function GaDataDashboard({courseHistory=[],randomHistory=[],onCourseHistory,onRa
    ),
 
    tab==='recent'?AH(P.Fragment,null,
+     AH('div',{className:'ga-data-range','aria-label':'集計期間'},
+       ...[['recent10','直近10回'],['1m','1か月'],['3m','3か月'],['all','すべて']].map(function(x){
+         return AH('button',{type:'button','aria-pressed':period===x[0],onClick:function(){setPeriod(x[0])},key:x[0]},x[1]);
+       })
+     ),
+
      AH('section',{className:'ga-data-overview'},
-       AH('div',{className:'ga-data-overview-card'},AH('small',null,'ランダム練習'),AH('strong',null,randomShots,AH('em',null,'球'))),
-       AH('div',{className:'ga-data-overview-card'},AH('small',null,'コース想定'),AH('strong',null,courseHoles,AH('em',null,'H')))
+       AH('div',{className:'ga-data-overview-card'},AH('small',null,'練習回数'),AH('strong',null,selectedSessions.length,AH('em',null,'回'))),
+       AH('div',{className:'ga-data-overview-card'},AH('small',null,'成功率'),AH('strong',null,successRate===null?'—':successRate,successRate===null?null:AH('em',null,'%'))),
+       AH('div',{className:'ga-data-overview-card'},AH('small',null,'平均距離誤差'),AH('strong',null,gaDataMetricText(avgDistance),Number.isFinite(avgDistance)?AH('em',null,'yd'):null)),
+       AH('div',{className:'ga-data-overview-card'},AH('small',null,'平均横ズレ'),AH('strong',null,gaDataMetricText(avgLateral),Number.isFinite(avgLateral)?AH('em',null,'yd'):null))
      ),
 
      AH('section',{className:'ga-data-section'},
@@ -2486,7 +2564,7 @@ function GaDataDashboard({courseHistory=[],randomHistory=[],onCourseHistory,onRa
            AH('div',{className:'ga-data-session-main'},AH('span',null,(x.totalShots||0)+'球'),AH('strong',null,(x.success||0)+' / '+(x.totalShots||0)+' 成功')),
            AH('div',{className:'ga-data-session-sub'},'平均距離誤差 '+(x.avgDistanceError??'—')+'yd ・ 平均横ズレ '+(x.avgLateralError??'—')+'yd')
          );
-       })):AH('div',{className:'ga-data-empty'},'ランダムモードの練習記録はまだありません。')
+       })):AH('div',{className:'ga-data-empty'},'この期間のランダムモード記録はありません。')
      ),
 
      AH('section',{className:'ga-data-section'},
@@ -2497,7 +2575,7 @@ function GaDataDashboard({courseHistory=[],randomHistory=[],onCourseHistory,onRa
            AH('div',{className:'ga-data-session-main'},AH('span',null,(x.holeCount||((x.holes||[]).length)||0)+'H'),AH('strong',null,(x.totalScore??'—')+' / '+gaDataCourseDiff(x))),
            AH('div',{className:'ga-data-session-sub'},'GIR '+(x.girCount??'—')+' ・ OB '+(x.obTotal??0)+' ・ 池 '+(x.waterTotal??0))
          );
-       })):AH('div',{className:'ga-data-empty'},'コース想定の練習記録はまだありません。')
+       })):AH('div',{className:'ga-data-empty'},'この期間のコース想定記録はありません。')
      )
    ):AH('section',{className:'ga-data-club-placeholder'},
      AH('strong',null,'クラブ別データ'),
@@ -2508,7 +2586,6 @@ function GaDataDashboard({courseHistory=[],randomHistory=[],onCourseHistory,onRa
    AH(GaBottomNav,{active:'data',onHome,onPractice,onData:function(){setTab('recent')},onSettings})
  );
 };
-
 try{let t=document.getElementById("root");(0,py.createRoot)(t).render(gy.default.createElement(xf))}catch(t){Rp(t)}window.addEventListener("error",function(t){console.error("Uncaught error:",t.error||t.message)});})();
 /*! Bundled license information:
 
