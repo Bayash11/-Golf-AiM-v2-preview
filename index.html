@@ -1811,7 +1811,7 @@ gaCourseAimStyle.textContent=`
 .ga-course-playing>.aim-quit .aim-quit-panel .aim-discard{background:#FFF0EF!important;color:var(--ga-error)!important;}
 
 .ga-course-fixed{position:fixed;top:0;left:50%;z-index:80;width:min(100vw,390px);transform:translateX(-50%);background:var(--ga-bg);border-bottom:1px solid var(--ga-border);box-sizing:border-box;}
-.ga-course-topbar{height:var(--ga-header-total);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 11px;box-sizing:border-box;}
+.ga-course-topbar{position:relative;height:var(--ga-header-total);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 11px;box-sizing:border-box;}
 .ga-course-topbar h1{margin:0;font-size:20px;line-height:44px;font-weight:800;color:var(--ga-text);}
 .ga-course-topbar-progress{position:absolute;right:16px;bottom:11px;height:44px;display:flex;align-items:center;color:var(--ga-text);font-size:13px;font-weight:800;}
 .ga-course-hole-card{margin:0 14px 10px;padding:13px 14px 11px;border-radius:16px;background:#fff;box-shadow:0 5px 16px rgba(23,32,51,.07);}
@@ -1834,10 +1834,13 @@ gaCourseAimStyle.textContent=`
 .ga-course-map-card.ga-course-par4 .aim-map-v2{width:82%!important;height:auto!important;}
 .ga-course-map-card.ga-course-par5 .aim-map-v2{width:70%!important;height:auto!important;}
 .ga-course-map-card.ga-course-zoom .aim-map-v2{width:100%!important;height:auto!important;}
+.ga-course-map-card.ga-course-overview .aim-map-stage{height:330px!important;align-items:center!important;padding:8px 0;box-sizing:border-box;}
+.ga-course-map-card.ga-course-overview .aim-map-v2{width:100%!important;height:100%!important;object-fit:contain;}
 .ga-course-map-help{margin:0;padding:7px 12px 9px;background:#fff;color:var(--ga-sub);font-size:10px;line-height:1.4;text-align:center;}
 .ga-course-map-help b{color:var(--ga-text);}
-.ga-course-map-toolbar{position:absolute;right:8px;top:8px;z-index:25;}
+.ga-course-map-toolbar{position:absolute;right:8px;top:8px;z-index:25;display:flex;gap:6px;}
 .ga-course-map-toolbar button{min-height:36px;padding:0 11px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:rgba(255,255,255,.94);color:var(--ga-text);box-shadow:0 3px 10px rgba(0,0,0,.14);font-size:10px;font-weight:800;}
+.ga-course-map-toolbar button[aria-pressed="true"]{background:var(--ga-orange);border-color:var(--ga-orange);color:#fff;}
 .ga-course-map-card .aim-target-lens{
   position:fixed!important;
   right:max(14px,calc((100vw - 390px)/2 + 14px))!important;
@@ -1918,10 +1921,12 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
 
 dp=function(props){
  const h=props.hole;
- const [zoom,setZoom]=P.useState(false);
- P.useEffect(()=>setZoom(false),[h.number]);
+ const [viewMode,setViewMode]=P.useState('normal');
+ P.useEffect(()=>setViewMode('normal'),[h.number]);
+ const overview=viewMode==='overview',greenZoom=viewMode==='green';
  const shotLabel=h.strokes===0?'ティーショット':`${h.strokes+1}打目・${h.lie}`;
  const focusAim=()=>{
+   if(overview){setViewMode('normal');requestAnimationFrame(()=>document.querySelector('.ga-course-map-card')?.scrollIntoView({behavior:'smooth',block:'start'}));return;}
    if(!props.tapEnabled){
      document.querySelector('.ga-course-section')?.scrollIntoView({behavior:'smooth',block:'center'});
      return;
@@ -1929,17 +1934,20 @@ dp=function(props){
    document.querySelector('.ga-course-map-card')?.scrollIntoView({behavior:'smooth',block:'start'});
  };
  return AH(P.Fragment,null,
-   AH('section',{className:`ga-course-map-card ga-course-par${h.par}${zoom?' ga-course-zoom':''}`},
+   AH('section',{className:`ga-course-map-card ga-course-par${h.par}${greenZoom?' ga-course-zoom':''}${overview?' ga-course-overview':''}`},
      AH('div',{className:'ga-course-map-toolbar'},
-       AH('button',{type:'button',onClick:()=>setZoom(v=>!v)},zoom?'全体を見る':'グリーン拡大')
+       AH('button',{type:'button','aria-pressed':overview,onClick:()=>setViewMode(v=>v==='overview'?'normal':'overview')},'全体図'),
+       AH('button',{type:'button','aria-pressed':greenZoom,onClick:()=>setViewMode(v=>v==='green'?'normal':'green')},'グリーン拡大')
      ),
-     AH(AimMap,{...props,zoom}),
+     AH(AimMap,{...props,zoom:greenZoom,tapEnabled:overview?false:props.tapEnabled}),
      AH('p',{className:'ga-course-map-help'},
-       props.tapEnabled
-         ?AH(P.Fragment,null,AH('b',null,'コース図をタップ'), 'して狙いを設定。マーカーはドラッグで微調整できます。')
-         :props.aimPoint
-           ?'狙い位置を設定済みです。'
-           :'クラブを選択すると狙い位置を設定できます。'
+       overview
+         ?'全体図を表示中です。狙いの微調整は通常表示で行います。'
+         :props.tapEnabled
+           ?AH(P.Fragment,null,AH('b',null,'コース図をタップ'), 'して狙いを設定。マーカーはドラッグで微調整できます。')
+           :props.aimPoint
+             ?'狙い位置を設定済みです。'
+             :'クラブを選択すると狙い位置を設定できます。'
      )
    ),
    AH('section',{className:'ga-course-shot-strip'},
@@ -1947,7 +1955,7 @@ dp=function(props){
      AH('div',{className:'remaining'},AH('small',null,'残り'),AH('strong',null,`${h.remaining}yd`))
    ),
    AH('button',{type:'button',className:'ga-course-aim-focus',onClick:focusAim},
-     props.tapEnabled?'狙い地点を設定する':'クラブを選択して狙いを設定'
+     overview?'通常表示に戻って狙いを設定':props.tapEnabled?'狙い地点を設定する':'クラブを選択して狙いを設定'
    )
  );
 };
