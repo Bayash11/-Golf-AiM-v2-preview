@@ -550,7 +550,7 @@ body:has(.ga-home-v2){overflow-x:hidden;overscroll-behavior-y:none;}
   </div>
 </div>
 <script>
-window.GOLF_AIM_BUILD="2026-09-26-step6-1";
+window.GOLF_AIM_BUILD="2026-09-26-refactor1";
 window.setTimeout(function(){
   var root=document.getElementById("root");
   if(root && /読み込み中/.test(root.textContent||"")){
@@ -778,20 +778,8 @@ ay=function(x,y,hole){const dx=x-Yt(y,hole),width=bu(y,hole),remaining=Math.roun
  if(y>=-14&&y<=hole.distance+24&&Math.abs(dx)<=width+hole.roughWidth)return result(dx<0?'ラフ（左）':'ラフ（右）');return result('林（深いラフ）');
 };
 function aimBoundary(hole,start,end,extra){const ys=[start,end,...hole.centerline.map(p=>p.y),...hole.hwProfile.map(p=>p.y)].filter(y=>y>=start&&y<=end).sort((a,b)=>a-b);return [...ys.map(y=>({x:Yt(y,hole)-bu(y,hole)-extra,y})),...ys.slice().reverse().map(y=>({x:Yt(y,hole)+bu(y,hole)+extra,y}))]}
-function aimMetrics(shots){const n=shots.length;if(!n)return null;const d=shots.filter(x=>x.distanceError<=x.distanceTolerance).length;const l=shots.filter(x=>x.lateralError<=x.lateralTolerance).length;const short=shots.filter(x=>x.forward-x.targetDistance < -x.distanceTolerance).length;const over=shots.filter(x=>x.forward-x.targetDistance > x.distanceTolerance).length;const left=shots.filter(x=>x.lateral < -x.lateralTolerance).length;const right=shots.filter(x=>x.lateral > x.lateralTolerance).length;let worst=null;for(const x of shots){const error=Math.max(x.distanceError/x.distanceTolerance,x.lateralError/x.lateralTolerance);if(!worst||error>worst.error)worst={error,distance:x.targetDistance};}return {n,d,l,short,over,left,right,next:worst.error<=1?'次は距離を交互に変えて5球。今日の精度を再現しましょう。':`次は${worst.distance}ydを目標に5球。${d<l?'振り幅と距離の再現性':l<d?'狙いに対する左右のズレ':'距離と左右のズレ'}を確認しましょう。`};}
-function AimReview({shots}){const m=aimMetrics(shots);if(!m)return null;return AH('section',{className:'aim-review'},AH('h2',null,'今回の振り返り'),AH('div',{className:'aim-review-stats'},AH('div',null,AH('strong',null,`${m.d} / ${m.n}`),AH('span',null,'距離が許容範囲内')),AH('div',null,AH('strong',null,`${m.l} / ${m.n}`),AH('span',null,'左右が許容範囲内'))),AH('p',null,`ショート ${m.short}球 · オーバー ${m.over}球`),AH('p',null,`左 ${m.left}球 · 右 ${m.right}球`),AH('small',null,'選択した目標レベルの許容範囲を超えた球を集計'),AH('h3',null,'次の5球'),AH('p',null,m.next));}
-const baseResult=Dp;Dp=function(props){return AH('div',null,AH(AimReview,{shots:props.session.shots}),AH(baseResult,props));};
 /* Existing target-plan distribution is retained; it already balances four distance bands. */
 // Scene follows the question context, never the selected club or a new random draw.
-function aimSceneKey(target){
- const contextScenes={driver:'tee',longIronUtFw:'long',shortMid:'iron',approach:'approach'};
- if(Object.prototype.hasOwnProperty.call(contextScenes,target.shotContext))return contextScenes[target.shotContext];
- const distance=Number(target.targetDistance);
- return distance<=90?'approach':distance<=160?'iron':distance<=210?'long':'tee';
-}
-const aimSceneAlt={tee:'ティーイングエリアからの景色のイメージ',long:'フェアウェイから遠いグリーンを見る景色のイメージ',iron:'アイアンでグリーンを狙う景色のイメージ',approach:'グリーン近くからアプローチする景色のイメージ'};
-zp=function({target,shotIndex,totalShots=10,selectedClub,onClub,clubs,isApproach,plan,onPlanField,onStartShot}){return AH('section',{className:'aim-random'},AH('div',{className:'aim-progress','aria-label':`${shotIndex+1}球目、全${totalShots}球`},AH('p',null,`${shotIndex+1} / ${totalShots}`),AH('div',null,...Array.from({length:totalShots},(_,idx)=>AH('span',{key:idx,className:idx<=shotIndex?'active':''})))),AH('div',{className:'aim-distance'},AH('p',null,'今回の距離'),AH('strong',null,target.targetDistance),AH('span',null,'yd')),AH('img',{className:'aim-random-art',src:ASSET[aimSceneKey(target)]||ASSET.range,alt:aimSceneAlt[aimSceneKey(target)],width:960,height:240}),target.courseInfo?.length?AH('section',{className:'aim-situation'},AH('h3',null,'状況を確認'),...target.courseInfo.map((x,idx)=>AH('p',{key:idx},AH('strong',null,x.label+'：'),x.value))):null,AH('h2',null,'クラブを選択'),AH('div',{className:'aim-clubs'},...clubs.map(club=>aimButton(club,()=>onClub(club),{key:club,'aria-pressed':club===selectedClub}))),AH(P.Fragment,null,AH('section',{className:'aim-plan'},AH('h3',null,'狙い・球筋を調整'),AH('label',null,'狙う場所'),AH(Qt,{options:target.isGreenShot?xg:Sg,value:plan.aimTarget,onChange:v=>onPlanField('aimTarget',v),activeColor:s.gold}),AH('label',null,isApproach?'打ち方':'球の高さ'),AH(Qt,{options:isApproach?K1:J1,value:isApproach?plan.style:plan.trajectoryHeight,onChange:v=>onPlanField(isApproach?'style':'trajectoryHeight',v)}),!isApproach&&AH(Qt,{options:$1,value:plan.curveBase,onChange:v=>onPlanField('curveBase',v)})),selectedClub?aimButton('このクラブで打つ',onStartShot,{className:'aim-primary'}):AH('p',{className:'aim-hint'},'使うクラブを選んでください')));};
-
 /* C-style geographic surface. Sampled organic contours are shared with hit testing. */
 function aimOrganic(x,y,rx,ry,seed=0){return Array.from({length:64},(_,i)=>{const a=i/64*Math.PI*2,k=1+.09*Math.sin(3*a+seed)+.055*Math.sin(5*a+seed*.4);return {x:x+Math.cos(a)*rx*k,y:y+Math.sin(a)*ry*k}})}
 function aimInside(x,y,poly){let inside=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const a=poly[i],b=poly[j];if((a.y>y)!==(b.y>y)&&x<(b.x-a.x)*(y-a.y)/(b.y-a.y)+a.x)inside=!inside}return inside}
@@ -833,7 +821,7 @@ function AimMap({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=fals
 }
 dp=function(props){const [zoom,setZoom]=P.useState(false);const h=props.hole,from=props.prevPos,dist=p=>Math.round(se(from.x,from.y,p.x,p.y));P.useEffect(()=>setZoom(false),[h.number]);return AH('section',{className:'aim-course'},AH('div',{className:'aim-map-toolbar'},AH('span',null,'HOLE '+h.number),aimButton(zoom?'全体を見る':'グリーン拡大',()=>setZoom(!zoom))),AH('div',{className:'aim-yardages'},...[['手前',{x:h.greenCenter.x,y:h.greenCenter.y-h.green.depth}],['ピン',h.pin],['奥',{x:h.greenCenter.x,y:h.greenCenter.y+h.green.depth}]].map(([label,p])=>AH('div',{key:label},AH('small',null,label),AH('strong',null,dist(p))))),AH(AimMap,{...props,zoom}),AH('p',{className:'aim-map-hint'},props.tapEnabled?'タップで指定・金の丸をドラッグして微調整':'白：現在地　金：今回の狙い　赤線：OB'))};
 function AimLandingPreview({hole,pending,onField}){const [expanded,setExpanded]=P.useState(false);const target=pending.targetPosition||hole.aimPoint;const landing=ui(hole.prevPos,pending.forward,pending.lateral,target);return AH('section',{className:'aim-landing-preview'},AH('div',{className:'aim-preview-heading'},AH('h3',null,'着弾位置を確認'),aimButton(expanded?'周辺に戻す':'全体を見る',()=>setExpanded(!expanded))),AH(AimMap,{hole,prevPos:hole.prevPos,aimPoint:target,pendingPoint:landing,mini:true,expanded}),AH('p',{className:'aim-preview-legend'},'金：今回の狙い　水色：仮の着弾'),AH('div',{className:'aim-mini-adjust'},aimButton('左5yd',()=>onField('lateral',pending.lateral-5)),aimButton('右5yd',()=>onField('lateral',pending.lateral+5)),aimButton('−5yd',()=>onField(pending.isApproach?'carry':'forward',Math.max(0,(pending.isApproach?pending.carry:pending.forward)-5))),aimButton('＋5yd',()=>onField(pending.isApproach?'carry':'forward',(pending.isApproach?pending.carry:pending.forward)+5))),AH('p',null,`${pending.overrideLie??pending.computed.lie} ／ ピンまで ${pending.computed.remaining}yd`))}
-const oldResultInput=pp;pp=function(props){const element=oldResultInput(props);const nodes=P.Children.toArray(element.props.children);const at=nodes.findIndex(n=>n?.props?.children&&JSON.stringify(n.props.children,(key,value)=>typeof value==='function'?undefined:value).includes('結果ライ'));if(props.hole)nodes.splice(at<0?nodes.length-1:at,0,AH(AimLandingPreview,{key:'landing-preview',hole:props.hole,pending:props.pending,onField:props.onField}));return P.cloneElement(element,{},nodes)};
+
 Q1=function({onQuit,onDiscard,label='ラウンドを中断'}){const [open,setOpen]=P.useState(false);return AH('div',{className:'aim-quit'},aimButton('中断・メニュー',()=>setOpen(!open),{className:'aim-quit-open','aria-expanded':open}),open&&AH('div',{className:'aim-quit-panel'},AH('h3',null,'この練習をどうしますか？'),aimButton('途中の記録を保存して終了',onQuit),aimButton('この練習を破棄して終了',()=>{if(window.confirm('この練習の記録を破棄します。過去の履歴は残ります。'))onDiscard()},{className:'aim-discard'}),aimButton('練習を続ける',()=>setOpen(false))))};
 const aimBaseRandomMenu=Ap;
 Tp=function(props){return AH('div',null,AH(baseCourseMenu,props),props.hasActive&&aimButton('途中の練習を破棄',()=>{if(window.confirm('再開待ちのラウンドを破棄しますか？'))props.onDiscard()},{className:'aim-resume-discard'}))};
@@ -1340,6 +1328,9 @@ Ap=function({onStart,onResume,onDiscard,hasActive,onHistory,clubs=[],onData,onSe
 };
 
 
+/* =========================================================
+   Active random-mode UI overrides (legacy superseded overrides removed 2026-09-26)
+   ========================================================= */
 /* =========================================================
    GOLF AiM v2 — STEP4.2
    Random mode aim / shot planning screen
