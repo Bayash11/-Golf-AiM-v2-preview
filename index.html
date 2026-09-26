@@ -857,12 +857,12 @@ AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=fals
  if(mini&&!expanded&&pendingPoint){const target=aimPoint||pendingPoint,cx=(target.x+pendingPoint.x)/2,cy=(target.y+pendingPoint.y)/2,w=Math.max(95,Math.abs(target.x-pendingPoint.x)+45,(Math.abs(target.y-pendingPoint.y)+45)*1.6);xmin=cx-w/2;xmax=cx+w/2;ymin=cy-w/3.2;ymax=cy+w/3.2}
  const W=xmax-xmin,H=ymax-ymin,u=W/360,pt=p=>[p.x-xmin,ymax-p.y],path=poly=>'M'+poly.map(p=>pt(p).join(',')).join('L')+'Z',els=[];
  const add=(type,props,...children)=>els.push(AH(type,{...props,key:els.length},...children)),circle=(p,r,props)=>{const [cx,cy]=pt(p);add('circle',{cx,cy,r,...props})},land=(poly,fill,stroke,width=1)=>add('path',{d:path(poly),fill,stroke,strokeWidth:width,strokeLinejoin:'round'});
- add('rect',{width:W,height:H,fill:h.terrain==='links'?'#b8b67a':'#427447'});
- land(h.roughPoly||aimBand(h,-15,h.distance+30,14),h.terrain==='links'?'#879b57':'#54894c');
- land(h.fairwayPoly||aimBand(h,-8,h.distance+12,0),'#94b45b','#b4cd7b',.7);
- if(h.water){const poly=h.water.poly||(h.water.crossing?aimOrganic(0,(h.water.yStart+h.water.yEnd)/2,55,(h.water.yEnd-h.water.yStart)/2):aimOrganic(h.water.x,h.water.y,30,h.water.ry||30));land(poly,'#57a6bd','#d7d4a7',1.5)}
- for(const t of h.trees){circle(t,t.r,{fill:'#2b633d'});circle({x:t.x-t.r*.24,y:t.y+t.r*.22},t.r*.72,{fill:'#387947'})}
- land(h.apronPoly||aimOrganic(h.greenCenter.x,h.greenCenter.y,18,21),'#a1c26a');land(h.greenPoly||aimOrganic(h.greenCenter.x,h.greenCenter.y,h.green.halfWidth,h.green.depth),'#b6d37b','#d3e6a4',.8);
+ add('rect',{width:W,height:H,fill:h.terrain==='links'?'#365C3C':'#245E39'});
+ land(h.roughPoly||aimBand(h,-15,h.distance+30,14),h.terrain==='links'?'#3C713E':'#2F7346');
+ land(h.fairwayPoly||aimBand(h,-8,h.distance+12,0),'#73A84F','#9BC96A',.8);
+ if(h.water){const poly=h.water.poly||(h.water.crossing?aimOrganic(0,(h.water.yStart+h.water.yEnd)/2,55,(h.water.yEnd-h.water.yStart)/2):aimOrganic(h.water.x,h.water.y,30,h.water.ry||30));land(poly,'#3E9BC2','#D8E5D2',1.5)}
+ for(const t of h.trees){circle(t,t.r,{fill:'#0F5634'});circle({x:t.x-t.r*.24,y:t.y+t.r*.22},t.r*.72,{fill:'#176A3D'})}
+ land(h.apronPoly||aimOrganic(h.greenCenter.x,h.greenCenter.y,18,21),'#8DBB59');land(h.greenPoly||aimOrganic(h.greenCenter.x,h.greenCenter.y,h.green.halfWidth,h.green.depth),'#A9D36E','#D3E9A1',.9);
  for(const b of h.bunkers)land(b.poly||aimOrganic(b.x,b.y,b.r,b.r*.8),'#f5e7b9','#c8b983',.85);
  for(const z of h.obZones){const arr=Array.from({length:61},(_,i)=>{const y=z.yStart+(z.yEnd-z.yStart)*i/60;return{x:Yt(y,h)+(z.side==='left'?-1:1)*(bu(y,h)+h.roughWidth+3),y}});add('polyline',{points:arr.map(p=>pt(p).join(',')).join(' '),fill:'none',stroke:'#f2b3a0',strokeWidth:1.2*u,strokeDasharray:`${5*u} ${4*u}`})}
  const [tx,ty0]=pt({x:0,y:0});add('rect',{x:tx-6,y:ty0-3,width:12,height:6,rx:2,fill:'#d3dba4'});
@@ -875,7 +875,7 @@ AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=fals
  const update=e=>{if(!tapEnabled||!onTap)return null;const p=local(e);if(p){onTap(p.x,p.y);setDragPoint(p)}return p};
  if(aimPoint){const [ax,ay]=pt(aimPoint);add('line',{x1:bx,y1:by,x2:ax,y2:ay,stroke:'#e7c878',strokeWidth:1*u,strokeDasharray:`${3*u} ${4*u}`});label(aimPoint,Math.round(se(prevPos.x,prevPos.y,aimPoint.x,aimPoint.y))+'yd','#e7c878');add('g',{style:{touchAction:'none',cursor:tapEnabled?'grab':'default'},onPointerDown:e=>{if(!tapEnabled)return;e.stopPropagation();e.preventDefault();drag.current=true;justDragged.current=false;setDragging(true);setDragPoint(aimPoint);e.currentTarget.setPointerCapture?.(e.pointerId)},onPointerMove:e=>{if(drag.current){e.preventDefault();justDragged.current=true;update(e)}},onPointerUp:e=>{if(drag.current){e.preventDefault();update(e)}drag.current=false;setDragging(false);e.currentTarget.releasePointerCapture?.(e.pointerId);setTimeout(()=>{justDragged.current=false},80)},onPointerCancel:()=>{drag.current=false;setDragging(false)},onClick:e=>{e.stopPropagation();e.preventDefault()}},AH('circle',{cx:ax,cy:ay,r:24*u,fill:'transparent'}),AH('circle',{cx:ax,cy:ay,r:7*u,fill:'none',stroke:'#e7c878',strokeWidth:2*u}),AH('circle',{cx:ax,cy:ay,r:2*u,fill:'#e7c878'}))}
  if(pendingPoint){circle(pendingPoint,6*u,{fill:'#9fe7ed',stroke:'#16463b',strokeWidth:1.6*u});add('text',{x:pt(pendingPoint)[0]+9*u,y:pt(pendingPoint)[1]+5*u,fill:'#12382b',stroke:'#f1f5d6',strokeWidth:3*u,paintOrder:'stroke',fontWeight:700,fontSize:13*u},'着弾')}
- const mainSvg=AH('svg',{ref,viewBox:`0 0 ${W} ${H}`,className:mini?'aim-mini-svg':'aim-map-v2',style:{aspectRatio:`${W}/${H}`,touchAction:'pan-y',WebkitUserSelect:'none',userSelect:'none'},onPointerDown:e=>{if(!tapEnabled||mini||e.pointerType==='touch')return;tapStart.current={x:e.clientX,y:e.clientY,t:Date.now()}},onPointerUp:e=>{if(!tapEnabled||mini||drag.current||e.pointerType==='touch')return;const st=tapStart.current;tapStart.current=null;if(!st)return;const moved=Math.hypot(e.clientX-st.x,e.clientY-st.y);if(moved<=14&&!justDragged.current)update(e)},onPointerCancel:()=>{tapStart.current=null},onTouchStart:e=>{if(!tapEnabled||mini||drag.current)return;const t=e.touches&&e.touches[0];if(!t)return;touchStart.current={x:t.clientX,y:t.clientY,moved:false}},onTouchMove:e=>{const st=touchStart.current,t=e.touches&&e.touches[0];if(!st||!t)return;if(Math.hypot(t.clientX-st.x,t.clientY-st.y)>14)st.moved=true},onTouchEnd:e=>{suppressClickUntil.current=Date.now()+700;if(!tapEnabled||mini||drag.current||justDragged.current){touchStart.current=null;return}const st=touchStart.current,t=e.changedTouches&&e.changedTouches[0];touchStart.current=null;if(!st||!t||st.moved)return;const moved=Math.hypot(t.clientX-st.x,t.clientY-st.y);if(moved<=14)update(e)},onTouchCancel:()=>{touchStart.current=null;suppressClickUntil.current=Date.now()+700},onClick:e=>{if(!tapEnabled||mini||justDragged.current||Date.now()<suppressClickUntil.current)return;update(e)},overflow:'hidden',role:'img','aria-label':mini?'今回の狙いと仮の着弾位置':'コース図。タップで狙い地点を指定し、金の狙いマーカーはドラッグで微調整できます'},...els);
+ const mainSvg=AH('svg',{ref,viewBox:`0 0 ${W} ${H}`,preserveAspectRatio:mini?'xMidYMid meet':'none',className:mini?'aim-mini-svg':'aim-map-v2',style:{aspectRatio:mini?`${W}/${H}`:'auto',touchAction:'pan-y',WebkitUserSelect:'none',userSelect:'none'},onPointerDown:e=>{if(!tapEnabled||mini||e.pointerType==='touch')return;tapStart.current={x:e.clientX,y:e.clientY,t:Date.now()}},onPointerUp:e=>{if(!tapEnabled||mini||drag.current||e.pointerType==='touch')return;const st=tapStart.current;tapStart.current=null;if(!st)return;const moved=Math.hypot(e.clientX-st.x,e.clientY-st.y);if(moved<=14&&!justDragged.current)update(e)},onPointerCancel:()=>{tapStart.current=null},onTouchStart:e=>{if(!tapEnabled||mini||drag.current)return;const t=e.touches&&e.touches[0];if(!t)return;touchStart.current={x:t.clientX,y:t.clientY,moved:false}},onTouchMove:e=>{const st=touchStart.current,t=e.touches&&e.touches[0];if(!st||!t)return;if(Math.hypot(t.clientX-st.x,t.clientY-st.y)>14)st.moved=true},onTouchEnd:e=>{suppressClickUntil.current=Date.now()+700;if(!tapEnabled||mini||drag.current||justDragged.current){touchStart.current=null;return}const st=touchStart.current,t=e.changedTouches&&e.changedTouches[0];touchStart.current=null;if(!st||!t||st.moved)return;const moved=Math.hypot(t.clientX-st.x,t.clientY-st.y);if(moved<=14)update(e)},onTouchCancel:()=>{touchStart.current=null;suppressClickUntil.current=Date.now()+700},onClick:e=>{if(!tapEnabled||mini||justDragged.current||Date.now()<suppressClickUntil.current)return;update(e)},overflow:'hidden',role:'img','aria-label':mini?'今回の狙いと仮の着弾位置':'コース図。タップで狙い地点を指定し、金の狙いマーカーはドラッグで微調整できます'},...els);
  const focus=dragPoint||aimPoint;
  const showLens=!!(dragging&&!mini&&focus);
  let lens=null;
@@ -923,7 +923,7 @@ Q1=function({onQuit,onDiscard,label='ラウンドを中断'}){
  const [open,setOpen]=P.useState(false);
  P.useEffect(()=>{const fn=()=>setOpen(v=>!v);window.__aimQuitToggle=fn;return()=>{if(window.__aimQuitToggle===fn)delete window.__aimQuitToggle}},[]);
  return AH('div',{className:'aim-quit'},
-   aimButton('☰',()=>setOpen(v=>!v),{className:'aim-quit-open aim-quit-open-fallback','aria-label':'中断・メニュー','aria-expanded':open}),
+   aimButton('‹',()=>setOpen(v=>!v),{className:'aim-quit-open aim-quit-open-fallback','aria-label':'中断・メニュー','aria-expanded':open}),
    open&&AH('div',{className:'aim-quit-panel'},AH('h3',null,'この練習をどうしますか？'),aimButton('途中の記録を保存して終了',onQuit),aimButton('この練習を破棄して終了',()=>{if(window.confirm('この練習の記録を破棄します。過去の履歴は残ります。'))onDiscard()},{className:'aim-discard'}),aimButton('練習を続ける',()=>setOpen(false)))
  );
 };
@@ -1800,7 +1800,7 @@ const gaCourseAimStyle=document.createElement('style');
 gaCourseAimStyle.textContent=`
 #root:has(.ga-course-playing){padding-top:0!important;padding-bottom:0!important;background:var(--ga-bg)!important;}
 #root>div:has(.ga-course-playing){background:var(--ga-bg)!important;}
-.ga-course-playing{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 146px) 16px 30px;background:var(--ga-bg)!important;color:var(--ga-text);box-sizing:border-box;}
+.ga-course-playing{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 150px) 14px 30px;background:var(--ga-bg)!important;color:var(--ga-text);box-sizing:border-box;}
 .ga-course-map-shell{margin:0;padding:0;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;}
 .ga-course-playing>div:not(.aim-quit):not(.ga-course-fixed):not(.ga-course-map-shell){background:transparent;}
 .ga-course-playing .rounded-2xl{box-shadow:none;}
@@ -1813,22 +1813,31 @@ gaCourseAimStyle.textContent=`
 .ga-course-fixed{position:fixed;top:0;left:50%;z-index:80;width:min(100vw,390px);transform:translateX(-50%);background:var(--ga-bg);border-bottom:1px solid var(--ga-border);box-sizing:border-box;}
 .ga-course-topbar{height:var(--ga-header-total);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 11px;box-sizing:border-box;}
 .ga-course-topbar h1{margin:0;font-size:20px;line-height:44px;font-weight:800;color:var(--ga-text);}
-.ga-course-topbar-progress{position:absolute;right:16px;bottom:11px;height:44px;display:flex;align-items:center;color:var(--ga-sub);font-size:13px;font-weight:700;}
-.ga-course-hole-card{margin:0 16px 10px;padding:12px 14px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);}
-.ga-course-hole-primary{display:grid;grid-template-columns:1fr auto auto auto;align-items:end;gap:10px;}
-.ga-course-hole-primary small{display:block;margin-bottom:2px;color:var(--ga-sub);font-size:9px;font-weight:600;}
-.ga-course-hole-primary strong{display:block;color:var(--ga-text);font-size:19px;line-height:1;font-weight:850;white-space:nowrap;}
-.ga-course-hole-primary .score strong{color:var(--ga-orange);}
-.ga-course-remaining{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px;padding:7px 10px;border-radius:10px;background:var(--ga-blue-soft);color:var(--ga-sub);font-size:11px;font-weight:700;}
-.ga-course-remaining b{color:var(--ga-blue);font-size:16px;font-weight:850;}
-.ga-course-hole-meta{display:flex;gap:8px 14px;flex-wrap:wrap;margin-top:9px;padding-top:8px;border-top:1px solid var(--ga-border);color:var(--ga-sub);font-size:10px;font-weight:600;}
-.ga-course-hole-meta b{color:var(--ga-text);font-weight:750;}
+.ga-course-topbar-progress{position:absolute;right:16px;bottom:11px;height:44px;display:flex;align-items:center;color:var(--ga-text);font-size:13px;font-weight:800;}
+.ga-course-hole-card{margin:0 14px 10px;padding:13px 14px 11px;border-radius:16px;background:#fff;box-shadow:0 5px 16px rgba(23,32,51,.07);}
+.ga-course-hole-primary{display:grid;grid-template-columns:.75fr .75fr 1.45fr .9fr;align-items:stretch;gap:0;}
+.ga-course-hole-primary>div{display:flex;min-width:0;min-height:55px;flex-direction:column;justify-content:center;text-align:center;padding:0 8px;}
+.ga-course-hole-primary>div+div{border-left:1px solid var(--ga-border);}
+.ga-course-hole-primary small{display:block;margin-bottom:3px;color:var(--ga-sub);font-size:10px;font-weight:650;letter-spacing:.01em;}
+.ga-course-hole-primary strong{display:block;color:var(--ga-text);font-size:26px;line-height:1;font-weight:850;white-space:nowrap;letter-spacing:-.03em;}
+.ga-course-hole-primary .yard strong{font-size:24px;}
+.ga-course-hole-primary .score strong{color:var(--ga-text);font-size:27px;}
+.ga-course-hole-meta{display:grid;grid-template-columns:1fr 1.45fr;gap:0;margin-top:10px;padding-top:9px;border-top:1px solid var(--ga-border);color:var(--ga-sub);font-size:11px;font-weight:650;text-align:center;}
+.ga-course-hole-meta>span{padding:0 10px;white-space:nowrap;}
+.ga-course-hole-meta>span+span{border-left:1px solid var(--ga-border);}
+.ga-course-hole-meta b{margin-left:5px;color:var(--ga-text);font-weight:800;}
 
-.ga-course-map-card{overflow:hidden;margin:0 0 18px;border:1px solid var(--ga-border);border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);}
-.ga-course-map-card .aim-map-stage{background:#427447;}
-.ga-course-map-card .aim-map-v2{display:block;width:100%;max-height:none;border-radius:0;}
-.ga-course-map-help{margin:0;padding:8px 12px 10px;background:#fff;color:var(--ga-sub);font-size:10px;line-height:1.45;text-align:center;}
+.ga-course-map-card{position:relative;overflow:hidden;margin:0 0 10px;border:1px solid rgba(30,82,51,.18);border-radius:16px;background:#fff;box-shadow:0 5px 16px rgba(23,32,51,.07);}
+.ga-course-map-card .aim-map-stage{background:#245E39;}
+.ga-course-map-card .aim-map-v2{display:block;width:100%!important;max-height:none;border-radius:0;}
+.ga-course-map-card.ga-course-par3 .aim-map-v2{height:390px!important;}
+.ga-course-map-card.ga-course-par4 .aim-map-v2{height:310px!important;}
+.ga-course-map-card.ga-course-par5 .aim-map-v2{height:325px!important;}
+.ga-course-map-card.ga-course-zoom .aim-map-v2{height:330px!important;}
+.ga-course-map-help{margin:0;padding:7px 12px 9px;background:#fff;color:var(--ga-sub);font-size:10px;line-height:1.4;text-align:center;}
 .ga-course-map-help b{color:var(--ga-text);}
+.ga-course-map-toolbar{position:absolute;right:8px;top:8px;z-index:25;}
+.ga-course-map-toolbar button{min-height:36px;padding:0 11px;border:1px solid rgba(255,255,255,.55);border-radius:999px;background:rgba(255,255,255,.94);color:var(--ga-text);box-shadow:0 3px 10px rgba(0,0,0,.14);font-size:10px;font-weight:800;}
 .ga-course-map-card .aim-target-lens{
   position:fixed!important;
   right:max(14px,calc((100vw - 390px)/2 + 14px))!important;
@@ -1842,14 +1851,22 @@ gaCourseAimStyle.textContent=`
 .ga-course-map-card .aim-target-lens-info span{color:var(--ga-sub);}
 .ga-course-map-card .aim-target-lens-info strong{color:var(--ga-text);}
 .ga-course-map-card svg text{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;}
+.ga-course-shot-strip{display:grid;grid-template-columns:1fr .8fr;margin:0 0 10px;border-radius:16px;background:#fff;box-shadow:0 5px 16px rgba(23,32,51,.07);overflow:hidden;}
+.ga-course-shot-strip>div{padding:11px 14px;min-width:0;}
+.ga-course-shot-strip>div+div{border-left:1px solid var(--ga-border);}
+.ga-course-shot-strip small{display:block;margin-bottom:2px;color:var(--ga-sub);font-size:10px;font-weight:650;}
+.ga-course-shot-strip strong{display:block;color:var(--ga-text);font-size:17px;line-height:1.25;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ga-course-shot-strip .remaining strong{font-size:19px;}
+.ga-course-aim-focus{position:relative;width:100%;min-height:50px;margin:0 0 12px;border:0;border-radius:999px;background:var(--ga-orange);color:#fff;font-size:14px;font-weight:800;box-shadow:0 5px 14px rgba(255,106,36,.20);}
+.ga-course-aim-focus:after{content:"›";position:absolute;right:18px;top:50%;transform:translateY(-54%);font-size:25px;font-weight:300;}
 
-.ga-course-section{margin-top:18px;}
+.ga-course-section{margin-top:14px;}
 .ga-course-form-title{display:flex;align-items:center;gap:8px;margin:0 0 10px;color:var(--ga-text);font-size:14px;font-weight:800;}
 .ga-course-form-title:before{content:"";width:4px;height:18px;border-radius:99px;background:var(--ga-orange);}
-.ga-course-clubs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;}
-.ga-course-clubs button{min-width:0;min-height:43px;padding:7px 2px;border:1px solid var(--ga-border);border-radius:12px;background:#fff;color:var(--ga-text);font-size:13px;font-weight:750;}
+.ga-course-clubs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;}
+.ga-course-clubs button{min-width:0;min-height:40px;padding:6px 1px;border:1px solid var(--ga-border);border-radius:10px;background:#fff;color:var(--ga-text);font-size:11px;font-weight:750;}
 .ga-course-clubs button[aria-pressed="true"]{border-color:var(--ga-orange);background:var(--ga-orange);color:#fff;box-shadow:0 3px 10px rgba(255,106,36,.16);}
-.ga-course-selected-club{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border:1px solid rgba(255,106,36,.22);border-radius:14px;background:var(--ga-orange-soft);}
+.ga-course-selected-club{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border:1px solid rgba(255,106,36,.22);border-radius:12px;background:var(--ga-orange-soft);}
 .ga-course-selected-club span{color:var(--ga-sub);font-size:11px;font-weight:600}.ga-course-selected-club strong{color:var(--ga-orange);font-size:17px;font-weight:850;}
 .ga-course-aim-prompt{margin-top:10px;padding:11px 13px;border-radius:14px;background:var(--ga-blue-soft);color:var(--ga-sub);font-size:11px;line-height:1.55;text-align:center;}
 .ga-course-aim-prompt b{color:var(--ga-blue);}
@@ -1877,26 +1894,20 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
  const donePar=completedHoles.reduce((sum,h)=>sum+(Number(h.par)||0),0);
  const diff=doneScore-donePar;
  const score=completedHoles.length?aimScoreText(diff):'E';
- const pin=current.pinLabel||hole.pinLabel||((hole.features||[]).find(f=>/ピン/.test(f.text||''))?.text||'—').replace(/^ピン[:：]?\s*/,'');
+ const pin=(current.pinLabel||hole.pinLabel||((hole.features||[]).find(f=>/ピン/.test(f.text||''))?.text||'—')).replace(/^ピン[:：]?\s*/,'');
  const gw=Math.round((hole.green?.halfWidth||0)*2),gd=Math.round((hole.green?.depth||0)*2);
  return AH('div',{className:'ga-course-fixed'},
    AH('div',{className:'ga-course-topbar'},
-     AH('h1',null,'コース想定'),
+     AH('h1',null,'コース想定モード'),
      AH('div',{className:'ga-course-topbar-progress'},`${holeIdx+1} / ${totalHoles}`)
    ),
    AH('section',{className:'ga-course-hole-card'},
      AH('div',{className:'ga-course-hole-primary'},
-       AH('div',null,AH('small',null,'HOLE'),AH('strong',null,holeIdx+1)),
-       AH('div',null,AH('small',null,'PAR'),AH('strong',null,hole.par)),
-       AH('div',null,AH('small',null,'YARD'),AH('strong',null,`${hole.distance}yd`)),
-       AH('div',{className:'score'},AH('small',null,'SCORE'),AH('strong',null,score))
+       AH('div',null,AH('small',null,'Hole'),AH('strong',null,holeIdx+1)),
+       AH('div',null,AH('small',null,'Par'),AH('strong',null,hole.par)),
+       AH('div',{className:'yard'},AH('small',{'aria-hidden':true},'\u00A0'),AH('strong',null,`${hole.distance}yd`)),
+       AH('div',{className:'score'},AH('small',null,'現在'),AH('strong',null,score))
      ),
-     current.strokes>0
-       ?AH('div',{className:'ga-course-remaining'},
-          AH('span',null,`${current.strokes+1}打目`),
-          AH('span',null,'残り ',AH('b',null,`${current.remaining}yd`))
-        )
-       :null,
      AH('div',{className:'ga-course-hole-meta'},
        AH('span',null,'ピン位置 ',AH('b',null,pin)),
        AH('span',null,'グリーン幅 ',AH('b',null,`${gw}yd × ${gd}yd`))
@@ -1907,14 +1918,36 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
 
 dp=function(props){
  const h=props.hole;
- return AH('section',{className:'ga-course-map-card'},
-   AH(AimMap,{...props,zoom:false}),
-   AH('p',{className:'ga-course-map-help'},
-     props.tapEnabled
-       ?AH(P.Fragment,null,AH('b',null,'コース図をタップ'), 'して狙いを設定。マーカーはドラッグで微調整できます。')
-       :props.aimPoint
-         ?'狙い位置を設定済みです。'
-         :'クラブを選択すると狙い位置を設定できます。'
+ const [zoom,setZoom]=P.useState(false);
+ P.useEffect(()=>setZoom(false),[h.number]);
+ const shotLabel=h.strokes===0?'ティーショット':`${h.strokes+1}打目・${h.lie}`;
+ const focusAim=()=>{
+   if(!props.tapEnabled){
+     document.querySelector('.ga-course-section')?.scrollIntoView({behavior:'smooth',block:'center'});
+     return;
+   }
+   document.querySelector('.ga-course-map-card')?.scrollIntoView({behavior:'smooth',block:'start'});
+ };
+ return AH(P.Fragment,null,
+   AH('section',{className:`ga-course-map-card ga-course-par${h.par}${zoom?' ga-course-zoom':''}`},
+     AH('div',{className:'ga-course-map-toolbar'},
+       AH('button',{type:'button',onClick:()=>setZoom(v=>!v)},zoom?'全体を見る':'グリーン拡大')
+     ),
+     AH(AimMap,{...props,zoom}),
+     AH('p',{className:'ga-course-map-help'},
+       props.tapEnabled
+         ?AH(P.Fragment,null,AH('b',null,'コース図をタップ'), 'して狙いを設定。マーカーはドラッグで微調整できます。')
+         :props.aimPoint
+           ?'狙い位置を設定済みです。'
+           :'クラブを選択すると狙い位置を設定できます。'
+     )
+   ),
+   AH('section',{className:'ga-course-shot-strip'},
+     AH('div',null,AH('small',null,'現在のショット'),AH('strong',null,shotLabel)),
+     AH('div',{className:'remaining'},AH('small',null,'残り'),AH('strong',null,`${h.remaining}yd`))
+   ),
+   AH('button',{type:'button',className:'ga-course-aim-focus',onClick:focusAim},
+     props.tapEnabled?'狙い地点を設定する':'クラブを選択して狙いを設定'
    )
  );
 };
