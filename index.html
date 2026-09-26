@@ -2119,6 +2119,91 @@ pp=function(props){
  );
 };
 
+
+/* =========================================================
+   GOLF AiM v2 — STEP10
+   Course simulation: hole finish
+   ========================================================= */
+const gaCourseHoleFinishStyle=document.createElement('style');
+gaCourseHoleFinishStyle.textContent=`
+#root:has(.ga-course-hole-finish){padding-top:0!important;padding-bottom:0!important;background:var(--ga-bg)!important;}
+.ga-course-playing:has(.ga-course-hole-finish){max-width:390px!important;padding:0!important;background:var(--ga-bg)!important;}
+.ga-course-playing:has(.ga-course-hole-finish)>.aim-quit,
+.ga-course-playing:has(.ga-course-hole-finish)>.ga-course-fixed,
+.ga-course-playing:has(.ga-course-hole-finish)>.ga-course-map-shell{display:none!important;}
+.ga-course-hole-finish{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 18px) 16px 32px;box-sizing:border-box;background:var(--ga-bg);color:var(--ga-text);}
+.ga-course-hole-finish-head{position:fixed;top:0;left:50%;z-index:80;width:min(100vw,390px);height:var(--ga-header-total);transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 11px;background:var(--ga-bg);border-bottom:1px solid var(--ga-border);box-sizing:border-box;}
+.ga-course-hole-finish-head h1{margin:0;font-size:20px;line-height:44px;font-weight:800;color:var(--ga-text);}
+.ga-course-hole-finish-head span{position:absolute;right:16px;bottom:11px;height:44px;display:flex;align-items:center;color:var(--ga-sub);font-size:13px;font-weight:750;}
+.ga-hole-finish-score{padding:22px 18px 20px;border-radius:18px;background:#fff;box-shadow:var(--ga-shadow-light);text-align:center;}
+.ga-hole-finish-score small{display:block;color:var(--ga-sub);font-size:11px;font-weight:700;}
+.ga-hole-finish-score .hole-line{margin-top:2px;color:var(--ga-sub);font-size:12px;font-weight:750;}
+.ga-hole-finish-score strong{display:block;margin-top:8px;color:var(--ga-text);font-size:54px;line-height:1;font-weight:900;letter-spacing:-.04em;}
+.ga-hole-finish-score strong em{margin-left:6px;color:var(--ga-orange);font-size:18px;font-style:normal;font-weight:850;letter-spacing:0;}
+.ga-hole-finish-score p{margin:8px 0 0;color:var(--ga-sub);font-size:11px;font-weight:650;}
+.ga-hole-finish-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:9px;margin-top:12px;}
+.ga-hole-finish-metric{padding:14px 10px;border-radius:15px;background:#fff;box-shadow:var(--ga-shadow-light);text-align:center;}
+.ga-hole-finish-metric small{display:block;color:var(--ga-sub);font-size:9px;font-weight:650;line-height:1.35;}
+.ga-hole-finish-metric strong{display:block;margin-top:4px;color:var(--ga-text);font-size:19px;font-weight:850;}
+.ga-hole-finish-metric strong em{margin-left:2px;color:var(--ga-sub);font-size:10px;font-style:normal;font-weight:700;}
+.ga-hole-finish-cumulative{margin-top:14px;padding:15px 16px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);}
+.ga-hole-finish-cumulative h2{display:flex;align-items:center;gap:8px;margin:0 0 11px;color:var(--ga-text);font-size:14px;font-weight:800;}
+.ga-hole-finish-cumulative h2:before{content:"";width:4px;height:18px;border-radius:99px;background:var(--ga-orange);}
+.ga-hole-finish-cumulative-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 11px;border-radius:12px;background:var(--ga-soft);}
+.ga-hole-finish-cumulative-row span{color:var(--ga-sub);font-size:11px;font-weight:650;}
+.ga-hole-finish-cumulative-row strong{color:var(--ga-text);font-size:17px;font-weight:850;}
+.ga-hole-finish-penalty{margin-top:9px;padding:9px 11px;border-radius:11px;background:#FFF1EE;color:#B54429;font-size:11px;font-weight:750;text-align:center;}
+.ga-hole-finish-next{position:relative;width:100%;min-height:56px;margin-top:18px;border:0;border-radius:999px;background:var(--ga-orange);color:#fff;font-size:16px;font-weight:800;box-shadow:0 6px 16px rgba(255,106,36,.22);}
+.ga-hole-finish-next:after{content:"›";position:absolute;right:20px;top:50%;transform:translateY(-54%);font-size:29px;font-weight:300;}
+`;
+document.head.appendChild(gaCourseHoleFinishStyle);
+
+bp=function({current,isLastHole,onNext,completedHoles=[]}){
+ const putts=current.expectedPutts??2;
+ const holeTotal=Math.round(current.strokes+current.penalty+putts);
+ const holeDiff=holeTotal-current.par;
+ const doneScore=completedHoles.reduce((sum,h)=>sum+(Number(h.total)||0),0);
+ const donePar=completedHoles.reduce((sum,h)=>sum+(Number(h.par)||0),0);
+ const cumScore=doneScore+holeTotal;
+ const cumPar=donePar+current.par;
+ const cumDiff=cumScore-cumPar;
+ const diffText=holeDiff===0?'E':holeDiff>0?`+${holeDiff}`:`${holeDiff}`;
+ const greenM=Number.isFinite(current.remainingAtGreenM)?current.remainingAtGreenM:null;
+ return AH('main',{className:'ga-course-hole-finish'},
+   AH('header',{className:'ga-course-hole-finish-head'},
+     AH('h1',null,'ホール結果'),
+     AH('span',null,`HOLE ${current.number}`)
+   ),
+   AH('section',{className:'ga-hole-finish-score'},
+     AH('small',null,`PAR ${current.par}`),
+     AH('div',{className:'hole-line'},`HOLE ${current.number}`),
+     AH('strong',null,holeTotal,AH('em',null,diffText)),
+     AH('p',null,'グリーンオン後は想定パットを含めてスコア計算')
+   ),
+   AH('section',{className:'ga-hole-finish-metrics'},
+     AH('div',{className:'ga-hole-finish-metric'},
+       AH('small',null,'想定パット'),
+       AH('strong',null,Number(putts).toFixed(2))
+     ),
+     AH('div',{className:'ga-hole-finish-metric'},
+       AH('small',null,'グリーンオン残り'),
+       AH('strong',null,greenM===null?'—':greenM.toFixed(1),greenM===null?null:AH('em',null,'m'))
+     )
+   ),
+   AH('section',{className:'ga-hole-finish-cumulative'},
+     AH('h2',null,'ここまでのスコア'),
+     AH('div',{className:'ga-hole-finish-cumulative-row'},
+       AH('span',null,`${completedHoles.length+1}H終了`),
+       AH('strong',null,`${cumScore}打 / ${aimScoreText(cumDiff)}`)
+     ),
+     current.penalty>0?AH('div',{className:'ga-hole-finish-penalty'},`ペナルティ ${current.penalty}打を含みます`):null
+   ),
+   AH('button',{type:'button',className:'ga-hole-finish-next',onClick:onNext},
+     isLastHole?'ラウンド結果を見る':'次のホールへ'
+   )
+ );
+};
+
 try{let t=document.getElementById("root");(0,py.createRoot)(t).render(gy.default.createElement(xf))}catch(t){Rp(t)}window.addEventListener("error",function(t){console.error("Uncaught error:",t.error||t.message)});})();
 /*! Bundled license information:
 
