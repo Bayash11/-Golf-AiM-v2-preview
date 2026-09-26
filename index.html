@@ -1860,9 +1860,6 @@ gaCourseAimStyle.textContent=`
 .ga-course-shot-strip small{display:block;margin-bottom:2px;color:var(--ga-sub);font-size:10px;font-weight:650;}
 .ga-course-shot-strip strong{display:block;color:var(--ga-text);font-size:17px;line-height:1.25;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ga-course-shot-strip .remaining strong{font-size:19px;}
-.ga-course-aim-focus{position:relative;width:100%;min-height:50px;margin:0 0 12px;border:0;border-radius:999px;background:var(--ga-orange);color:#fff;font-size:14px;font-weight:800;box-shadow:0 5px 14px rgba(255,106,36,.20);}
-.ga-course-aim-focus:after{content:"›";position:absolute;right:18px;top:50%;transform:translateY(-54%);font-size:25px;font-weight:300;}
-
 .ga-course-section{margin-top:14px;}
 .ga-course-form-title{display:flex;align-items:center;gap:8px;margin:0 0 10px;color:var(--ga-text);font-size:14px;font-weight:800;}
 .ga-course-form-title:before{content:"";width:4px;height:18px;border-radius:99px;background:var(--ga-orange);}
@@ -1926,14 +1923,6 @@ dp=function(props){
  const overview=viewMode==='overview',greenZoom=viewMode==='green';
  const effectiveShotNo=(h.strokes||0)+(h.penalty||0)+1;
  const shotLabel=h.strokes===0&&h.penalty===0?'ティーショット':`${effectiveShotNo}打目・${h.lie}`;
- const focusAim=()=>{
-   if(overview){setViewMode('normal');requestAnimationFrame(()=>document.querySelector('.ga-course-map-card')?.scrollIntoView({behavior:'smooth',block:'start'}));return;}
-   if(!props.tapEnabled){
-     document.querySelector('.ga-course-section')?.scrollIntoView({behavior:'smooth',block:'center'});
-     return;
-   }
-   document.querySelector('.ga-course-map-card')?.scrollIntoView({behavior:'smooth',block:'start'});
- };
  return AH(P.Fragment,null,
    AH('section',{className:`ga-course-map-card ga-course-par${h.par}${greenZoom?' ga-course-zoom':''}${overview?' ga-course-overview':''}`},
      AH('div',{className:'ga-course-map-toolbar'},
@@ -1954,9 +1943,6 @@ dp=function(props){
    AH('section',{className:'ga-course-shot-strip'},
      AH('div',null,AH('small',null,'現在のショット'),AH('strong',null,shotLabel)),
      AH('div',{className:'remaining'},AH('small',null,'残り'),AH('strong',null,`${h.remaining}yd`))
-   ),
-   AH('button',{type:'button',className:'ga-course-aim-focus',onClick:focusAim},
-     overview?'通常表示に戻って狙いを設定':props.tapEnabled?'狙い地点を設定する':'クラブを選択して狙いを設定'
    )
  );
 };
