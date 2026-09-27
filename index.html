@@ -756,8 +756,6 @@ Ep=function({onCourse,onRandom10,onHistory,onSettings}){
    AH(GaBottomNav,{active:'home',onHome:()=>window.scrollTo({top:0,behavior:'smooth'}),onPractice:toPractice,onData:onHistory,onSettings})
  );
 };
-const baseCourseMenu=Tp;
-Tp=function(props){return AH(baseCourseMenu,props)};
 const baseGenerate=O1;
 O1=function(number,par){const hole=baseGenerate(number,par);hole.terrain=number%2?'parkland':'links';
  if(hole.terrain==='links'){
@@ -794,7 +792,6 @@ O1=function(number,par){const h=baseGenerate(number,par);h.terrain=Math.random()
 };
 const priorLie=ay;
 ay=function(x,y,h){if(!h.greenPoly)return priorLie(x,y,h);const remaining=Math.round(se(x,y,h.pin.x,h.pin.y));const r=lie=>({lie,remaining});if(h.bunkers.some(b=>aimInside(x,y,b.poly)))return r('バンカー');if(aimInside(x,y,h.greenPoly))return r('グリーン');if(h.water&&aimInside(x,y,h.water.poly))return r('池');if(h.obZones.some(z=>y>=z.yStart&&y<=z.yEnd&&(z.side==='left'?-1:1)*(x-Yt(y,h))>bu(y,h)+h.roughWidth+3))return r('OB');if(h.trees.some(t=>Math.hypot(x-t.x,y-t.y)<t.r))return r('林（深いラフ）');if(aimInside(x,y,h.fairwayPoly))return r('フェアウェイ');if(aimInside(x,y,h.roughPoly))return r(x<Yt(y,h)?'ラフ（左）':'ラフ（右）');return r('林（深いラフ）')};
-Tp=function(props){return AH(baseCourseMenu,props)};
 function AimMap({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=false,expanded=false,zoom=false}){
  const ref=P.useRef(null),drag=P.useRef(false);const xs=h.centerline.map(p=>p.v);let xmin=Math.min(...xs)-72,xmax=Math.max(...xs)+72,ymin=-22,ymax=h.distance+40;
  if(zoom){xmin=h.greenCenter.x-42;xmax=xmin+84;ymin=h.greenCenter.y-42;ymax=ymin+84}
@@ -823,14 +820,6 @@ dp=function(props){const [zoom,setZoom]=P.useState(false);const h=props.hole,fro
 function AimLandingPreview({hole,pending,onField}){const [expanded,setExpanded]=P.useState(false);const target=pending.targetPosition||hole.aimPoint;const landing=ui(hole.prevPos,pending.forward,pending.lateral,target);return AH('section',{className:'aim-landing-preview'},AH('div',{className:'aim-preview-heading'},AH('h3',null,'着弾位置を確認'),aimButton(expanded?'周辺に戻す':'全体を見る',()=>setExpanded(!expanded))),AH(AimMap,{hole,prevPos:hole.prevPos,aimPoint:target,pendingPoint:landing,mini:true,expanded}),AH('p',{className:'aim-preview-legend'},'金：今回の狙い　水色：仮の着弾'),AH('div',{className:'aim-mini-adjust'},aimButton('左5yd',()=>onField('lateral',pending.lateral-5)),aimButton('右5yd',()=>onField('lateral',pending.lateral+5)),aimButton('−5yd',()=>onField(pending.isApproach?'carry':'forward',Math.max(0,(pending.isApproach?pending.carry:pending.forward)-5))),aimButton('＋5yd',()=>onField(pending.isApproach?'carry':'forward',(pending.isApproach?pending.carry:pending.forward)+5))),AH('p',null,`${pending.overrideLie??pending.computed.lie} ／ ピンまで ${pending.computed.remaining}yd`))}
 
 Q1=function({onQuit,onDiscard,label='ラウンドを中断'}){const [open,setOpen]=P.useState(false);return AH('div',{className:'aim-quit'},aimButton('中断・メニュー',()=>setOpen(!open),{className:'aim-quit-open','aria-expanded':open}),open&&AH('div',{className:'aim-quit-panel'},AH('h3',null,'この練習をどうしますか？'),aimButton('途中の記録を保存して終了',onQuit),aimButton('この練習を破棄して終了',()=>{if(window.confirm('この練習の記録を破棄します。過去の履歴は残ります。'))onDiscard()},{className:'aim-discard'}),aimButton('練習を続ける',()=>setOpen(false))))};
-const aimBaseRandomMenu=Ap;
-Tp=function(props){return AH('div',null,AH(baseCourseMenu,props),props.hasActive&&aimButton('途中の練習を破棄',()=>{if(window.confirm('再開待ちのラウンドを破棄しますか？'))props.onDiscard()},{className:'aim-resume-discard'}))};
-Ap=function(props){return AH('div',null,AH(aimBaseRandomMenu,props),props.hasActive&&aimButton('途中の練習を破棄',()=>{if(window.confirm('再開待ちの10球練習を破棄しますか？'))props.onDiscard()},{className:'aim-resume-discard'}))};
-const historyCourse=Np,historyRandom=Op;
-function AimDiscardHistory({entries,course,onBack}){const [error,setError]=P.useState('');return AH('section',{className:'aim-history-delete'},error&&AH('p',{role:'alert'},error),...entries.filter(x=>x.incomplete).map((entry,i)=>AH('div',{key:entry.sessionId||i},AH('span',null,entry.date+' の途中記録'),aimButton('削除',async()=>{if(!window.confirm('この途中記録だけを削除しますか？'))return;const all=await(course?H1():L1());const remaining=all.filter(x=>x.sessionId!==entry.sessionId);const result=await(course?U1(remaining):Y1(remaining));if(result.ok)onBack();else setError('削除できませんでした。もう一度お試しください。')}))))}
-Np=function(props){return AH('div',null,AH(AimDiscardHistory,{entries:props.history,course:true,onBack:props.onBack}),AH(historyCourse,props))};Op=function(props){return AH('div',null,AH(AimDiscardHistory,{entries:props.sessions,course:false,onBack:props.onBack}),AH(historyRandom,props))};
-
-
 /* ===== 2026-09-06 course-mode usability patch ===== */
 if(!ty.includes('フェース開き'))ty.push('フェース開き');
 ra=function(t){
@@ -1333,7 +1322,7 @@ Ap=function({onStart,onResume,onDiscard,hasActive,onHistory,clubs=[],onData,onSe
 
 
 /* =========================================================
-   Active random-mode UI overrides (legacy superseded overrides removed 2026-09-26)
+   Active random-mode UI
    ========================================================= */
 /* =========================================================
    GOLF AiM v2 — STEP4.2
@@ -1702,11 +1691,20 @@ function gaRandomShotScene(x){
  if(x.shotContext==='driver'||Number(x.targetDistance)>=210)return 'ティー';
  return 'FW';
 }
-Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warning}){
+function gaResetViewportTop(){
+ window.scrollTo({top:0,left:0,behavior:'auto'});
+ document.documentElement.scrollTop=0;
+ document.body.scrollTop=0;
+}
+function gaUseResetViewportOnMount(){
  P.useEffect(function(){
-   const reset=function(){window.scrollTo({top:0,left:0,behavior:'auto'});document.documentElement.scrollTop=0;document.body.scrollTop=0};
-   reset();requestAnimationFrame(reset);setTimeout(reset,60);
+   gaResetViewportTop();
+   requestAnimationFrame(gaResetViewportTop);
+   setTimeout(gaResetViewportTop,60);
  },[]);
+}
+Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warning}){
+ gaUseResetViewportOnMount();
  const stateShow=P.useState(false),showAll=stateShow[0],setShowAll=stateShow[1];
  const stateCopy=P.useState('idle'),copyState=stateCopy[0],setCopyState=stateCopy[1];
  const shots=session.shots||[],total=session.totalShots||shots.length||10;
@@ -2328,10 +2326,7 @@ gaCourseFinalStyle.textContent=`
 document.head.appendChild(gaCourseFinalStyle);
 
 xp=function({round:t,onRestart,onMenu,onHome,onPractice,onData,onSettings,warning:a,skillLevel:n,history:history=[]}){
- P.useEffect(function(){
-   const reset=function(){window.scrollTo({top:0,left:0,behavior:'auto'});document.documentElement.scrollTop=0;document.body.scrollTop=0};
-   reset();requestAnimationFrame(reset);setTimeout(reset,60);
- },[]);
+ gaUseResetViewportOnMount();
  const u=t.holes||[];
  const c=u.reduce((x,N)=>x+(Number(N.total)||0),0);
  const o=u.reduce((x,N)=>x+(Number(N.par)||0),0);
