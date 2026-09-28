@@ -539,6 +539,40 @@ body:has(.ga-home-v2){overflow-x:hidden;overscroll-behavior-y:none;}
 @media(max-width:360px){
   .ga-home-logo{font-size:39px}.ga-home-practice-grid,.ga-home-secondary-grid{gap:9px}.ga-home-tile{padding-left:12px;padding-right:12px}.ga-home-tile h2{font-size:18px}.ga-home-tile p{font-size:11px}.ga-home-recent-stat{padding:0 8px}
 }
+
+/* ===== 2026-09-28 HOME GROWTH VISUALIZATION ===== */
+.ga-home-practice-grid .ga-home-tile{min-height:196px;}
+.ga-home-practice-grid .ga-home-icon-circle{width:56px;height:56px;}
+.ga-home-practice-grid .ga-home-tile h2{margin-top:14px;font-size:19px;}
+.ga-home-secondary-grid .ga-home-small-card{min-height:126px;padding-top:15px;padding-bottom:14px;}
+.ga-home-growth{width:100%;margin-top:12px;padding:16px;border:0;border-radius:20px;background:#fff;box-shadow:0 6px 18px rgba(23,32,51,.055);box-sizing:border-box;}
+.ga-home-growth-head{display:flex;align-items:flex-start;gap:9px;margin-bottom:4px;}
+.ga-home-growth-head-icon{width:31px;height:31px;flex:0 0 31px;display:grid;place-items:center;border-radius:10px;background:#EAF1FF;color:var(--ga-blue);}
+.ga-home-growth-title{min-width:0;flex:1;}
+.ga-home-growth-title strong{display:block;color:#12243F;font-size:16px;line-height:1.25;font-weight:800;}
+.ga-home-growth-title span{display:block;margin-top:4px;color:#8390A3;font-size:10.5px;line-height:1.4;font-weight:600;}
+.ga-home-growth-link{min-height:32px;padding:0 2px;border:0;background:transparent;color:var(--ga-blue);font-size:11px;font-weight:800;white-space:nowrap;}
+.ga-home-growth-panel{margin-top:13px;padding:12px 10px 9px;border:1px solid #E5EAF0;border-radius:16px;background:#FBFCFE;}
+.ga-home-growth-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 4px;}
+.ga-home-growth-panel-head strong{color:#23354C;font-size:12px;font-weight:800;}
+.ga-home-growth-panel-head small{color:#8B97A8;font-size:9px;font-weight:650;}
+.ga-home-growth-chart{display:block;width:100%;height:auto;overflow:visible;}
+.ga-home-growth-chart text{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;}
+.ga-home-growth-legend{display:flex;justify-content:flex-end;gap:12px;margin:1px 4px 0;color:#7B8799;font-size:9px;font-weight:700;}
+.ga-home-growth-legend span{display:flex;align-items:center;gap:5px;}
+.ga-home-growth-legend i{width:8px;height:8px;border-radius:2px;display:inline-block;}
+.ga-home-growth-legend i.random{background:var(--ga-orange);}
+.ga-home-growth-legend i.course{background:var(--ga-blue);}
+.ga-home-growth-empty{display:flex;align-items:center;gap:12px;margin-top:12px;padding:12px;border-radius:14px;background:#F6F8FB;color:#7E8AA0;}
+.ga-home-growth-empty-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:50%;background:#EAF1FF;color:var(--ga-blue);}
+.ga-home-growth-empty strong{display:block;margin-bottom:3px;color:#526176;font-size:13px;}
+.ga-home-growth-empty span{display:block;font-size:11px;line-height:1.45;}
+@media(max-width:360px){
+  .ga-home-practice-grid .ga-home-tile{min-height:188px;}
+  .ga-home-growth{padding-left:13px;padding-right:13px;}
+  .ga-home-growth-panel{padding-left:6px;padding-right:6px;}
+}
+
 </style>
 
 </head>
@@ -832,20 +866,104 @@ function GaHomeScenery(){return AH('div',{className:'ga-home-scenery','aria-hidd
  AH('path',{d:'M0 91 C61 82 118 94 176 81 C232 69 287 83 390 67 L390 100 L0 100 Z',fill:'#D2E8F8'}),
  AH('path',{d:'M337 37v35',stroke:'#7EB4E7',strokeWidth:2}),AH('path',{d:'M338 37l18 6-18 6z',fill:'#7EB4E7'}),AH('ellipse',{cx:337,cy:73,rx:13,ry:2.7,fill:'#BFDDF2'})
  ));}
-function GaHomeRecent({recent,onOpen}){
- if(!recent)return AH('section',{className:'ga-home-recent ga-home-recent--empty','aria-label':'前回の練習'},AH('div',{className:'ga-home-recent-head'},gaSvgIcon('clock',20),AH('strong',null,'前回の練習')),AH('div',{className:'ga-home-recent-empty'},AH('div',{className:'ga-home-recent-empty-icon'},gaSvgIcon('practice',22)),AH('div',null,AH('strong',null,'まだ練習記録がありません'),AH('span',null,'練習を完了すると、ここに直近の結果が表示されます。'))));
- if(recent.kind==='random'){
-  const x=recent.entry||{},shots=x.shots||[],total=x.totalShots||shots.length||10,success=Number.isFinite(x.success)?x.success:shots.filter(s=>s.success||s.resultSuccess).length;
-  const avgD=Number.isFinite(x.avgDistanceError)?x.avgDistanceError:(shots.length?Math.round(shots.reduce((a,s)=>a+(Number(s.distanceError)||0),0)/shots.length*10)/10:0);
-  const avgL=Number.isFinite(x.avgLateralError)?x.avgLateralError:(shots.length?Math.round(shots.reduce((a,s)=>a+(Number(s.lateralError)||Math.abs(Number(s.lateral)||0)),0)/shots.length*10)/10:0);
-  return AH('button',{type:'button',className:'ga-home-recent',onClick:onOpen},AH('div',{className:'ga-home-recent-head'},gaSvgIcon('clock',20),AH('strong',null,'前回の練習'),AH('span',{className:'ga-home-recent-date'},x.date||''),AH('span',{className:'ga-home-recent-chevron','aria-hidden':true},'›')),AH('div',{className:'ga-home-recent-mode'},AH('strong',null,'ランダムモード'),AH('span',null,`${total}球`)),AH('div',{className:'ga-home-recent-stats'},AH('div',{className:'ga-home-recent-stat'},AH('small',null,'成功'),AH('b',{className:'success'},success),AH('em',null,`/ ${total}`)),AH('div',{className:'ga-home-recent-stat'},AH('small',null,'平均距離誤差'),AH('b',null,avgD),AH('em',null,'yd')),AH('div',{className:'ga-home-recent-stat'},AH('small',null,'平均横ズレ'),AH('b',null,avgL),AH('em',null,'yd'))));
+function gaHomeDayKey(date){
+ const t=gaDataDateValue(date);
+ if(t){
+  const d=new Date(t),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return d.getFullYear()+'-'+m+'-'+day;
  }
- const x=recent.entry||{},holes=x.holes||[],score=Number.isFinite(x.totalScore)?x.totalScore:holes.reduce((a,h)=>a+(Number(h.total)||0),0),diff=Number.isFinite(x.diff)?x.diff:score-holes.reduce((a,h)=>a+(Number(h.par)||0),0),gir=Number.isFinite(x.girCount)?x.girCount:holes.filter(h=>h.gir).length;
- return AH('button',{type:'button',className:'ga-home-recent',onClick:onOpen},AH('div',{className:'ga-home-recent-head'},gaSvgIcon('clock',20),AH('strong',null,'前回の練習'),AH('span',{className:'ga-home-recent-date'},x.date||''),AH('span',{className:'ga-home-recent-chevron','aria-hidden':true},'›')),AH('div',{className:'ga-home-recent-mode'},AH('strong',null,'コース想定'),AH('span',null,`${x.holeCount||holes.length||'-'}H`)),AH('div',{className:'ga-home-recent-stats'},AH('div',{className:'ga-home-recent-stat'},AH('small',null,'スコア'),AH('b',null,score||'-')),AH('div',{className:'ga-home-recent-stat'},AH('small',null,'対PAR'),AH('b',null,`${diff>0?'+':''}${Number.isFinite(diff)?diff:'-'}`)),AH('div',{className:'ga-home-recent-stat'},AH('small',null,'GIR'),AH('b',null,gir),AH('em',null,`/ ${holes.length||x.holeCount||'-'}`))));
+ return String(date||'');
+}
+function gaHomeShortDate(date){
+ const t=gaDataDateValue(date);
+ if(t){const d=new Date(t);return (d.getMonth()+1)+'/'+d.getDate();}
+ const s=String(date||'');
+ const m=s.match(/(?:\d{4}[\/-])?(\d{1,2})[\/-](\d{1,2})/);
+ return m?(Number(m[1])+'/'+Number(m[2])):s;
+}
+function gaHomeGrowthRows(randoms,rounds){
+ const map=new Map();
+ const getRow=function(entry){
+  const key=gaHomeDayKey(entry&&entry.date);
+  if(!key)return null;
+  if(!map.has(key))map.set(key,{key:key,label:gaHomeShortDate(entry.date),sort:gaDataDateValue(entry.date),randomCount:0,courseCount:0,success:0,judged:0});
+  return map.get(key);
+ };
+ (randoms||[]).filter(function(x){return x&&!x.incomplete}).forEach(function(entry){
+  const row=getRow(entry);if(!row)return;
+  row.randomCount+=1;
+  gaDataSessionShots({kind:'random',entry:entry}).forEach(function(s){if(typeof s.success==='boolean'){row.judged+=1;if(s.success)row.success+=1;}});
+ });
+ (rounds||[]).filter(function(x){return x&&!x.incomplete}).forEach(function(entry){
+  const row=getRow(entry);if(!row)return;
+  row.courseCount+=1;
+  gaDataSessionShots({kind:'course',entry:entry}).forEach(function(s){if(typeof s.success==='boolean'){row.judged+=1;if(s.success)row.success+=1;}});
+ });
+ return [...map.values()].sort(function(a,b){return a.sort-b.sort}).slice(-5).map(function(row){
+  return {...row,rate:row.judged?Math.round(row.success/row.judged*100):null,totalSessions:row.randomCount+row.courseCount};
+ });
+}
+function GaHomeSuccessChart({rows}){
+ const W=340,H=154,L=34,R=12,T=23,B=28,pw=W-L-R,ph=H-T-B;
+ const x=function(i){return rows.length===1?L+pw/2:L+(i*pw/Math.max(1,rows.length-1));};
+ const y=function(v){return T+(100-v)/100*ph;};
+ const ticks=[100,75,50,25,0];
+ const points=rows.map(function(row,i){return {i:i,x:x(i),y:Number.isFinite(row.rate)?y(row.rate):null,rate:row.rate};}).filter(function(p){return Number.isFinite(p.y);});
+ const d=points.map(function(p,i){return (i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1);}).join(' ');
+ return AH('svg',{className:'ga-home-growth-chart',viewBox:'0 0 '+W+' '+H,role:'img','aria-label':'直近5練習日のショット成功率'},
+  ...ticks.map(function(v){return AH(P.Fragment,{key:'tick'+v},
+   AH('line',{x1:L,y1:y(v),x2:W-R,y2:y(v),stroke:'#E4EAF0',strokeWidth:1,strokeDasharray:v===0?'0':'3 4'}),
+   AH('text',{x:L-7,y:y(v)+3,fill:'#8B97A8',fontSize:8.5,textAnchor:'end'},v+'%')
+  );}),
+  points.length>1?AH('path',{d:d,fill:'none',stroke:'#2F6FE4',strokeWidth:2.5,strokeLinecap:'round',strokeLinejoin:'round'}):null,
+  ...points.map(function(p){return AH(P.Fragment,{key:'p'+p.i},
+   AH('circle',{cx:p.x,cy:p.y,r:4.6,fill:'#fff',stroke:'#2F6FE4',strokeWidth:2.4}),
+   AH('text',{x:p.x,y:Math.max(11,p.y-8),fill:'#2F6FE4',fontSize:9,fontWeight:800,textAnchor:'middle'},p.rate+'%')
+  );}),
+  ...rows.map(function(row,i){return AH('text',{key:'d'+i,x:x(i),y:H-7,fill:'#7E8AA0',fontSize:8.5,fontWeight:650,textAnchor:'middle'},row.label);})
+ );
+}
+function GaHomePracticeChart({rows}){
+ const W=340,H=126,L=24,R=12,T=18,B=28,pw=W-L-R,base=H-B,chartH=68;
+ const totals=rows.map(function(r){return r.totalSessions||0;});
+ const maxTotal=Math.max(1,...totals);
+ const slot=pw/Math.max(1,rows.length),barW=Math.min(34,slot*.48);
+ return AH('svg',{className:'ga-home-growth-chart',viewBox:'0 0 '+W+' '+H,role:'img','aria-label':'直近5練習日の練習実施回数'},
+  AH('line',{x1:L,y1:base,x2:W-R,y2:base,stroke:'#DDE3EA',strokeWidth:1}),
+  ...rows.map(function(row,i){
+   const cx=L+slot*(i+.5),randomH=(row.randomCount/maxTotal)*chartH,courseH=(row.courseCount/maxTotal)*chartH,totalH=randomH+courseH;
+   return AH(P.Fragment,{key:row.key},
+    totalH?AH('text',{x:cx,y:Math.max(10,base-totalH-6),fill:'#526176',fontSize:9,fontWeight:800,textAnchor:'middle'},row.totalSessions+'回'):null,
+    randomH?AH('rect',{x:cx-barW/2,y:base-randomH,width:barW,height:randomH,rx:4,fill:'#FF6A24'}):null,
+    courseH?AH('rect',{x:cx-barW/2,y:base-randomH-courseH,width:barW,height:courseH,rx:4,fill:'#2F6FE4'}):null,
+    AH('text',{x:cx,y:H-7,fill:'#7E8AA0',fontSize:8.5,fontWeight:650,textAnchor:'middle'},row.label)
+   );
+  })
+ );
+}
+function GaHomeGrowth({rows,onOpen}){
+ return AH('section',{className:'ga-home-growth','aria-label':'最近の成長'},
+  AH('div',{className:'ga-home-growth-head'},
+   AH('div',{className:'ga-home-growth-head-icon'},gaSvgIcon('data',20)),
+   AH('div',{className:'ga-home-growth-title'},AH('strong',null,'最近の成長'),AH('span',null,'直近5練習日の推移')),
+   AH('button',{type:'button',className:'ga-home-growth-link',onClick:onOpen},'データを見る ›')
+  ),
+  rows.length?AH(P.Fragment,null,
+   AH('div',{className:'ga-home-growth-panel'},
+    AH('div',{className:'ga-home-growth-panel-head'},AH('strong',null,'ショット成功率'),AH('small',null,'ランダム＋コース想定')),
+    AH(GaHomeSuccessChart,{rows:rows})
+   ),
+   AH('div',{className:'ga-home-growth-panel'},
+    AH('div',{className:'ga-home-growth-panel-head'},AH('strong',null,'練習実施回数'),AH('small',null,'1セッション＝1回')),
+    AH('div',{className:'ga-home-growth-legend'},AH('span',null,AH('i',{className:'random'}),'ランダム'),AH('span',null,AH('i',{className:'course'}),'コース想定')),
+    AH(GaHomePracticeChart,{rows:rows})
+   )
+  ):AH('div',{className:'ga-home-growth-empty'},AH('div',{className:'ga-home-growth-empty-icon'},gaSvgIcon('practice',22)),AH('div',null,AH('strong',null,'まだ成長データがありません'),AH('span',null,'練習を完了すると、成功率と実施回数の推移がここに表示されます。')))
+ );
 }
 Ep=function({onCourse,onRandom10,onHistory,onSettings}){
- const [analysis,setAnalysis]=P.useState(false),[recent,setRecent]=P.useState(null);
- P.useEffect(()=>{let alive=true;(async()=>{try{const [randoms,rounds]=await Promise.all([L1(),H1()]);if(!alive)return;const r=(randoms||[]).find(x=>x&&!x.incomplete),c=(rounds||[]).find(x=>x&&!x.incomplete);setRecent(r?{kind:'random',entry:r}:c?{kind:'course',entry:c}:null)}catch{if(alive)setRecent(null)}})();return()=>{alive=false}},[]);
+ const [analysis,setAnalysis]=P.useState(false),[growth,setGrowth]=P.useState([]);
+ P.useEffect(()=>{let alive=true;(async()=>{try{const [randoms,rounds]=await Promise.all([L1(),H1()]);if(!alive)return;setGrowth(gaHomeGrowthRows(randoms,rounds));}catch{if(alive)setGrowth([])}})();return()=>{alive=false}},[]);
  if(analysis)return AH(AimClubAnalysis,{onBack:()=>setAnalysis(false)});
  const toPractice=()=>{const el=document.querySelector('.ga-home-practice-grid');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
  return AH('main',{className:'ga-home-v2'},
@@ -858,7 +976,7 @@ Ep=function({onCourse,onRandom10,onHistory,onSettings}){
      AH('button',{type:'button',className:'ga-home-small-card ga-home-small-card--data',onClick:onHistory},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-small-icon'},gaSvgIcon('data',28)),AH('h3',null,'データ'),AH('p',null,'練習結果を確認して\n成長を見える化'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null)))),
      AH('button',{type:'button',className:'ga-home-small-card ga-home-small-card--settings',onClick:onSettings},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-small-icon'},gaSvgIcon('settings',28)),AH('h3',null,'設定'),AH('p',null,'クラブ設定・\n目標スコアなどを管理'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null))))
    ),
-   AH(GaHomeRecent,{recent,onOpen:onHistory}),
+   AH(GaHomeGrowth,{rows:growth,onOpen:onHistory}),
    AH(GaBottomNav,{active:'home',onHome:()=>window.scrollTo({top:0,behavior:'smooth'}),onPractice:toPractice,onData:onHistory,onSettings})
  );
 };
