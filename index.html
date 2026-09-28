@@ -3596,6 +3596,11 @@ gaFeatureStyle.textContent=[
 '.ga-feedback-modal-actions .add{background:var(--ga-orange);color:#fff;}',
 '.ga-result-good button[aria-pressed="true"]{background:var(--ga-orange);border-color:var(--ga-orange);color:#fff;}',
 '.ga-data-tabs{grid-template-columns:repeat(3,1fr)!important;}',
+'.ga-data-head{display:grid!important;grid-template-columns:54px 1fr 54px!important;align-items:flex-end!important;justify-content:stretch!important;padding:0 8px 10px!important;background:rgba(248,250,252,.98)!important;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}',
+'.ga-data-back{height:44px;border:0;background:transparent;color:var(--ga-text);font-size:12px;font-weight:800;text-align:left;padding:0 6px;}',
+'.ga-data-head-title{text-align:center;padding-bottom:2px;}.ga-data-head-title small{display:block;color:var(--ga-blue);font-size:8px;line-height:1;font-weight:800;letter-spacing:.11em;}.ga-data-head-title h1{margin:4px 0 0!important;color:var(--ga-text);font-size:19px!important;line-height:1.05!important;font-weight:900!important;}',
+'.ga-data-tab[aria-selected="true"]{background:var(--ga-orange)!important;color:#fff!important;box-shadow:0 4px 12px rgba(255,106,36,.18)!important;}',
+'.ga-data-section-title>span{color:var(--ga-sub);font-size:9px;font-weight:700;}',
 '.ga-data-tab{font-size:10px!important;padding:0 5px!important;}',
 '.ga-data-day-list{display:grid;gap:10px;margin-top:14px;}',
 '.ga-data-day-card{padding:15px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);cursor:pointer;}',
@@ -3900,8 +3905,8 @@ function GaDailySessionCard({item,onOpen}){
  );
 }
 function GaDailyDetail({day,onBack}){
- gaUseEdgeSwipeBack(onBack,true);
  const selectedState=P.useState(null),selected=selectedState[0],setSelected=selectedState[1];
+ gaUseEdgeSwipeBack(onBack,!selected);
  const reflectionState=P.useState(function(){return gaReflectionLoad(day.key)}),reflection=reflectionState[0],setReflection=reflectionState[1];
  const editState=P.useState(function(){return !gaReflectionLoad(day.key)}),editing=editState[0],setEditing=editState[1];
  const draftState=P.useState(reflection),draft=draftState[0],setDraft=draftState[1];
