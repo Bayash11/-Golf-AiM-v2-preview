@@ -481,29 +481,39 @@ body:has(.ga-home-v2){overflow-x:hidden;overscroll-behavior-y:none;}
 .ga-home-logo{display:flex;align-items:baseline;gap:6px;margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif;font-size:34px;line-height:1;font-weight:850;letter-spacing:-1.8px;color:#10233D;}
 .ga-home-logo .aim{color:var(--ga-orange);font-style:italic;font-weight:850;}
 .ga-home-tagline{margin:8px 0 0;color:#7B879B;font-size:13px;font-weight:700;letter-spacing:.02em;}
-.ga-home-life{position:absolute;z-index:2;top:calc(env(safe-area-inset-top,0px) + 9px);right:20px;width:54px;color:#738098;font:700 9px/1.22 Inter,-apple-system,sans-serif;letter-spacing:.08em;text-transform:uppercase;}
-.ga-home-life:after{content:"";display:block;width:25px;height:2px;margin-top:7px;background:var(--ga-orange);border-radius:99px;}
-.ga-home-scenery{position:absolute;left:0;right:0;bottom:0;height:70px;opacity:1;pointer-events:none;}
-.ga-home-scenery svg{width:100%;height:100%;display:block;}
+.ga-home-howto{
+  position:absolute;
+  z-index:2;
+  top:calc(env(safe-area-inset-top,0px) + 12px);
+  right:20px;
+  min-width:72px;
+  height:34px;
+  padding:0 16px;
+  border:0;
+  border-radius:999px;
+  background:#EEF4FF;
+  color:var(--ga-blue);
+  font-size:12px;
+  font-weight:800;
+  line-height:34px;
+  text-align:center;
+  box-shadow:none;
+}
 .ga-home-practice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
 .ga-home-tile{position:relative;min-width:0;min-height:216px;padding:18px 15px 16px;border:0;border-radius:22px;text-align:left;overflow:hidden;box-shadow:0 7px 22px rgba(23,32,51,.065);transition:transform .12s ease,box-shadow .12s ease;}
 .ga-home-tile:active{transform:scale(.985);}
-.ga-home-tile--random{background:linear-gradient(165deg,#FFFFFF 0%,#FFE9DC 48%,#FFC9AE 100%);}
-.ga-home-tile--course{background:linear-gradient(165deg,#FFFFFF 0%,#E6EFFF 48%,#C8DBFF 100%);}
-.ga-home-tile-art{position:absolute;left:0;right:0;bottom:0;height:74px;opacity:1;pointer-events:none;}
-.ga-home-tile-art.random{background:linear-gradient(165deg,transparent 0 18%,rgba(255,106,36,.36) 19% 40%,rgba(255,106,36,.56) 41% 100%);clip-path:polygon(0 58%,22% 42%,39% 56%,63% 34%,78% 48%,100% 31%,100% 100%,0 100%);}
-.ga-home-tile-art.course{background:linear-gradient(165deg,transparent 0 18%,rgba(47,111,228,.32) 19% 43%,rgba(47,111,228,.50) 44% 100%);clip-path:polygon(0 60%,20% 46%,38% 54%,58% 36%,78% 50%,100% 32%,100% 100%,0 100%);}
-.ga-home-icon-circle{position:relative;z-index:2;width:62px;height:62px;display:grid;place-items:center;border-radius:50%;background:rgba(255,255,255,.76);box-shadow:0 4px 14px rgba(23,32,51,.05);}
+.ga-home-tile--random{background:var(--ga-orange);}
+.ga-home-tile--course{background:var(--ga-blue);}
+.ga-home-icon-circle{position:relative;z-index:2;width:62px;height:62px;display:grid;place-items:center;border-radius:50%;background:#fff;box-shadow:0 4px 14px rgba(23,32,51,.05);}
 .ga-home-tile--random .ga-home-icon-circle{color:var(--ga-orange);}
 .ga-home-tile--course .ga-home-icon-circle{color:var(--ga-blue);}
 .ga-home-tile .ga-arrow{position:absolute;z-index:2;right:14px;top:18px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;font-size:27px;font-weight:400;line-height:1;}
-.ga-home-tile--random .ga-arrow{color:var(--ga-orange);background:rgba(255,106,36,.22);}
-.ga-home-tile--course .ga-arrow{color:var(--ga-blue);background:rgba(47,111,228,.22);}
-.ga-home-tile h2{position:relative;z-index:2;margin:17px 0 7px;font-size:20px;line-height:1.25;font-weight:800;color:#12243F;letter-spacing:-.02em;white-space:nowrap;}
-.ga-home-tile p{position:relative;z-index:2;margin:0;max-width:145px;color:#78859A;font-size:12px;line-height:1.6;font-weight:550;}
+.ga-home-tile--random .ga-arrow,.ga-home-tile--course .ga-arrow{color:#fff;background:rgba(255,255,255,.20);}
+.ga-home-tile h2{position:relative;z-index:2;margin:17px 0 7px;font-size:20px;line-height:1.25;font-weight:800;color:#fff;letter-spacing:-.02em;white-space:nowrap;}
+.ga-home-tile p{position:relative;z-index:2;margin:0;max-width:145px;color:rgba(255,255,255,.92);font-size:12px;line-height:1.6;font-weight:550;}
 .ga-home-secondary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;}
 .ga-home-small-card{position:relative;min-width:0;min-height:140px;padding:17px 15px;border:0;border-radius:20px;background:#fff;text-align:left;box-shadow:0 6px 18px rgba(23,32,51,.055);}
-.ga-home-small-card--data{background:linear-gradient(145deg,#FFFFFF,#E2ECFF);}
+.ga-home-small-card--data{background:#EEF4FF;}
 .ga-home-small-card--settings{background:linear-gradient(145deg,#FFFFFF,#F5F7FA);}
 .ga-home-small-card .ga-arrow{position:absolute;right:14px;top:20px;width:31px;height:31px;display:grid;place-items:center;border-radius:50%;background:var(--ga-soft);color:#63738A;font-size:23px;}
 .ga-home-small-card--data .ga-arrow{color:var(--ga-blue);background:rgba(47,111,228,.22);}
@@ -860,12 +870,6 @@ function gaSvgIcon(name,size=24){
 
 /* refactor: removed shadowed GaBottomNav declaration #0 */
 
-function GaHomeScenery(){return AH('div',{className:'ga-home-scenery','aria-hidden':true},AH('svg',{viewBox:'0 0 390 100',preserveAspectRatio:'none'},
- AH('path',{d:'M0 74 C45 58 75 68 112 52 C145 38 174 54 205 46 C240 36 264 60 300 47 C330 37 354 43 390 31 L390 100 L0 100 Z',fill:'#EAF3FD'}),
- AH('path',{d:'M0 83 C49 70 91 81 132 66 C171 52 203 70 241 59 C283 47 324 70 390 54 L390 100 L0 100 Z',fill:'#DCECFB'}),
- AH('path',{d:'M0 91 C61 82 118 94 176 81 C232 69 287 83 390 67 L390 100 L0 100 Z',fill:'#D2E8F8'}),
- AH('path',{d:'M337 37v35',stroke:'#7EB4E7',strokeWidth:2}),AH('path',{d:'M338 37l18 6-18 6z',fill:'#7EB4E7'}),AH('ellipse',{cx:337,cy:73,rx:13,ry:2.7,fill:'#BFDDF2'})
- ));}
 function gaHomeDayKey(date){
  const t=gaDataDateValue(date);
  if(t){
@@ -967,10 +971,10 @@ Ep=function({onCourse,onRandom10,onHistory,onSettings}){
  if(analysis)return AH(AimClubAnalysis,{onBack:()=>setAnalysis(false)});
  const toPractice=()=>{const el=document.querySelector('.ga-home-practice-grid');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
  return AH('main',{className:'ga-home-v2'},
-   AH('section',{className:'ga-home-hero'},AH('div',{className:'ga-home-brand'},AH('h1',{className:'ga-home-logo'},AH('span',null,'GOLF'),AH('span',{className:'aim'},'AiM')),AH('p',{className:'ga-home-tagline'},'狙って、打って、振り返る。')),AH('div',{className:'ga-home-life'},'A',AH('br'), 'BETTER',AH('br'),'GOLF',AH('br'),'LIFE'),AH(GaHomeScenery)),
+   AH('section',{className:'ga-home-hero'},AH('div',{className:'ga-home-brand'},AH('h1',{className:'ga-home-logo'},AH('span',null,'GOLF'),AH('span',{className:'aim'},'AiM')),AH('p',{className:'ga-home-tagline'},'狙って、打って、振り返る。')),AH('button',{type:'button',className:'ga-home-howto','aria-label':'使い方'},'使い方')),
    AH('section',{className:'ga-home-practice-grid','aria-label':'練習モード'},
-     AH('button',{type:'button',className:'ga-home-tile ga-home-tile--random',onClick:onRandom10},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-icon-circle'},gaSvgIcon('random',34)),AH('h2',null,'ランダムモード'),AH('p',null,'さまざまな状況で\n対応力を鍛える'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null))),AH('span',{className:'ga-home-tile-art random','aria-hidden':true})),
-     AH('button',{type:'button',className:'ga-home-tile ga-home-tile--course',onClick:onCourse},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-icon-circle'},gaSvgIcon('course',34)),AH('h2',null,'コース想定モード'),AH('p',null,'コースをイメージして\n実践力を高める'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null))),AH('span',{className:'ga-home-tile-art course','aria-hidden':true}))
+     AH('button',{type:'button',className:'ga-home-tile ga-home-tile--random',onClick:onRandom10},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-icon-circle'},gaSvgIcon('random',34)),AH('h2',null,'ランダムモード'),AH('p',null,'さまざまな状況で\n対応力を鍛える'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null)))),
+     AH('button',{type:'button',className:'ga-home-tile ga-home-tile--course',onClick:onCourse},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-icon-circle'},gaSvgIcon('course',34)),AH('h2',null,'コース想定モード'),AH('p',null,'コースをイメージして\n実践力を高める'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null))))
    ),
    AH('section',{className:'ga-home-secondary-grid'},
      AH('button',{type:'button',className:'ga-home-small-card ga-home-small-card--data',onClick:onHistory},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-small-icon'},gaSvgIcon('data',28)),AH('h3',null,'データ'),AH('p',null,'練習結果を確認して\n成長を見える化'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null)))),
