@@ -4418,5 +4418,448 @@ html.ga-swipe-back-ready body{
 })();
 
 </script>
+
+<style id="ga-20260929-ui-batch-style">
+/* GOLF AiM v2 — 2026-09-29 UI batch patch */
+.ga-result-good>.ga-result-title+div,
+.ga-result-miss>.ga-result-title+div{display:grid;gap:7px;}
+
+.ga-random-playing:has(.ga-random-result)>.aim-quit{display:none!important;}
+.ga-random-result-back{
+  left:4px!important;
+  width:48px!important;
+  height:48px!important;
+  font-size:35px!important;
+  font-weight:600!important;
+}
+
+.ga-shot-style-empty{
+  margin:0;padding:12px 13px;border:1px dashed var(--ga-border);border-radius:12px;
+  background:#fff;color:var(--ga-sub);font-size:11px;font-weight:650;line-height:1.55;text-align:center;
+}
+.ga-random-preview-row,.ga-random-shot-card{cursor:pointer;}
+.ga-random-preview-row:active,.ga-random-shot-card:active{transform:scale(.992);}
+.ga-summary-shot-detail-note{margin:10px 2px 0;color:var(--ga-sub);font-size:9px;line-height:1.55;}
+.ga-summary-shot-detail-meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:10px;color:var(--ga-sub);font-size:9px;line-height:1.5;font-weight:650;}
+.ga-summary-shot-detail-meta .good{color:var(--ga-success);font-weight:800;}
+.ga-summary-shot-detail-meta .miss{color:var(--ga-error);font-weight:800;}
+</style>
+
+<script>
+(function(){
+'use strict';
+
+const GA_SHOT_STYLE_KEY='golfAim.shotStyleConfig.v1';
+const GA_SHOT_STYLE_DEFAULTS=[
+ ['style-normal','ノーマル'],
+ ['style-full','フルショット'],
+ ['style-line','ライン出し'],
+ ['style-punch','パンチショット'],
+ ['style-stinger','スティンガー'],
+ ['style-half','ハーフショット'],
+ ['style-three-quarter','スリークォーター'],
+ ['style-control','コントロールショット'],
+ ['style-lob','ロブショット'],
+ ['style-pitch','ピッチショット'],
+ ['style-chip','チップショット'],
+ ['style-bunker','バンカーショット'],
+ ['style-vanilla','バニラ']
+];
+
+function gaShotStyleDefaults(){
+ return GA_SHOT_STYLE_DEFAULTS.map(function(x){
+  return {id:x[0],label:x[1],enabled:false,custom:false};
+ });
+}
+function gaShotStyleLoadConfig(){
+ const saved=gaStorageRead(GA_SHOT_STYLE_KEY,{version:1,items:[]});
+ const savedItems=Array.isArray(saved&&saved.items)?saved.items:[];
+ const byId=new Map(savedItems.map(function(x){return [x&&x.id,x]}));
+ const byLabel=new Map(savedItems.map(function(x){return [x&&x.label,x]}));
+ const base=gaShotStyleDefaults().map(function(item){
+  const old=byId.get(item.id)||byLabel.get(item.label);
+  return old?{...item,enabled:old.enabled===true}:item;
+ });
+ const custom=savedItems.filter(function(x){
+  if(!x||!x.custom||!String(x.label||'').trim())return false;
+  return !base.some(function(d){return d.id===x.id||d.label===x.label});
+ }).map(function(x){
+  return {
+   id:String(x.id||('custom-style-'+Date.now())),
+   label:String(x.label).trim(),
+   enabled:x.enabled===true,
+   custom:true
+  };
+ });
+ return {version:1,items:base.concat(custom)};
+}
+function gaShotStyleSaveConfig(config){
+ return gaStorageWrite(GA_SHOT_STYLE_KEY,{version:1,items:(config&&config.items)||[]});
+}
+function gaShotStyleEnabled(){
+ return gaShotStyleLoadConfig().items.filter(function(x){return x.enabled===true}).map(function(x){return x.label});
+}
+
+/* Fresh installs: built-in Good / Miss items start OFF.
+   Existing saved enabled/disabled choices remain untouched by gaFeedbackMergeList. */
+gaFeedbackMakeDefaults=function(rows){
+ return rows.map(function(x){return {id:x[0],label:x[1],enabled:false,custom:false}});
+};
+
+function gaRunAndResetTop(fn){
+ gaResetViewportTop();
+ const value=typeof fn==='function'?fn():undefined;
+ requestAnimationFrame(gaResetViewportTop);
+ setTimeout(gaResetViewportTop,60);
+ return value;
+}
+
+/* Bottom navigation always opens the destination at its top. */
+GaBottomNav=function({active='home',onHome,onPractice,onData,onSettings}){
+ const items=[['home','ホーム',onHome],['practice','練習',onPractice],['data','データ',onData],['settings','設定',onSettings]];
+ return AH('nav',{className:'ga-bottom-nav','aria-label':'メインナビゲーション'},
+  ...items.map(function(item){
+   const key=item[0],label=item[1],fn=item[2];
+   return AH('button',{
+    type:'button',
+    className:'ga-bottom-nav__item'+(active===key?' is-active':''),
+    onClick:function(){gaRunAndResetTop(fn)},
+    key:key
+   },gaSvgIcon(key,24),AH('span',null,label));
+  })
+ );
+};
+
+function GaShotStyleSettingsScreen({onBack,onHome,onPractice,onData,onSettings}){
+ gaUseEdgeSwipeBack(onBack,true);
+ gaUseResetViewportOnMount();
+ const cfgState=P.useState(function(){return gaShotStyleLoadConfig()}),draft=cfgState[0],setDraft=cfgState[1];
+ const modalState=P.useState(false),modal=modalState[0],setModal=modalState[1];
+ const inputState=P.useState(''),newLabel=inputState[0],setNewLabel=inputState[1];
+ const items=draft.items||[],defaults=items.filter(function(x){return !x.custom}),customs=items.filter(function(x){return x.custom});
+ const toggle=function(id){
+  setDraft(function(cfg){
+   return {...cfg,items:(cfg.items||[]).map(function(x){return x.id===id?{...x,enabled:!x.enabled}:x})};
+  });
+ };
+ const remove=function(id){
+  setDraft(function(cfg){return {...cfg,items:(cfg.items||[]).filter(function(x){return x.id!==id})}});
+ };
+ const openAdd=function(){setNewLabel('');setModal(true)};
+ const add=function(){
+  const label=String(newLabel||'').trim();
+  if(!label)return;
+  setDraft(function(cfg){
+   const list=cfg.items||[];
+   if(list.some(function(x){return x.label===label}))return cfg;
+   return {...cfg,items:list.concat([{
+    id:'custom-style-'+Date.now()+'-'+Math.random().toString(36).slice(2,6),
+    label:label,enabled:true,custom:true
+   }])};
+  });
+  setModal(false);setNewLabel('');
+ };
+ const save=function(){gaShotStyleSaveConfig(draft);gaRunAndResetTop(onBack)};
+ const listBlock=function(rows,custom){
+  return AH('div',{className:'ga-feedback-list'},...rows.map(function(item){
+   return AH('div',{className:'ga-feedback-row',key:item.id},
+    AH('span',null,item.label),
+    AH('div',{className:'ga-feedback-actions'},
+     AH('button',{
+      type:'button',className:'ga-toggle','aria-label':item.label+'を表示',
+      'aria-pressed':item.enabled===true,onClick:function(){toggle(item.id)}
+     }),
+     custom?AH('button',{
+      type:'button',className:'ga-feedback-delete','aria-label':item.label+'を削除',
+      onClick:function(){remove(item.id)}
+     },'×'):null
+    )
+   );
+  }));
+ };
+ return AH('main',{className:'ga-feedback-page ga-shot-style-page'},
+  AH(GaSettingsFixedHeader,{title:'打ち方設定',onBack:function(){gaRunAndResetTop(onBack)}}),
+  AH('section',{className:'ga-settings-section'},
+   AH('div',{className:'ga-settings-section-head'},AH('h2',null,'表示項目')),
+   AH('div',{className:'ga-settings-card'},
+    AH('p',{className:'ga-feedback-help',style:{marginTop:0}},
+     '狙い入力画面に表示する打ち方を設定できます。ONの項目だけ表示されます。')
+   ),
+   listBlock(defaults,false),
+   customs.length?AH(P.Fragment,null,
+    AH('h3',{className:'ga-feedback-subhead'},'追加した項目'),
+    listBlock(customs,true)
+   ):null,
+   AH('button',{type:'button',className:'ga-feedback-add',onClick:openAdd},'＋ 独自の打ち方を追加'),
+   AH('button',{type:'button',className:'ga-feedback-save',onClick:save},'保存')
+  ),
+  AH(GaBottomNav,{active:'settings',onHome:onHome,onPractice:onPractice,onData:onData,onSettings:onSettings}),
+  modal?AH('div',{className:'ga-feedback-modal',role:'dialog','aria-modal':'true'},
+   AH('div',{className:'ga-feedback-modal-card'},
+    AH('h3',null,'独自の打ち方を追加'),
+    AH('input',{
+     autoFocus:true,maxLength:20,value:newLabel,placeholder:'打ち方名を入力',
+     onChange:function(e){setNewLabel(e.target.value)},
+     onKeyDown:function(e){if(e.key==='Enter')add()}
+    }),
+    AH('div',{className:'ga-feedback-modal-actions'},
+     AH('button',{type:'button',className:'cancel',onClick:function(){setModal(false)}},'キャンセル'),
+     AH('button',{type:'button',className:'add',onClick:add},'追加')
+    )
+   )
+  ):null
+ );
+}
+
+/* Settings menu: Club -> Shot style -> Good/Miss */
+GaSettingsHome=function({skillLevel,onSkillLevelChange,onOpenClubs,onOpenStyles,onOpenFeedback,onBack,onHome,onPractice,onData,onSettings}){
+ gaUseEdgeSwipeBack(onBack,true);
+ gaUseResetViewportOnMount();
+ return AH('main',{className:'ga-settings-home'},
+  AH(GaSettingsFixedHeader,{title:'設定',onBack:function(){gaRunAndResetTop(onBack)}}),
+  AH(GaTargetLevelSection,{skillLevel:skillLevel,onSkillLevelChange:onSkillLevelChange}),
+  AH('section',{className:'ga-settings-section'},
+   AH('div',{className:'ga-settings-section-head'},AH('h2',null,'設定メニュー')),
+   AH('div',{className:'ga-settings-menu'},
+    AH('button',{type:'button',className:'ga-settings-menu-card',onClick:function(){gaRunAndResetTop(onOpenClubs)}},
+     AH('div',null,AH('strong',null,'クラブ設定'),AH('small',null,'登録クラブや基準距離を設定')),AH('b',null,'›')
+    ),
+    AH('button',{type:'button',className:'ga-settings-menu-card',onClick:function(){gaRunAndResetTop(onOpenStyles)}},
+     AH('div',null,AH('strong',null,'打ち方設定'),AH('small',null,'表示する打ち方や独自項目を管理')),AH('b',null,'›')
+    ),
+    AH('button',{type:'button',className:'ga-settings-menu-card',onClick:function(){gaRunAndResetTop(onOpenFeedback)}},
+     AH('div',null,AH('strong',null,'Good・ミスの設定'),AH('small',null,'表示項目や独自項目を管理')),AH('b',null,'›')
+    )
+   )
+  ),
+  AH(GaBottomNav,{active:'settings',onHome:onHome||onBack,onPractice:onPractice,onData:onData,onSettings:onSettings})
+ );
+};
+
+Mp=function(props){
+ const viewState=P.useState('home'),view=viewState[0],setView=viewState[1];
+ const goHome=function(){setView('home');gaResetViewportTop()};
+ const navSettings=function(){goHome()};
+ if(view==='clubs')return AH(GaClubSettingsScreen,{
+  clubConfig:props.clubConfig,onSave:props.onSave,onBack:goHome,
+  onHome:props.onHome,onPractice:props.onPractice,onData:props.onData,onSettings:navSettings
+ });
+ if(view==='styles')return AH(GaShotStyleSettingsScreen,{
+  onBack:goHome,onHome:props.onHome,onPractice:props.onPractice,onData:props.onData,onSettings:navSettings
+ });
+ if(view==='feedback')return AH(GaFeedbackSettingsScreen,{
+  onBack:goHome,onHome:props.onHome,onPractice:props.onPractice,onData:props.onData,onSettings:navSettings
+ });
+ return AH(GaSettingsHome,{
+  skillLevel:props.skillLevel,onSkillLevelChange:props.onSkillLevelChange,
+  onOpenClubs:function(){setView('clubs');gaResetViewportTop()},
+  onOpenStyles:function(){setView('styles');gaResetViewportTop()},
+  onOpenFeedback:function(){setView('feedback');gaResetViewportTop()},
+  onBack:props.onBack,onHome:props.onHome,onPractice:props.onPractice,onData:props.onData,
+  onSettings:function(){gaResetViewportTop()}
+ });
+};
+
+/* Random aim: enabled shot styles only; always mount at viewport top. */
+zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,clubs,isApproach,plan,onPlanField,onStartShot}){
+ gaUseResetViewportOnMount();
+ const aimItems=target.isGreenShot
+  ?[
+    {label:'左奥',value:'グリーン左奥'},{label:'中央奥',value:'グリーン中央奥'},{label:'右奥',value:'グリーン右奥'},
+    {label:'左',value:'グリーン左'},{label:'中央',value:'グリーン中央'},{label:'右',value:'グリーン右'},
+    {label:'左手前',value:'グリーン左手前'},{label:'手前',value:'グリーン手前'},{label:'右手前',value:'グリーン右手前'}
+   ]
+  :[
+    {label:'左',value:'フェアウェイ左'},
+    {label:'中央',value:'フェアウェイセンター'},
+    {label:'右',value:'フェアウェイ右'}
+   ];
+ const ballItems=[
+  {label:'ドロー',value:'ドロー'},
+  {label:'ストレート',value:'ストレート'},
+  {label:'フェード',value:'フェード'}
+ ];
+ const shotItems=gaShotStyleEnabled().map(function(x){return {label:x,value:x}});
+ const situationItems=(target.courseInfo||[]).filter(function(x){
+  return !(target.isGreenShot&&/OB/i.test(String(x.label||'')+' '+String(x.value||'')));
+ });
+ const clubReady=!!selectedClub;
+ const selectedStyle=plan.style==='普通'?'ノーマル':plan.style;
+ return AH('main',{className:'ga-random-aim'},
+  AH('header',{className:'ga-random-aim-head'},
+   AH('h1',null,'狙いを決める'),
+   AH('div',{className:'ga-random-aim-progress'},(shotIndex+1)+' / '+totalShots)
+  ),
+  AH('div',{className:'ga-random-question'},
+   AH('div',null,AH('small',null,'今回の距離'),AH('strong',null,target.targetDistance,AH('span',null,'yd'))),
+   selectedClub?AH('div',{style:{textAlign:'right'}},AH('small',null,'クラブ'),AH('strong',{style:{fontSize:'19px'}},selectedClub)):null
+  ),
+  situationItems.length?AH('section',{className:'ga-random-situation'},
+   AH('h3',null,'状況'),
+   ...situationItems.map(function(x,idx){return AH('p',{key:idx},AH('strong',null,x.label),AH('span',null,x.value))})
+  ):null,
+  AH('section',{className:'ga-random-form-section'},
+   AH('h2',{className:'ga-random-form-title'},'クラブ'),
+   fixedClub
+    ?AH('div',{className:'ga-random-club-display'},AH('span',null,'同じクラブで練習'),AH('strong',null,fixedClub))
+    :AH('div',{className:'ga-random-aim-clubs'},...clubs.map(function(club){
+      return AH('button',{type:'button',key:club,'aria-pressed':selectedClub===club,onClick:function(){onClub(club)}},club)
+     }))
+  ),
+  AH('section',{className:'ga-random-form-section'},
+   AH('h2',{className:'ga-random-form-title'},'方向'),
+   gaAimChoices(aimItems,plan.aimTarget,function(v){onPlanField('aimTarget',v)},target.isGreenShot?'cols9':'cols3')
+  ),
+  AH('section',{className:'ga-random-form-section'},
+   AH('h2',{className:'ga-random-form-title'},'球筋'),
+   gaAimChoices(ballItems,plan.curveBase,function(v){onPlanField('curveBase',v)},'cols3')
+  ),
+  AH('section',{className:'ga-random-form-section'},
+   AH('h2',{className:'ga-random-form-title'},'打ち方'),
+   shotItems.length
+    ?gaAimChoices(shotItems,selectedStyle,function(v){onPlanField('style',v)},'cols6')
+    :AH('p',{className:'ga-shot-style-empty'},'設定 ＞ 打ち方設定で、使用する打ち方をONにしてください。')
+  ),
+  AH('button',{type:'button',className:'ga-random-hit',disabled:!clubReady,onClick:onStartShot},'この狙いで打つ')
+ );
+};
+
+/* Course aim uses the same enabled shot-style list.
+   No viewport reset here: course 2nd shot onward intentionally keeps the course-layout position. */
+hp=function({club,targetDistance,isApproach,plan,onPlanField,onStartHit,onClearAim}){
+ const ballItems=[
+  {label:'ドロー',value:'ドロー'},
+  {label:'ストレート',value:'ストレート'},
+  {label:'フェード',value:'フェード'}
+ ];
+ const shotItems=gaShotStyleEnabled().map(function(v){return {label:v,value:v}});
+ const selectedStyle=plan.style==='普通'?'ノーマル':plan.style;
+ return AH(P.Fragment,null,
+  AH('section',{className:'ga-course-section'},
+   AH('h2',{className:'ga-course-form-title'},'クラブ'),
+   AH('div',{className:'ga-course-selected-club'},AH('span',null,'使用クラブ'),AH('strong',null,club))
+  ),
+  AH('div',{className:'ga-course-target-summary'},AH('span',null,'狙いまでの距離'),AH('strong',null,targetDistance+'yd')),
+  AH('section',{className:'ga-course-section'},
+   AH('h2',{className:'ga-course-form-title'},'球筋'),
+   gaCourseChoice(ballItems,plan.curveBase,function(v){onPlanField('curveBase',v)})
+  ),
+  AH('section',{className:'ga-course-section'},
+   AH('h2',{className:'ga-course-form-title'},'打ち方'),
+   shotItems.length
+    ?gaCourseChoice(shotItems,selectedStyle,function(v){onPlanField('style',v)},'six')
+    :AH('p',{className:'ga-shot-style-empty'},'設定 ＞ 打ち方設定で、使用する打ち方をONにしてください。')
+  ),
+  AH('button',{type:'button',className:'ga-course-hit',onClick:onStartHit},'この狙いで打つ'),
+  AH('button',{type:'button',className:'ga-course-reset',onClick:onClearAim},'クラブを選び直す')
+ );
+};
+
+/* Random result input gets a single, larger back button.
+   Existing onBackToAim keeps selected club + aim plan and does not add a shot. */
+const gaBatchBaseRandomResult=Cp;
+Cp=function(props){
+ gaUseResetViewportOnMount();
+ return AH(gaBatchBaseRandomResult,props);
+};
+
+function GaRandomSummaryShotDetail({shot,index,onBack}){
+ gaUseResetViewportOnMount();
+ const ok=!!(shot&&(shot.success===true||shot.resultSuccess===true));
+ const lat=Number(shot&&shot.lateral);
+ const lateralText=Number.isFinite(lat)
+  ?(Math.abs(lat)<.5?'中央':(lat<0?'左 ':'右 ')+Math.abs(Math.round(lat*10)/10)+'yd')
+  :'—';
+ const good=shot&&Array.isArray(shot.contactPositive)?shot.contactPositive:[];
+ const miss=shot&&Array.isArray(shot.contactOther)?shot.contactOther:[];
+ const style=shot&&shot.style?(shot.style==='普通'?'ノーマル':shot.style):'—';
+ return AH('main',{className:'ga-random-history-detail'},
+  AH('header',{className:'ga-random-history-detail-head'},
+   AH('button',{type:'button',className:'ga-random-history-detail-back',onClick:function(){gaRunAndResetTop(onBack)}},'‹ 戻る'),
+   AH('div',{className:'ga-random-history-detail-title'},AH('small',null,'SHOT DETAIL'),AH('h1',null,'ショット詳細')),
+   AH('div',{className:'ga-random-history-detail-meta'},(index+1)+'球目')
+  ),
+  AH('section',{className:'ga-random-detail-card'},
+   AH('h2',null,(index+1)+'球目の記録'),
+   AH('article',{className:'ga-random-history-shot'},
+    AH('div',{className:'ga-random-history-shot-top'},
+     AH('div',{className:'ga-random-history-shot-num'},index+1),
+     AH('strong',null,(shot&&shot.club)||'—'),
+     AH('span',{className:'ga-random-history-shot-mark'+(ok?'':' ng')},ok?'成功':'失敗')
+    ),
+    AH('div',{className:'ga-random-history-shot-data'},
+     AH('div',null,AH('small',null,'目標'),AH('strong',null,Number.isFinite(Number(shot&&shot.targetDistance))?Number(shot.targetDistance)+'yd':'—')),
+     AH('div',null,AH('small',null,'実距離'),AH('strong',null,Number.isFinite(Number(shot&&shot.forward))?Number(shot.forward)+'yd':'—')),
+     AH('div',null,AH('small',null,'左右'),AH('strong',null,lateralText))
+    ),
+    AH('div',{className:'ga-summary-shot-detail-meta'},
+     Number.isFinite(Number(shot&&shot.distanceError))?AH('span',null,'距離誤差 '+Number(shot.distanceError)+'yd'):null,
+     Number.isFinite(Number(shot&&shot.lateralError))?AH('span',null,'横誤差 '+Number(shot.lateralError)+'yd'):null,
+     shot&&shot.aimTarget?AH('span',null,'狙い '+String(shot.aimTarget).replace('フェアウェイ','').replace('グリーン','')):null,
+     shot&&shot.curveBase?AH('span',null,'狙い球筋 '+shot.curveBase):null,
+     AH('span',null,'打ち方 '+style),
+     shot&&shot.resultCurve?AH('span',null,'球筋 '+shot.resultCurve):null,
+     shot&&shot.contactVertical?AH('span',null,'打感 '+shot.contactVertical):null,
+     shot&&shot.contactHorizontal?AH('span',null,'打点 '+(shot.contactHorizontal==='センター'?'普通':shot.contactHorizontal)):null,
+     good.length?AH('span',{className:'good'},'Good '+good.join('・')):null,
+     miss.length?AH('span',{className:'miss'},'ミス '+miss.join('・')):null
+    )
+   ),
+   AH('p',{className:'ga-summary-shot-detail-note'},'ランダムモード結果画面から開いたショット詳細です。')
+  )
+ );
+}
+
+/* Reuse the existing result summary, adding click-to-detail to its shot rows. */
+const gaBatchBaseRandomSummary=Dp;
+Dp=function(props){
+ const detailState=P.useState(null),detailIndex=detailState[0],setDetailIndex=detailState[1];
+ P.useEffect(function(){
+  if(detailIndex!==null)return;
+  const root=document.querySelector('.ga-random-summary-page');
+  if(!root)return;
+  const handle=function(event){
+   const row=event.target.closest('.ga-random-preview-row,.ga-random-shot-card');
+   if(!row||!root.contains(row))return;
+   let index=-1;
+   if(row.classList.contains('ga-random-preview-row')){
+    index=Array.prototype.indexOf.call(root.querySelectorAll('.ga-random-preview-row'),row);
+   }else{
+    index=Array.prototype.indexOf.call(root.querySelectorAll('.ga-random-shot-card'),row);
+   }
+   if(index>=0&&props.session&&Array.isArray(props.session.shots)&&props.session.shots[index])setDetailIndex(index);
+  };
+  root.addEventListener('click',handle);
+  return function(){root.removeEventListener('click',handle)};
+ },[detailIndex,props.session]);
+ if(detailIndex!==null){
+  const shots=props.session&&Array.isArray(props.session.shots)?props.session.shots:[];
+  return AH(GaRandomSummaryShotDetail,{
+   shot:shots[detailIndex],index:detailIndex,onBack:function(){setDetailIndex(null)}
+  });
+ }
+ return AH(gaBatchBaseRandomSummary,props);
+};
+
+/* General screen-entry/back links reset to the top.
+   Course live-input controls are deliberately excluded. */
+if(!window.__GA_20260929_TOP_RESET__){
+ window.__GA_20260929_TOP_RESET__=true;
+ document.addEventListener('click',function(event){
+  const el=event.target.closest(
+   '.ga-settings-back,.ga-history-back,.ga-random-history-detail-back,'+
+   '.ga-course-history-detail-back,.ga-data-back,.ga-random-back,.ga-course-back,'+
+   '.ga-settings-menu-card,.ga-data-day-card,.ga-daily-session,.ga-history-card,'+
+   '.ga-home-tile,.ga-home-small-card,.ga-home-recent'
+  );
+  if(!el)return;
+  setTimeout(gaResetViewportTop,0);
+  setTimeout(gaResetViewportTop,70);
+ },true);
+}
+
+})();
+</script>
+
 </body>
 </html>
