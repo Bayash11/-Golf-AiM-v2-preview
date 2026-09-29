@@ -4163,7 +4163,10 @@ react/cjs/react-jsx-runtime.production.js:
 
   function isPracticeScreen() {
     const t = document.body.innerText || "";
-    return !!document.querySelector(".ga-random-playing") || t.includes("RANDOM 10") || /HOLE\s*\d+/i.test(t);
+    // コース想定のライブ画面は2打目以降のレイアウト位置を維持するため、
+    // この汎用トップリセットの対象外にする。
+    if (document.querySelector(".ga-course-playing")) return false;
+    return !!document.querySelector(".ga-random-playing") || t.includes("RANDOM 10");
   }
 
   function scrollPracticeTop() {
@@ -4850,7 +4853,7 @@ if(!window.__GA_20260929_TOP_RESET__){
    '.ga-settings-back,.ga-history-back,.ga-random-history-detail-back,'+
    '.ga-course-history-detail-back,.ga-data-back,.ga-random-back,.ga-course-back,'+
    '.ga-settings-menu-card,.ga-data-day-card,.ga-daily-session,.ga-history-card,'+
-   '.ga-home-tile,.ga-home-small-card,.ga-home-recent'
+   '.ga-home-tile,.ga-home-small-card,.ga-home-recent,.ga-course-setup button'
   );
   if(!el)return;
   setTimeout(gaResetViewportTop,0);
