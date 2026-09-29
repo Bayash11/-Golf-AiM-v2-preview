@@ -4088,367 +4088,8 @@ GaHomeGrowth=function({rows,onOpen}){
 };
 /* ===== END 2026-09-29 ===== */
 
-try{let t=document.getElementById("root");(0,py.createRoot)(t).render(gy.default.createElement(xf))}catch(t){Rp(t)}window.addEventListener("error",function(t){console.error("Uncaught error:",t.error||t.message)});})();
-/*! Bundled license information:
 
-react/cjs/react.production.js:
-  (**
-   * @license React
-   * react.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   *)
-
-scheduler/cjs/scheduler.production.js:
-  (**
-   * @license React
-   * scheduler.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   *)
-
-react-dom/cjs/react-dom.production.js:
-  (**
-   * @license React
-   * react-dom.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   *)
-
-react-dom/cjs/react-dom-client.production.js:
-  (**
-   * @license React
-   * react-dom-client.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   *)
-
-react/cjs/react-jsx-runtime.production.js:
-  (**
-   * @license React
-   * react-jsx-runtime.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   *)
-*/
-
-</script>
-
-
-
-<script>
-/* GOLF AiM — screen transition scroll reset
-   Random 10 / Course mode: when an action advances to another screen or shot,
-   return the viewport to the top so target distance / hole information is immediately visible. */
-(function () {
-  const transitionWords = [
-    "打つ", "確定", "次へ", "次の", "次ホール", "開始", "再開",
-    "完了", "終了", "もう一度", "スタート"
-  ];
-
-  function isPracticeScreen() {
-    const t = document.body.innerText || "";
-    // コース想定のライブ画面は2打目以降のレイアウト位置を維持するため、
-    // この汎用トップリセットの対象外にする。
-    if (document.querySelector(".ga-course-playing")) return false;
-    return !!document.querySelector(".ga-random-playing") || t.includes("RANDOM 10");
-  }
-
-  function scrollPracticeTop() {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-        document.documentElement.scrollTop = 0;
-        document.body.scrollTop = 0;
-      });
-    });
-  }
-
-  document.addEventListener("click", function (event) {
-    if (!isPracticeScreen()) return;
-
-    const button = event.target.closest("button");
-    if (!button) return;
-
-    const label = (button.innerText || button.textContent || "").trim();
-    if (!transitionWords.some(word => label.includes(word))) return;
-
-    // Reactの画面更新後にトップへ戻す
-    setTimeout(scrollPracticeTop, 30);
-    setTimeout(scrollPracticeTop, 120);
-  }, true);
-})();
-</script>
-
-
-<style id="aim-result-refresh-css">
-.aim-result-choice{display:grid;gap:7px}.aim-result-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.aim-result-row button{min-width:0;min-height:42px;padding:8px 5px;border-radius:9px;background:#e9dec1;color:#12382b;font-size:12px;font-weight:700;line-height:1.2;border:1px solid transparent;white-space:normal;word-break:keep-all}.aim-result-row button[aria-pressed="true"]{font-weight:800}.aim-result-empty{display:block;min-height:1px}.aim-result-divider{height:1px;background:#c9bea1;margin:4px 1px 2px}.aim-result-section{margin-bottom:15px!important}@media(max-width:380px){.aim-result-row{gap:5px}.aim-result-row button{font-size:11px;padding:7px 3px}}
-</style>
-
-<style id="ga-swipe-back-style">
-html.ga-swipe-back-ready,
-html.ga-swipe-back-ready body{
-  overscroll-behavior-x:none;
-}
-#ga-swipe-back-indicator{
-  position:fixed;
-  left:max(10px,calc((100vw - 390px)/2 + 10px));
-  top:50%;
-  z-index:9999;
-  width:40px;
-  height:40px;
-  display:grid;
-  place-items:center;
-  border-radius:50%;
-  background:rgba(255,255,255,.96);
-  color:#172033;
-  border:1px solid #DDE3EA;
-  box-shadow:0 8px 22px rgba(23,32,51,.18);
-  opacity:0;
-  transform:translate3d(-18px,-50%,0) scale(.82);
-  pointer-events:none;
-  transition:opacity .12s ease,transform .12s ease,background .12s ease,color .12s ease;
-  will-change:transform,opacity;
-}
-#ga-swipe-back-indicator.is-active{
-  opacity:1;
-}
-#ga-swipe-back-indicator.is-ready{
-  background:#FF6A24;
-  border-color:#FF6A24;
-  color:#fff;
-}
-#ga-swipe-back-indicator svg{
-  width:20px;
-  height:20px;
-}
-@media (prefers-reduced-motion:reduce){
-  #ga-swipe-back-indicator{transition:none;}
-}
-</style>
-<script>
-
-/* GOLF AiM — edge swipe back
-   Left-edge swipe only. Practice/input screens are intentionally excluded. */
-(function(){
-  if(window.__GOLF_AIM_SWIPE_BACK__) return;
-  window.__GOLF_AIM_SWIPE_BACK__=true;
-
-  const START_ZONE=26;
-  const COMMIT_DISTANCE=72;
-  const MAX_VERTICAL=64;
-  const AXIS_RATIO=1.35;
-  const MAX_DURATION=900;
-
-  const backSelectors=[
-    '.ga-club-detail-back',
-    '.ga-course-history-detail-back',
-    '.ga-random-history-detail-back',
-    '.ga-history-back',
-    '.ga-settings-back',
-    '.ga-random-back',
-    '.ga-course-back'
-  ];
-
-  let state=null;
-  let indicator=null;
-
-  function isVisible(el){
-    if(!el || el.disabled) return false;
-    const r=el.getBoundingClientRect();
-    const style=window.getComputedStyle(el);
-    return r.width>0 && r.height>0 && style.display!=='none' && style.visibility!=='hidden';
-  }
-
-  function getBackTarget(){
-    if(document.querySelector('.ga-random-playing,.ga-course-playing')) return null;
-    for(const selector of backSelectors){
-      const el=document.querySelector(selector);
-      if(isVisible(el)) return el;
-    }
-    return null;
-  }
-
-  function ensureIndicator(){
-    if(indicator && indicator.isConnected) return indicator;
-    indicator=document.createElement('div');
-    indicator.id='ga-swipe-back-indicator';
-    indicator.setAttribute('aria-hidden','true');
-    indicator.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
-    document.body.appendChild(indicator);
-    return indicator;
-  }
-
-  function appLeft(){
-    const appWidth=Math.min(window.innerWidth,390);
-    return Math.max(0,(window.innerWidth-appWidth)/2);
-  }
-
-  function refreshReadyClass(){
-    document.documentElement.classList.toggle('ga-swipe-back-ready',!!getBackTarget());
-  }
-
-  function resetIndicator(){
-    if(!indicator) return;
-    indicator.classList.remove('is-active','is-ready');
-    indicator.style.transform='translate3d(-18px,-50%,0) scale(.82)';
-  }
-
-  function begin(touch,target){
-    state={
-      target:target,
-      startX:touch.clientX,
-      startY:touch.clientY,
-      lastX:touch.clientX,
-      lastY:touch.clientY,
-      startedAt:Date.now(),
-      horizontal:false,
-      cancelled:false
-    };
-    const el=ensureIndicator();
-    el.style.top=Math.max(72,Math.min(window.innerHeight-72,touch.clientY))+'px';
-    resetIndicator();
-  }
-
-  function updateIndicator(dx,ready,y){
-    const el=ensureIndicator();
-    const progress=Math.max(0,Math.min(1,dx/COMMIT_DISTANCE));
-    const shift=-18+Math.min(26,dx*.22);
-    const scale=.82+progress*.18;
-    el.style.top=Math.max(72,Math.min(window.innerHeight-72,y))+'px';
-    el.style.transform='translate3d('+shift+'px,-50%,0) scale('+scale+')';
-    el.classList.add('is-active');
-    el.classList.toggle('is-ready',ready);
-  }
-
-  function cancel(){
-    state=null;
-    resetIndicator();
-  }
-
-  function onTouchStart(e){
-    if(e.touches.length!==1) return;
-    const target=getBackTarget();
-    if(!target) return;
-    const t=e.touches[0];
-    const edge=appLeft()+START_ZONE;
-    if(t.clientX>edge) return;
-    begin(t,target);
-  }
-
-  function onTouchMove(e){
-    if(!state || e.touches.length!==1) return;
-    const t=e.touches[0];
-    const dx=t.clientX-state.startX;
-    const dy=t.clientY-state.startY;
-    state.lastX=t.clientX;
-    state.lastY=t.clientY;
-
-    if(dx<0 || Math.abs(dy)>MAX_VERTICAL){
-      state.cancelled=true;
-      resetIndicator();
-      return;
-    }
-
-    if(!state.horizontal){
-      if(Math.abs(dx)<8 && Math.abs(dy)<8) return;
-      if(dx<=Math.abs(dy)*AXIS_RATIO){
-        state.cancelled=true;
-        resetIndicator();
-        return;
-      }
-      state.horizontal=true;
-    }
-
-    if(state.cancelled) return;
-    if(e.cancelable) e.preventDefault();
-    updateIndicator(dx,dx>=COMMIT_DISTANCE,t.clientY);
-  }
-
-  function onTouchEnd(){
-    if(!state) return;
-    const s=state;
-    state=null;
-    const dx=s.lastX-s.startX;
-    const dy=Math.abs(s.lastY-s.startY);
-    const elapsed=Date.now()-s.startedAt;
-    const commit=!s.cancelled && s.horizontal &&
-      dx>=COMMIT_DISTANCE &&
-      dy<=MAX_VERTICAL &&
-      dx>=dy*AXIS_RATIO &&
-      elapsed<=MAX_DURATION &&
-      isVisible(s.target);
-
-    if(commit){
-      const el=ensureIndicator();
-      el.classList.add('is-active','is-ready');
-      el.style.transform='translate3d(12px,-50%,0) scale(1)';
-      setTimeout(function(){
-        resetIndicator();
-        s.target.click();
-        requestAnimationFrame(refreshReadyClass);
-      },70);
-    }else{
-      resetIndicator();
-    }
-  }
-
-  document.addEventListener('touchstart',onTouchStart,{passive:true,capture:true});
-  document.addEventListener('touchmove',onTouchMove,{passive:false,capture:true});
-  document.addEventListener('touchend',onTouchEnd,{passive:true,capture:true});
-  document.addEventListener('touchcancel',cancel,{passive:true,capture:true});
-
-  const root=document.getElementById('root')||document.body;
-  const observer=new MutationObserver(function(){requestAnimationFrame(refreshReadyClass)});
-  observer.observe(root,{subtree:true,childList:true});
-  window.addEventListener('resize',refreshReadyClass,{passive:true});
-  refreshReadyClass();
-})();
-
-</script>
-
-<style id="ga-20260929-ui-batch-style">
-/* GOLF AiM v2 — 2026-09-29 UI batch patch */
-.ga-result-good>.ga-result-title+div,
-.ga-result-miss>.ga-result-title+div{display:grid;gap:7px;}
-
-.ga-random-playing:has(.ga-random-result)>.aim-quit{display:none!important;}
-.ga-random-result-back{
-  left:4px!important;
-  width:48px!important;
-  height:48px!important;
-  font-size:35px!important;
-  font-weight:600!important;
-}
-
-.ga-shot-style-empty{
-  margin:0;padding:12px 13px;border:1px dashed var(--ga-border);border-radius:12px;
-  background:#fff;color:var(--ga-sub);font-size:11px;font-weight:650;line-height:1.55;text-align:center;
-}
-.ga-random-preview-row,.ga-random-shot-card{cursor:pointer;}
-.ga-random-preview-row:active,.ga-random-shot-card:active{transform:scale(.992);}
-.ga-summary-shot-detail-note{margin:10px 2px 0;color:var(--ga-sub);font-size:9px;line-height:1.55;}
-.ga-summary-shot-detail-meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:10px;color:var(--ga-sub);font-size:9px;line-height:1.5;font-weight:650;}
-.ga-summary-shot-detail-meta .good{color:var(--ga-success);font-weight:800;}
-.ga-summary-shot-detail-meta .miss{color:var(--ga-error);font-weight:800;}
-</style>
-
-<script>
+/* ===== GOLF AiM v2 — 2026-09-29 UI batch runtime patch (inside app scope) ===== */
 (function(){
 'use strict';
 
@@ -4862,7 +4503,373 @@ if(!window.__GA_20260929_TOP_RESET__){
 }
 
 })();
+/* ===== END UI batch runtime patch ===== */
+
+try{let t=document.getElementById("root");(0,py.createRoot)(t).render(gy.default.createElement(xf))}catch(t){Rp(t)}window.addEventListener("error",function(t){console.error("Uncaught error:",t.error||t.message)});})();
+/*! Bundled license information:
+
+react/cjs/react.production.js:
+  (**
+   * @license React
+   * react.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+scheduler/cjs/scheduler.production.js:
+  (**
+   * @license React
+   * scheduler.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react-dom/cjs/react-dom.production.js:
+  (**
+   * @license React
+   * react-dom.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react-dom/cjs/react-dom-client.production.js:
+  (**
+   * @license React
+   * react-dom-client.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+
+react/cjs/react-jsx-runtime.production.js:
+  (**
+   * @license React
+   * react-jsx-runtime.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   *)
+*/
+
 </script>
+
+
+
+<script>
+/* GOLF AiM — screen transition scroll reset
+   Random 10 / Course mode: when an action advances to another screen or shot,
+   return the viewport to the top so target distance / hole information is immediately visible. */
+(function () {
+  const transitionWords = [
+    "打つ", "確定", "次へ", "次の", "次ホール", "開始", "再開",
+    "完了", "終了", "もう一度", "スタート"
+  ];
+
+  function isPracticeScreen() {
+    const t = document.body.innerText || "";
+    // コース想定のライブ画面は2打目以降のレイアウト位置を維持するため、
+    // この汎用トップリセットの対象外にする。
+    if (document.querySelector(".ga-course-playing")) return false;
+    return !!document.querySelector(".ga-random-playing") || t.includes("RANDOM 10");
+  }
+
+  function scrollPracticeTop() {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+      });
+    });
+  }
+
+  document.addEventListener("click", function (event) {
+    if (!isPracticeScreen()) return;
+
+    const button = event.target.closest("button");
+    if (!button) return;
+
+    const label = (button.innerText || button.textContent || "").trim();
+    if (!transitionWords.some(word => label.includes(word))) return;
+
+    // Reactの画面更新後にトップへ戻す
+    setTimeout(scrollPracticeTop, 30);
+    setTimeout(scrollPracticeTop, 120);
+  }, true);
+})();
+</script>
+
+
+<style id="aim-result-refresh-css">
+.aim-result-choice{display:grid;gap:7px}.aim-result-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.aim-result-row button{min-width:0;min-height:42px;padding:8px 5px;border-radius:9px;background:#e9dec1;color:#12382b;font-size:12px;font-weight:700;line-height:1.2;border:1px solid transparent;white-space:normal;word-break:keep-all}.aim-result-row button[aria-pressed="true"]{font-weight:800}.aim-result-empty{display:block;min-height:1px}.aim-result-divider{height:1px;background:#c9bea1;margin:4px 1px 2px}.aim-result-section{margin-bottom:15px!important}@media(max-width:380px){.aim-result-row{gap:5px}.aim-result-row button{font-size:11px;padding:7px 3px}}
+</style>
+
+<style id="ga-swipe-back-style">
+html.ga-swipe-back-ready,
+html.ga-swipe-back-ready body{
+  overscroll-behavior-x:none;
+}
+#ga-swipe-back-indicator{
+  position:fixed;
+  left:max(10px,calc((100vw - 390px)/2 + 10px));
+  top:50%;
+  z-index:9999;
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:rgba(255,255,255,.96);
+  color:#172033;
+  border:1px solid #DDE3EA;
+  box-shadow:0 8px 22px rgba(23,32,51,.18);
+  opacity:0;
+  transform:translate3d(-18px,-50%,0) scale(.82);
+  pointer-events:none;
+  transition:opacity .12s ease,transform .12s ease,background .12s ease,color .12s ease;
+  will-change:transform,opacity;
+}
+#ga-swipe-back-indicator.is-active{
+  opacity:1;
+}
+#ga-swipe-back-indicator.is-ready{
+  background:#FF6A24;
+  border-color:#FF6A24;
+  color:#fff;
+}
+#ga-swipe-back-indicator svg{
+  width:20px;
+  height:20px;
+}
+@media (prefers-reduced-motion:reduce){
+  #ga-swipe-back-indicator{transition:none;}
+}
+</style>
+<script>
+
+/* GOLF AiM — edge swipe back
+   Left-edge swipe only. Practice/input screens are intentionally excluded. */
+(function(){
+  if(window.__GOLF_AIM_SWIPE_BACK__) return;
+  window.__GOLF_AIM_SWIPE_BACK__=true;
+
+  const START_ZONE=26;
+  const COMMIT_DISTANCE=72;
+  const MAX_VERTICAL=64;
+  const AXIS_RATIO=1.35;
+  const MAX_DURATION=900;
+
+  const backSelectors=[
+    '.ga-club-detail-back',
+    '.ga-course-history-detail-back',
+    '.ga-random-history-detail-back',
+    '.ga-history-back',
+    '.ga-settings-back',
+    '.ga-random-back',
+    '.ga-course-back'
+  ];
+
+  let state=null;
+  let indicator=null;
+
+  function isVisible(el){
+    if(!el || el.disabled) return false;
+    const r=el.getBoundingClientRect();
+    const style=window.getComputedStyle(el);
+    return r.width>0 && r.height>0 && style.display!=='none' && style.visibility!=='hidden';
+  }
+
+  function getBackTarget(){
+    // ランダム結果入力では、左端スワイプで「狙い入力に戻る」を実行する。
+    const randomResultBack=document.querySelector('.ga-random-playing .ga-random-result-back');
+    if(isVisible(randomResultBack)) return randomResultBack;
+    // それ以外のライブ練習画面では誤操作防止のためスワイプバックを無効化。
+    if(document.querySelector('.ga-random-playing,.ga-course-playing')) return null;
+    for(const selector of backSelectors){
+      const el=document.querySelector(selector);
+      if(isVisible(el)) return el;
+    }
+    return null;
+  }
+
+  function ensureIndicator(){
+    if(indicator && indicator.isConnected) return indicator;
+    indicator=document.createElement('div');
+    indicator.id='ga-swipe-back-indicator';
+    indicator.setAttribute('aria-hidden','true');
+    indicator.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>';
+    document.body.appendChild(indicator);
+    return indicator;
+  }
+
+  function appLeft(){
+    const appWidth=Math.min(window.innerWidth,390);
+    return Math.max(0,(window.innerWidth-appWidth)/2);
+  }
+
+  function refreshReadyClass(){
+    document.documentElement.classList.toggle('ga-swipe-back-ready',!!getBackTarget());
+  }
+
+  function resetIndicator(){
+    if(!indicator) return;
+    indicator.classList.remove('is-active','is-ready');
+    indicator.style.transform='translate3d(-18px,-50%,0) scale(.82)';
+  }
+
+  function begin(touch,target){
+    state={
+      target:target,
+      startX:touch.clientX,
+      startY:touch.clientY,
+      lastX:touch.clientX,
+      lastY:touch.clientY,
+      startedAt:Date.now(),
+      horizontal:false,
+      cancelled:false
+    };
+    const el=ensureIndicator();
+    el.style.top=Math.max(72,Math.min(window.innerHeight-72,touch.clientY))+'px';
+    resetIndicator();
+  }
+
+  function updateIndicator(dx,ready,y){
+    const el=ensureIndicator();
+    const progress=Math.max(0,Math.min(1,dx/COMMIT_DISTANCE));
+    const shift=-18+Math.min(26,dx*.22);
+    const scale=.82+progress*.18;
+    el.style.top=Math.max(72,Math.min(window.innerHeight-72,y))+'px';
+    el.style.transform='translate3d('+shift+'px,-50%,0) scale('+scale+')';
+    el.classList.add('is-active');
+    el.classList.toggle('is-ready',ready);
+  }
+
+  function cancel(){
+    state=null;
+    resetIndicator();
+  }
+
+  function onTouchStart(e){
+    if(e.touches.length!==1) return;
+    const target=getBackTarget();
+    if(!target) return;
+    const t=e.touches[0];
+    const edge=appLeft()+START_ZONE;
+    if(t.clientX>edge) return;
+    begin(t,target);
+  }
+
+  function onTouchMove(e){
+    if(!state || e.touches.length!==1) return;
+    const t=e.touches[0];
+    const dx=t.clientX-state.startX;
+    const dy=t.clientY-state.startY;
+    state.lastX=t.clientX;
+    state.lastY=t.clientY;
+
+    if(dx<0 || Math.abs(dy)>MAX_VERTICAL){
+      state.cancelled=true;
+      resetIndicator();
+      return;
+    }
+
+    if(!state.horizontal){
+      if(Math.abs(dx)<8 && Math.abs(dy)<8) return;
+      if(dx<=Math.abs(dy)*AXIS_RATIO){
+        state.cancelled=true;
+        resetIndicator();
+        return;
+      }
+      state.horizontal=true;
+    }
+
+    if(state.cancelled) return;
+    if(e.cancelable) e.preventDefault();
+    updateIndicator(dx,dx>=COMMIT_DISTANCE,t.clientY);
+  }
+
+  function onTouchEnd(){
+    if(!state) return;
+    const s=state;
+    state=null;
+    const dx=s.lastX-s.startX;
+    const dy=Math.abs(s.lastY-s.startY);
+    const elapsed=Date.now()-s.startedAt;
+    const commit=!s.cancelled && s.horizontal &&
+      dx>=COMMIT_DISTANCE &&
+      dy<=MAX_VERTICAL &&
+      dx>=dy*AXIS_RATIO &&
+      elapsed<=MAX_DURATION &&
+      isVisible(s.target);
+
+    if(commit){
+      const el=ensureIndicator();
+      el.classList.add('is-active','is-ready');
+      el.style.transform='translate3d(12px,-50%,0) scale(1)';
+      setTimeout(function(){
+        resetIndicator();
+        s.target.click();
+        requestAnimationFrame(refreshReadyClass);
+      },70);
+    }else{
+      resetIndicator();
+    }
+  }
+
+  document.addEventListener('touchstart',onTouchStart,{passive:true,capture:true});
+  document.addEventListener('touchmove',onTouchMove,{passive:false,capture:true});
+  document.addEventListener('touchend',onTouchEnd,{passive:true,capture:true});
+  document.addEventListener('touchcancel',cancel,{passive:true,capture:true});
+
+  const root=document.getElementById('root')||document.body;
+  const observer=new MutationObserver(function(){requestAnimationFrame(refreshReadyClass)});
+  observer.observe(root,{subtree:true,childList:true});
+  window.addEventListener('resize',refreshReadyClass,{passive:true});
+  refreshReadyClass();
+})();
+
+</script>
+
+<style id="ga-20260929-ui-batch-style">
+/* GOLF AiM v2 — 2026-09-29 UI batch patch */
+.ga-result-good>.ga-result-title+div,
+.ga-result-miss>.ga-result-title+div{display:grid;gap:7px;}
+
+.ga-random-playing:has(.ga-random-result)>.aim-quit{display:none!important;}
+.ga-random-result-back{
+  left:4px!important;
+  width:48px!important;
+  height:48px!important;
+  font-size:35px!important;
+  font-weight:600!important;
+}
+
+.ga-shot-style-empty{
+  margin:0;padding:12px 13px;border:1px dashed var(--ga-border);border-radius:12px;
+  background:#fff;color:var(--ga-sub);font-size:11px;font-weight:650;line-height:1.55;text-align:center;
+}
+.ga-random-preview-row,.ga-random-shot-card{cursor:pointer;}
+.ga-random-preview-row:active,.ga-random-shot-card:active{transform:scale(.992);}
+.ga-summary-shot-detail-note{margin:10px 2px 0;color:var(--ga-sub);font-size:9px;line-height:1.55;}
+.ga-summary-shot-detail-meta{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:10px;color:var(--ga-sub);font-size:9px;line-height:1.5;font-weight:650;}
+.ga-summary-shot-detail-meta .good{color:var(--ga-success);font-weight:800;}
+.ga-summary-shot-detail-meta .miss{color:var(--ga-error);font-weight:800;}
+</style>
+
+
 
 </body>
 </html>
