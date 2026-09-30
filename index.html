@@ -3407,10 +3407,10 @@ const GA_CLUB_NAME_OPTIONS={
 function gaClubTypeFromName(name){
  const value=String(name||'').trim();
  if(value==='Dr')return 'driver';
- if(/^\\d+W$/i.test(value))return 'fw';
- if(/^\\d+U$/i.test(value))return 'ut';
+ if(/^\d+W$/i.test(value))return 'fw';
+ if(/^\d+U$/i.test(value))return 'ut';
  if(/^(?:[3-9]I|P)$/i.test(value))return 'iron';
- if(/^\\d{2}°$/.test(value))return 'wedge';
+ if(/^\d{2}°$/.test(value))return 'wedge';
  if(/^(?:PT|Putter|パター)$/i.test(value))return 'putter';
  return 'other';
 }
