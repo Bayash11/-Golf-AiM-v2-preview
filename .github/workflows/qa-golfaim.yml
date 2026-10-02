@@ -20,35 +20,47 @@ jobs:
           import { chromium } from 'playwright-core';
           const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
           const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+          page.setDefaultTimeout(12000);
           const BASE='http://127.0.0.1:8000/';
           await page.goto(BASE,{waitUntil:'domcontentloaded'});
           await page.evaluate(()=>{
             const clubs=[{name:'Dr',typical:220,approach:false},{name:'5W',typical:195,approach:false},{name:'3U',typical:190,approach:false},{name:'4U',typical:180,approach:false},{name:'6I',typical:155,approach:false},{name:'7I',typical:145,approach:false},{name:'8I',typical:135,approach:false},{name:'9I',typical:120,approach:false},{name:'P',typical:100,approach:false},{name:'48°',typical:85,approach:true},{name:'52°',typical:65,approach:true},{name:'58°',typical:45,approach:true}];
             localStorage.clear();localStorage.setItem('golf-aim:priv:club-config',JSON.stringify(clubs));
             localStorage.setItem('golf-aim:priv:skill-level',JSON.stringify('break90'));
-            localStorage.setItem('golfAim.shotStyleConfig.v1',JSON.stringify({version:1,items:[{id:'style-normal',label:'ノーマル',enabled:true,custom:false}]}));
+            localStorage.setItem('golfAim.shotStyleConfig.v1',JSON.stringify({version:1,items:[{id:'style-normal',label:'ノーマル',enabled:true,custom:false},{id:'style-line',label:'ライン出し',enabled:true,custom:false}]}));
+            localStorage.setItem('golfAim.feedbackConfig.v1',JSON.stringify({version:1,good:[{id:'good-swing-through',label:'振り切れた',enabled:true,custom:false}],miss:[{id:'miss-fat',label:'ダフリ',enabled:true,custom:false},{id:'miss-top',label:'トップ',enabled:true,custom:false},{id:'miss-face-open',label:'フェース開いた',enabled:true,custom:false}]}));
           });
           await page.goto(BASE,{waitUntil:'domcontentloaded'});
           await page.getByRole('button',{name:/コース想定モード/}).first().click();
           await page.getByRole('button',{name:/3H/}).first().click();
           await page.getByRole('button',{name:/コースを開始/}).first().click();
           await page.waitForTimeout(200);
-          const body=await page.locator('body').innerText();
-          const rm=body.match(/残り\s*(\d+)yd/); const rem=rm?Number(rm[1]):0;
-          const club=rem>200?'Dr':rem>185?'5W':rem>170?'4U':rem>150?'6I':rem>135?'7I':rem>120?'8I':rem>100?'9I':rem>85?'P':rem>60?'48°':rem>45?'52°':'58°';
-          console.log('REMAINING',rem,'CLUB',club);
+          const txt=await page.locator('body').innerText();
+          const rem=Number((txt.match(/残り\s*(\d+)yd/)||[])[1]||0);
+          const clubs=[['Dr',220],['5W',195],['3U',190],['4U',180],['6I',155],['7I',145],['8I',135],['9I',120],['P',100],['48°',85],['52°',65],['58°',45]];
+          const [club,typ]=clubs.slice().sort((a,b)=>Math.abs(a[1]-Math.min(rem,220))-Math.abs(b[1]-Math.min(rem,220)))[0];
           await page.getByRole('button',{name:club,exact:true}).first().click();
-          const svg=page.locator('svg.aim-map-v2');
-          const box=await svg.boundingBox();
-          console.log('BOX',JSON.stringify(box),'VIEWBOX',await svg.getAttribute('viewBox'));
-          for(const frac of [0.10,0.30,0.50,0.70,0.90]){
-            await page.mouse.click(box.x+box.width/2,box.y+box.height*frac);
-            await page.waitForTimeout(100);
-            const txt=await page.locator('body').innerText();
-            const m=txt.match(/狙いまでの距離\s*(\d+)yd/);
-            console.log('FRAC',frac,'TARGET',m?m[1]:'none');
+          const svg=page.locator('svg.aim-map-v2'),box=await svg.boundingBox();
+          async function aimAt(frac,xoff=0){
+            await page.mouse.click(box.x+box.width*(0.5+xoff),box.y+box.height*frac);
+            await page.waitForTimeout(90);
+            const t=await page.locator('body').innerText();
+            const m=t.match(/狙いまでの距離\s*(\d+)yd/); return m?Number(m[1]):null;
           }
-          console.log('FINAL_BODY\n'+(await page.locator('body').innerText()).slice(0,12000));
+          const t1=await aimAt(.5),t2=await aimAt(.7);
+          const desired=Math.min(typ,rem);
+          let frac=.5+(desired-t1)*(.2)/(t2-t1);
+          frac=Math.max(.12,Math.min(.9,frac));
+          let xoff=0;if(/OB（左）|池（左）/.test(txt))xoff=.08;else if(/OB（右）|池（右）/.test(txt))xoff=-.08;
+          const actualAim=await aimAt(frac,xoff);
+          console.log('REM',rem,'CLUB',club,'DESIRED',desired,'AIM',actualAim,'FRAC',frac,'XOFF',xoff);
+          const fade=page.getByRole('button',{name:'フェード',exact:true});if(await fade.count())await fade.first().click();
+          const normal=page.getByRole('button',{name:'ノーマル',exact:true});if(await normal.count())await normal.first().click();
+          await page.getByRole('button',{name:'この狙いで打つ',exact:true}).click();
+          await page.waitForTimeout(180);
+          console.log('=== COURSE_RESULT_INPUT ===\n'+(await page.locator('body').innerText()).slice(0,17000));
+          console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
+          console.log('INPUTS',JSON.stringify(await page.locator('input').evaluateAll(xs=>xs.map(x=>({type:x.type,value:x.value,placeholder:x.placeholder})))));
           await browser.close();
           JS
           node qa.mjs
