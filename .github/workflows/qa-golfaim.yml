@@ -164,51 +164,65 @@ jobs:
             const txt=await page.locator('body').innerText();
             const remM=txt.match(/残り\s*(\d+)yd/);
             const rem=remM?Number(remM[1]):150;
-            const holeM=txt.match(/PAR\s*\d+[\s\S]{0,80}?(\d+)yd/i) || txt.match(/Par\s*\d+[\s\S]{0,80}?(\d+)yd/i);
-            const holeDist=holeM?Number(holeM[1]):rem;
             const [club,typical]=closestClub(rem);
 
-            const selectedTxt=txt.match(/使用クラブ\s*([^\n]+)/);
-            if(!selectedTxt){
+            if(!/使用クラブ/.test(txt)){
               await clickIf(club);
-              await page.waitForTimeout(80);
-            }
-
-            const currentAbs=Math.max(0,holeDist-rem);
-            const desired=Math.min(typical,rem);
-            const aimAbs=Math.min(holeDist,currentAbs+desired);
-            const firstShot=/ティーショット/.test(txt);
-            let frac=firstShot
-              ? (holeDist+40-aimAbs)/(holeDist+62)
-              : .60-desired/(holeDist+62);
-            frac=Math.max(.035,Math.min(.965,frac));
-
-            let ready=false;
-            for(const offset of [0,.018,-.018,.04,-.04]){
-              await dispatchAim(Math.max(.025,Math.min(.975,frac+offset)));
               await page.waitForTimeout(100);
-              ready=(await page.getByRole('button',{name:'この狙いで打つ'}).count())>0;
-              if(ready)break;
             }
-            if(!ready){
-              console.log('AIM_FAILED',JSON.stringify({rem,holeDist,club,typical,frac}));
+
+            const svg=page.locator('svg.aim-map-v2');
+            const box=await svg.boundingBox();
+            if(!box)return null;
+
+            const desired=Math.min(typical,rem);
+            const samples=[];
+            for(const frac of [.08,.14,.20,.26,.32,.38,.44,.50,.56,.62,.68,.74,.80,.86,.92]){
+              await page.mouse.click(box.x+box.width*.5,box.y+box.height*frac);
+              await page.waitForTimeout(55);
+              const t=await page.locator('body').innerText();
+              const m=t.match(/狙いまでの距離\s*(\d+)yd/);
+              if(m) samples.push({frac,target:Number(m[1])});
+            }
+            if(!samples.length){
+              console.log('AIM_SAMPLING_FAILED',JSON.stringify({rem,club,typical}));
               return null;
             }
+            samples.sort((a,b)=>Math.abs(a.target-desired)-Math.abs(b.target-desired));
+            const best=samples[0];
+
+            let x=.5;
+            if(/OB（左）|池（左）/.test(txt))x=.58;
+            else if(/OB（右）|池（右）/.test(txt))x=.42;
+            await page.mouse.click(box.x+box.width*x,box.y+box.height*best.frac);
+            await page.waitForTimeout(100);
+
+            const ready=page.getByRole('button',{name:/この狙いで打つ/});
+            if(!(await ready.count())){
+              console.log('AIM_FINAL_FAILED',JSON.stringify({rem,club,typical,desired,best,samples}));
+              return null;
+            }
+
             await clickIf('フェード');
             await clickIf(rem<=100?'ライン出し':'フルショット');
-            await page.getByRole('button',{name:'この狙いで打つ'}).last().click();
+            await ready.last().click();
             await page.waitForTimeout(120);
 
             const rtxt=await page.locator('body').innerText();
-            const aimM=rtxt.match(/狙いまで\s*(\d+)yd/);
-            return {rem,holeDist,club,typical,aim:aimM?Number(aimM[1]):null};
+            const aimM=rtxt.match(/狙いまで(?:の距離)?\s*(\d+)yd/);
+            return {rem,club,typical,desired,aim:aimM?Number(aimM[1]):best.target,best,samples:samples.slice(0,3)};
           }
           async function finishInterim(){
-            const names=await page.locator('button').allInnerTexts();
-            const candidate=names.find(x=>/次のホール|次へ進む|次のH|結果を見る|ラウンド結果/.test(x));
-            if(candidate){
-              const b=page.getByRole('button',{name:candidate,exact:true});
-              if(await b.count()){await b.first().click();await page.waitForTimeout(150);return true}
+            const buttons=page.locator('button');
+            const n=await buttons.count();
+            for(let i=0;i<n;i++){
+              const b=buttons.nth(i);
+              const label=(await b.innerText()).trim();
+              if(/次のホール|次へ進む|次のH|結果を見る|ラウンド結果|結果へ/.test(label)){
+                await b.click();
+                await page.waitForTimeout(180);
+                return true;
+              }
             }
             return false;
           }
