@@ -177,7 +177,10 @@ jobs:
             const currentAbs=Math.max(0,holeDist-rem);
             const desired=Math.min(typical,rem);
             const aimAbs=Math.min(holeDist,currentAbs+desired);
-            let frac=(holeDist+40-aimAbs)/(holeDist+62);
+            const firstShot=/ティーショット/.test(txt);
+            let frac=firstShot
+              ? (holeDist+40-aimAbs)/(holeDist+62)
+              : .60-desired/(holeDist+62);
             frac=Math.max(.035,Math.min(.965,frac));
 
             let ready=false;
@@ -228,6 +231,14 @@ jobs:
 
               if(/今回の出来/.test(txt) || /現在の実力/.test(txt)){
                 completed=true;break;
+              }
+              if(/ホール結果/.test(txt)){
+                const nextHole=page.getByRole('button',{name:/次のホールへ/});
+                if(await nextHole.count()){
+                  await nextHole.first().click();
+                  await page.waitForTimeout(160);
+                  continue;
+                }
               }
               if(/結果を入力/.test(txt)){
                 const p=patterns[session][resultNo%patterns[session].length];
