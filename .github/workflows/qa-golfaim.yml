@@ -21,26 +21,29 @@ jobs:
           const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
           const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
           await page.goto('http://127.0.0.1:8000/',{waitUntil:'networkidle'});
-          async function dump(label){
-            console.log('\n=== '+label+' ===');
-            console.log((await page.locator('body').innerText()).slice(0,16000));
-            console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
-            console.log('INPUTS',JSON.stringify(await page.locator('input').evaluateAll(xs=>xs.map(x=>({type:x.type,value:x.value,placeholder:x.placeholder,checked:x.checked})))));
-            console.log('SELECTS',JSON.stringify(await page.locator('select').evaluateAll(xs=>xs.map(x=>({value:x.value,options:[...x.options].map(o=>o.text)})))));
-          }
+          console.log('LS0',JSON.stringify(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)))));
           await page.getByRole('button',{name:/設定/}).first().click();
-          await page.getByRole('button',{name:/90切り/}).click();
           await page.getByRole('button',{name:/クラブ設定/}).click();
           await page.waitForTimeout(200);
-          await dump('CLUB_SETTINGS');
+          console.log('=== CLUB_SETTINGS ===');
+          console.log((await page.locator('body').innerText()).slice(0,16000));
+          console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
+          console.log('INPUTS',JSON.stringify(await page.locator('input').evaluateAll(xs=>xs.map(x=>({type:x.type,value:x.value,checked:x.checked,placeholder:x.placeholder})))));
+          console.log('LS1',JSON.stringify(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)))));
           await page.getByRole('button',{name:/戻る/}).click();
           await page.getByRole('button',{name:/打ち方設定/}).click();
           await page.waitForTimeout(200);
-          await dump('STYLE_SETTINGS');
+          console.log('=== STYLE_SETTINGS ===');
+          console.log((await page.locator('body').innerText()).slice(0,12000));
+          console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
+          console.log('LS2',JSON.stringify(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)))));
           await page.getByRole('button',{name:/戻る/}).click();
-          await page.getByRole('button',{name:/Good・ミスの設定/}).click();
+          await page.getByRole('button',{name:/Good・ミス/}).click();
           await page.waitForTimeout(200);
-          await dump('FEEDBACK_SETTINGS');
+          console.log('=== FEEDBACK_SETTINGS ===');
+          console.log((await page.locator('body').innerText()).slice(0,14000));
+          console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
+          console.log('LS3',JSON.stringify(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)))));
           await browser.close();
           JS
           node qa.mjs
