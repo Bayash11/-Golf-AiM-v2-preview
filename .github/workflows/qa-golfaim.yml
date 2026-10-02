@@ -21,17 +21,23 @@ jobs:
           import { chromium } from 'playwright';
           const browser=await chromium.launch({headless:true});
           const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-          page.on('console',m=>console.log('BROWSER_CONSOLE',m.type(),m.text()));
           page.on('pageerror',e=>console.log('PAGE_ERROR',e.message));
+          async function dump(label){
+            console.log('\n=== '+label+' ===');
+            console.log((await page.locator('body').innerText()).slice(0,10000));
+            console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
+            console.log('INPUTS',JSON.stringify(await page.locator('input').evaluateAll(xs=>xs.map(x=>({type:x.type,value:x.value,placeholder:x.placeholder,min:x.min,max:x.max})))));
+          }
           await page.goto('http://127.0.0.1:8000/',{waitUntil:'networkidle'});
-          console.log('URL',page.url());
-          console.log('TITLE',await page.title());
-          console.log('BODY_TEXT_START');
-          console.log((await page.locator('body').innerText()).slice(0,12000));
-          console.log('BODY_TEXT_END');
-          const buttons=await page.locator('button').allInnerTexts();
-          console.log('BUTTONS',JSON.stringify(buttons));
-          await page.screenshot({path:'/tmp/home.png',fullPage:true});
+          await dump('HOME');
+          await page.getByRole('button',{name:/ランダムモード/}).click();
+          await page.waitForTimeout(300);
+          await dump('RANDOM_SETUP');
+          await page.getByRole('button',{name:'戻る'}).click();
+          await page.waitForTimeout(200);
+          await page.getByRole('button',{name:/コース想定モード/}).click();
+          await page.waitForTimeout(300);
+          await dump('COURSE_SETUP');
           await browser.close();
           JS
           node qa.mjs
