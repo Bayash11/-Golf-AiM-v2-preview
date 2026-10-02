@@ -27,40 +27,38 @@ jobs:
             const clubs=[{name:'Dr',typical:220,approach:false},{name:'5W',typical:195,approach:false},{name:'3U',typical:190,approach:false},{name:'4U',typical:180,approach:false},{name:'6I',typical:155,approach:false},{name:'7I',typical:145,approach:false},{name:'8I',typical:135,approach:false},{name:'9I',typical:120,approach:false},{name:'P',typical:100,approach:false},{name:'48°',typical:85,approach:true},{name:'52°',typical:65,approach:true},{name:'58°',typical:45,approach:true}];
             localStorage.clear();localStorage.setItem('golf-aim:priv:club-config',JSON.stringify(clubs));
             localStorage.setItem('golf-aim:priv:skill-level',JSON.stringify('break90'));
-            localStorage.setItem('golfAim.shotStyleConfig.v1',JSON.stringify({version:1,items:[{id:'style-normal',label:'ノーマル',enabled:true,custom:false},{id:'style-line',label:'ライン出し',enabled:true,custom:false}]}));
-            localStorage.setItem('golfAim.feedbackConfig.v1',JSON.stringify({version:1,good:[{id:'good-swing-through',label:'振り切れた',enabled:true,custom:false}],miss:[{id:'miss-fat',label:'ダフリ',enabled:true,custom:false},{id:'miss-top',label:'トップ',enabled:true,custom:false},{id:'miss-face-open',label:'フェース開いた',enabled:true,custom:false}]}));
+            localStorage.setItem('golfAim.shotStyleConfig.v1',JSON.stringify({version:1,items:[{id:'style-normal',label:'ノーマル',enabled:true,custom:false}]}));
           });
           await page.goto(BASE,{waitUntil:'domcontentloaded'});
           await page.getByRole('button',{name:/コース想定モード/}).first().click();
           await page.getByRole('button',{name:/3H/}).first().click();
           await page.getByRole('button',{name:/コースを開始/}).first().click();
-          await page.waitForTimeout(200);
-          const txt=await page.locator('body').innerText();
-          const rem=Number((txt.match(/残り\s*(\d+)yd/)||[])[1]||0);
+          await page.waitForTimeout(150);
+          const txt=await page.locator('body').innerText(),rem=Number((txt.match(/残り\s*(\d+)yd/)||[])[1]||0);
           const clubs=[['Dr',220],['5W',195],['3U',190],['4U',180],['6I',155],['7I',145],['8I',135],['9I',120],['P',100],['48°',85],['52°',65],['58°',45]];
           const [club,typ]=clubs.slice().sort((a,b)=>Math.abs(a[1]-Math.min(rem,220))-Math.abs(b[1]-Math.min(rem,220)))[0];
           await page.getByRole('button',{name:club,exact:true}).first().click();
-          const svg=page.locator('svg.aim-map-v2'),box=await svg.boundingBox();
-          async function aimAt(frac,xoff=0){
-            await page.mouse.click(box.x+box.width*(0.5+xoff),box.y+box.height*frac);
-            await page.waitForTimeout(90);
-            const t=await page.locator('body').innerText();
-            const m=t.match(/狙いまでの距離\s*(\d+)yd/); return m?Number(m[1]):null;
+          const svg=page.locator('svg.aim-map-v2'),box=await svg.boundingBox(),desired=Math.min(typ,rem);
+          const tries=[];
+          for(const frac of [.15,.25,.35,.45,.55,.65,.75,.85]){
+            await page.mouse.click(box.x+box.width/2,box.y+box.height*frac);
+            await page.waitForTimeout(70);
+            const t=await page.locator('body').innerText(),m=t.match(/狙いまでの距離\s*(\d+)yd/);
+            if(m)tries.push([frac,Number(m[1])]);
           }
-          const t1=await aimAt(.5),t2=await aimAt(.7);
-          const desired=Math.min(typ,rem);
-          let frac=.5+(desired-t1)*(.2)/(t2-t1);
-          frac=Math.max(.12,Math.min(.9,frac));
-          let xoff=0;if(/OB（左）|池（左）/.test(txt))xoff=.08;else if(/OB（右）|池（右）/.test(txt))xoff=-.08;
-          const actualAim=await aimAt(frac,xoff);
-          console.log('REM',rem,'CLUB',club,'DESIRED',desired,'AIM',actualAim,'FRAC',frac,'XOFF',xoff);
+          tries.sort((a,b)=>Math.abs(a[1]-desired)-Math.abs(b[1]-desired));
+          const best=tries[0];
+          let xoff=0;if(/OB（左）|池（左）/.test(txt))xoff=.06;else if(/OB（右）|池（右）/.test(txt))xoff=-.06;
+          await page.mouse.click(box.x+box.width*(.5+xoff),box.y+box.height*best[0]);
+          await page.waitForTimeout(100);
+          console.log('REM',rem,'CLUB',club,'DESIRED',desired,'TRIES',JSON.stringify(tries),'BEST',JSON.stringify(best));
+          console.log('AIM_BODY\n'+(await page.locator('body').innerText()).slice(-5000));
           const fade=page.getByRole('button',{name:'フェード',exact:true});if(await fade.count())await fade.first().click();
           const normal=page.getByRole('button',{name:'ノーマル',exact:true});if(await normal.count())await normal.first().click();
-          await page.getByRole('button',{name:'この狙いで打つ',exact:true}).click();
-          await page.waitForTimeout(180);
-          console.log('=== COURSE_RESULT_INPUT ===\n'+(await page.locator('body').innerText()).slice(0,17000));
+          await page.getByRole('button',{name:/この狙いで打つ/}).first().click();
+          await page.waitForTimeout(150);
+          console.log('=== COURSE_RESULT_INPUT ===\n'+(await page.locator('body').innerText()).slice(0,16000));
           console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
-          console.log('INPUTS',JSON.stringify(await page.locator('input').evaluateAll(xs=>xs.map(x=>({type:x.type,value:x.value,placeholder:x.placeholder})))));
           await browser.close();
           JS
           node qa.mjs
