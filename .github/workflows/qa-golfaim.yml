@@ -11,15 +11,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm init -y >/dev/null 2>&1 && npm install playwright@1.55.0 >/dev/null 2>&1
-      - run: npx playwright install --with-deps chromium >/dev/null 2>&1
+      - run: npm init -y >/dev/null 2>&1 && npm install playwright-core@1.55.0 >/dev/null 2>&1
       - name: Run diagnostic
         run: |
           python3 -m http.server 8000 >/tmp/http.log 2>&1 &
           sleep 2
           cat > qa.mjs <<'JS'
-          import { chromium } from 'playwright';
-          const browser=await chromium.launch({headless:true});
+          import { chromium } from 'playwright-core';
+          const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
           const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
           page.on('pageerror',e=>console.log('PAGE_ERROR',e.message));
           async function dump(label){
