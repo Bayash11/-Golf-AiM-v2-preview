@@ -80,7 +80,7 @@ jobs:
             for(let k=0;k<Math.abs(ds);k++) await clickIf(ds<0?'−5yd':'＋5yd');
             for(let k=0;k<ls;k++) await clickIf(side);
             await clickIf(curve); await clickIf(contact); await clickIf(fb);
-            await page.getByRole('button',{name:'記録して次へ',exact:true}).click();
+            await page.getByRole('button',{name:/^記録して/}).first().click();
             await page.waitForTimeout(80);
             console.log('RSHOT',i,'target',target,'club',club,'pattern',p);
           }
