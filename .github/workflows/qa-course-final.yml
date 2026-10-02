@@ -124,33 +124,41 @@ jobs:
           async function chooseAim(rem,club,typical){
             await clickIf(club);
             await page.waitForTimeout(80);
-            const before=await page.locator('body').innerText();
-            const tee=/ティーショット/.test(before);
-            const fractions=tee
-              ? [.08,.14,.20,.26,.32,.38,.44,.50,.56,.62,.68,.74,.80,.86]
-              : [.06,.10,.14,.18,.22,.26,.30,.34,.38,.42,.46,.50,.54,.57];
             const desired=Math.min(rem,typical);
-            const samples=[];
-            for(const frac of fractions){
-              await dispatchAim(frac);
-              await page.waitForTimeout(35);
-              const target=await readAimDistance();
-              if(Number.isFinite(target) && target>0 && target<=Math.max(rem+15,desired+30)){
-                samples.push({frac,target});
-              }
-            }
-            if(!samples.length) return null;
-            samples.sort((a,b)=>Math.abs(a.target-desired)-Math.abs(b.target-desired));
-            const best=samples[0];
-            await dispatchAim(best.frac);
-            await page.waitForTimeout(70);
-            if(!(await page.getByRole('button',{name:'この狙いで打つ'}).count())) return null;
+
+            const tapped=await page.evaluate(({desired})=>{
+              const svg=document.querySelector('svg.aim-map-v2');
+              if(!svg)return null;
+              const marker=svg.querySelector('circle[fill="#fffef2"]');
+              if(!marker)return null;
+              const vb=svg.viewBox.baseVal;
+              const rect=svg.getBoundingClientRect();
+              const cx=Number(marker.getAttribute('cx'));
+              const cy=Number(marker.getAttribute('cy'));
+              const minY=vb.y+5;
+              const targetY=Math.max(minY,cy-desired);
+              const targetX=cx;
+              const clientX=rect.left+((targetX-vb.x)/vb.width)*rect.width;
+              const clientY=rect.top+((targetY-vb.y)/vb.height)*rect.height;
+              svg.dispatchEvent(new MouseEvent('click',{
+                bubbles:true,cancelable:true,view:window,clientX,clientY
+              }));
+              return {cx,cy,targetX,targetY,vbH:vb.height};
+            },{desired});
+
+            if(!tapped)return null;
+            await page.waitForTimeout(90);
+            const target=await readAimDistance();
+            if(!Number.isFinite(target))return null;
+            if(!(await page.getByRole('button',{name:'この狙いで打つ'}).count()))return null;
+
             await clickIf('フェード');
             await clickIf(rem<=100?'ライン出し':'フルショット');
             await page.getByRole('button',{name:'この狙いで打つ'}).last().click();
             await page.waitForTimeout(100);
-            return {rem,club,typical,desired,aim:best.target};
+            return {rem,club,typical,desired,aim:target,tap:tapped};
           }
+
           async function adjustDistance(delta){
             if(!delta)return;
             const minus1=(await page.getByRole('button',{name:'−1yd',exact:true}).count())>0;
