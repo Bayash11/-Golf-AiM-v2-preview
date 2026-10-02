@@ -20,30 +20,50 @@ jobs:
           import { chromium } from 'playwright-core';
           const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
           const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-          await page.goto('http://127.0.0.1:8000/',{waitUntil:'networkidle'});
-          console.log('LS0',JSON.stringify(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)))));
-          await page.getByRole('button',{name:/設定/}).first().click();
-          await page.getByRole('button',{name:/クラブ設定/}).click();
-          await page.waitForTimeout(200);
-          console.log('=== CLUB_SETTINGS ===');
-          console.log((await page.locator('body').innerText()).slice(0,16000));
-          console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
-          console.log('INPUTS',JSON.stringify(await page.locator('input').evaluateAll(xs=>xs.map(x=>({type:x.type,value:x.value,checked:x.checked,placeholder:x.placeholder})))));
-          console.log('LS1',JSON.stringify(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)))));
-          await page.getByRole('button',{name:/戻る/}).click();
-          await page.getByRole('button',{name:/打ち方設定/}).click();
-          await page.waitForTimeout(200);
-          console.log('=== STYLE_SETTINGS ===');
-          console.log((await page.locator('body').innerText()).slice(0,12000));
-          console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
-          console.log('LS2',JSON.stringify(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)))));
-          await page.getByRole('button',{name:/戻る/}).click();
-          await page.getByRole('button',{name:/Good・ミス/}).click();
-          await page.waitForTimeout(200);
-          console.log('=== FEEDBACK_SETTINGS ===');
-          console.log((await page.locator('body').innerText()).slice(0,14000));
-          console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
-          console.log('LS3',JSON.stringify(await page.evaluate(()=>Object.fromEntries(Object.entries(localStorage)))));
+          await page.goto('http://127.0.0.1:8000/',{waitUntil:'domcontentloaded'});
+          await page.evaluate(()=>{
+            const clubs=[
+              {name:'Dr',typical:220,approach:false},{name:'5W',typical:195,approach:false},{name:'3U',typical:190,approach:false},
+              {name:'4U',typical:180,approach:false},{name:'6I',typical:155,approach:false},{name:'7I',typical:145,approach:false},
+              {name:'8I',typical:135,approach:false},{name:'9I',typical:120,approach:false},{name:'P',typical:100,approach:false},
+              {name:'48°',typical:85,approach:true},{name:'52°',typical:65,approach:true},{name:'58°',typical:45,approach:true}
+            ];
+            localStorage.setItem('golf-aim:priv:club-config',JSON.stringify(clubs));
+            localStorage.setItem('golf-aim:priv:skill-level',JSON.stringify('break90'));
+            localStorage.setItem('golfAim.shotStyleConfig.v1',JSON.stringify({version:1,items:[
+              {id:'style-normal',label:'ノーマル',enabled:true,custom:false},{id:'style-line',label:'ライン出し',enabled:true,custom:false}
+            ]}));
+            localStorage.setItem('golfAim.feedbackConfig.v1',JSON.stringify({version:1,good:[
+              {id:'good-swing-through',label:'振り切れた',enabled:true,custom:false},{id:'good-tempo',label:'テンポ○',enabled:true,custom:false}
+            ],miss:[
+              {id:'miss-fat',label:'ダフリ',enabled:true,custom:false},{id:'miss-top',label:'トップ',enabled:true,custom:false},
+              {id:'miss-face-open',label:'フェース開いた',enabled:true,custom:false},{id:'miss-pull',label:'ひっかけ',enabled:true,custom:false}
+            ]}));
+          });
+          await page.reload({waitUntil:'networkidle'});
+          const dump=async(label)=>{
+            console.log('\n=== '+label+' ===');
+            console.log((await page.locator('body').innerText()).slice(0,18000));
+            console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
+            console.log('INPUTS',JSON.stringify(await page.locator('input').evaluateAll(xs=>xs.map(x=>({type:x.type,value:x.value,placeholder:x.placeholder,min:x.min,max:x.max,step:x.step})))));
+          };
+          await page.getByRole('button',{name:/ランダムモード/}).click();
+          await page.getByRole('button',{name:'3球'}).click();
+          await page.getByRole('button',{name:'練習を開始'}).click();
+          await page.waitForTimeout(300);
+          await dump('RANDOM_AIM');
+          const clubBtns=page.locator('button').filter({hasText:/^(Dr|5W|3U|4U|6I|7I|8I|9I|P|48°|52°|58°)$/});
+          console.log('CLUB_BTNS',JSON.stringify(await clubBtns.allInnerTexts()));
+          if(await clubBtns.count()) await clubBtns.first().click();
+          const center=page.getByRole('button',{name:'中央',exact:true});
+          if(await center.count()) await center.click();
+          const straight=page.getByRole('button',{name:'ストレート',exact:true});
+          if(await straight.count()) await straight.click();
+          const normal=page.getByRole('button',{name:'ノーマル',exact:true});
+          if(await normal.count()) await normal.click();
+          await page.getByRole('button',{name:'この狙いで打つ'}).click();
+          await page.waitForTimeout(250);
+          await dump('RANDOM_RESULT_INPUT');
           await browser.close();
           JS
           node qa.mjs
