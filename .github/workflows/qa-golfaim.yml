@@ -74,8 +74,10 @@ jobs:
             for(let i=0;i<Math.round(Math.abs(delta)/5);i++) await clickIf(step);
           }
           async function setLateral(v){
-            const step=v<0?'左5yd':'右5yd';
-            for(let i=0;i<Math.round(Math.abs(v)/5);i++) await clickIf(step);
+            const five=v<0?'左5yd':'右5yd', one=v<0?'左1yd':'右1yd';
+            const useOne=(await page.getByRole('button',{name:one,exact:true}).count())>0;
+            const step=useOne?one:five, unit=useOne?1:5;
+            for(let i=0;i<Math.round(Math.abs(v)/unit);i++) await clickIf(step);
           }
           async function fillResult(p){
             await setDistance(p.d||0);
@@ -84,7 +86,7 @@ jobs:
             if(p.contact) await clickIf(p.contact);
             if(p.good) await clickIf(p.good);
             if(p.miss) await clickIf(p.miss);
-            const rec=page.getByRole('button',{name:'記録して次へ'});
+            const rec=page.getByRole('button',{name:/記録して(?:次へ|結果を見る)/});
             if(await rec.count()) await rec.last().click();
             await page.waitForTimeout(160);
           }
@@ -137,7 +139,7 @@ jobs:
               const desired=Math.min(typical,rem);
               const aimAbs=currentAbs+desired;
               const frac=Math.max(.06,Math.min(.94,1-aimAbs/(holeDist+35)));
-              await map.click({position:{x:box.width*.5,y:box.height*frac}});
+              await map.click({position:{x:box.width*.5,y:box.height*frac},force:true});
               await page.waitForTimeout(100);
             }
             await clickIf('フェード');
