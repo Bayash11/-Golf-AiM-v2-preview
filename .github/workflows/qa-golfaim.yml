@@ -1,0 +1,37 @@
+name: QA Golf AiM
+on:
+  push:
+    branches: [qa-golfaim-test]
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm init -y >/dev/null 2>&1 && npm install playwright@1.55.0 >/dev/null 2>&1
+      - run: npx playwright install --with-deps chromium >/dev/null 2>&1
+      - name: Run diagnostic
+        run: |
+          python3 -m http.server 8000 >/tmp/http.log 2>&1 &
+          sleep 2
+          cat > /tmp/qa.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const browser=await chromium.launch({headless:true});
+          const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+          page.on('console',m=>console.log('BROWSER_CONSOLE',m.type(),m.text()));
+          page.on('pageerror',e=>console.log('PAGE_ERROR',e.message));
+          await page.goto('http://127.0.0.1:8000/',{waitUntil:'networkidle'});
+          console.log('URL',page.url());
+          console.log('TITLE',await page.title());
+          console.log('BODY_TEXT_START');
+          console.log((await page.locator('body').innerText()).slice(0,12000));
+          console.log('BODY_TEXT_END');
+          const buttons=await page.locator('button').allInnerTexts();
+          console.log('BUTTONS',JSON.stringify(buttons));
+          await page.screenshot({path:'/tmp/home.png',fullPage:true});
+          await browser.close();
+          JS
+          node /tmp/qa.mjs
