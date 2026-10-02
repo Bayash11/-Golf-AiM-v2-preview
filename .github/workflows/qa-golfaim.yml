@@ -83,14 +83,14 @@ jobs:
               {d:-10,l:5,curve:'フェード',contact:'普通'}
             ],
             [
-              {d:-20,l:15,curve:'スライス',contact:'ヒール',miss:'フェース開いた'},
-              {d:-5,l:-5,curve:'フェード',contact:'普通'},
-              {d:-15,l:10,curve:'ストレート',contact:'普通',miss:'ダフリ'}
+              {d:-10,l:10,curve:'フェード',contact:'普通',miss:'フェース開いた'},
+              {d:5,l:-5,curve:'ストレート',contact:'良い',good:'回転できた'},
+              {d:-5,l:5,curve:'フェード',contact:'普通'}
             ],
             [
-              {d:5,l:0,curve:'フェード',contact:'良い',good:'回転できた'},
-              {d:-25,l:20,curve:'スライス',contact:'普通',miss:'トップ'},
-              {d:-5,l:-10,curve:'ドロー',contact:'普通',miss:'ひっかけ'}
+              {d:0,l:0,curve:'フェード',contact:'良い',good:'振り切れた'},
+              {d:-10,l:10,curve:'ストレート',contact:'普通',miss:'トップ'},
+              {d:5,l:-5,curve:'ドロー',contact:'普通',miss:'ひっかけ'}
             ]
           ];
 
@@ -247,6 +247,13 @@ jobs:
                 completed=true;break;
               }
               if(/ホール結果/.test(txt)){
+                const roundResult=page.getByRole('button',{name:/ラウンド結果を見る/});
+                if(await roundResult.count()){
+                  await roundResult.first().click();
+                  await page.waitForTimeout(220);
+                  completed=true;
+                  break;
+                }
                 const nextHole=page.getByRole('button',{name:/次のホールへ/});
                 if(await nextHole.count()){
                   await nextHole.first().click();
