@@ -18,47 +18,247 @@ jobs:
           sleep 2
           cat > qa.mjs <<'JS'
           import { chromium } from 'playwright-core';
-          const browser=await chromium.launch({headless:true,executablePath:'/usr/bin/google-chrome',args:['--no-sandbox']});
-          const page=await browser.newPage({viewport:{width:390,height:844},isMobile:true,hasTouch:true});
-          page.setDefaultTimeout(12000);
-          const BASE='http://127.0.0.1:8000/';
-          await page.goto(BASE,{waitUntil:'domcontentloaded'});
-          await page.evaluate(()=>{
-            const clubs=[{name:'Dr',typical:220,approach:false},{name:'5W',typical:195,approach:false},{name:'3U',typical:190,approach:false},{name:'4U',typical:180,approach:false},{name:'6I',typical:155,approach:false},{name:'7I',typical:145,approach:false},{name:'8I',typical:135,approach:false},{name:'9I',typical:120,approach:false},{name:'P',typical:100,approach:false},{name:'48°',typical:85,approach:true},{name:'52°',typical:65,approach:true},{name:'58°',typical:45,approach:true}];
-            localStorage.clear();localStorage.setItem('golf-aim:priv:club-config',JSON.stringify(clubs));
-            localStorage.setItem('golf-aim:priv:skill-level',JSON.stringify('break90'));
-            localStorage.setItem('golfAim.shotStyleConfig.v1',JSON.stringify({version:1,items:[{id:'style-normal',label:'ノーマル',enabled:true,custom:false}]}));
+
+          const browser=await chromium.launch({
+            headless:true,
+            executablePath:'/usr/bin/google-chrome',
+            args:['--no-sandbox']
           });
-          await page.goto(BASE,{waitUntil:'domcontentloaded'});
-          await page.getByRole('button',{name:/コース想定モード/}).first().click();
-          await page.getByRole('button',{name:/3H/}).first().click();
-          await page.getByRole('button',{name:/コースを開始/}).first().click();
-          await page.waitForTimeout(150);
-          const txt=await page.locator('body').innerText(),rem=Number((txt.match(/残り\s*(\d+)yd/)||[])[1]||0);
-          const clubs=[['Dr',220],['5W',195],['3U',190],['4U',180],['6I',155],['7I',145],['8I',135],['9I',120],['P',100],['48°',85],['52°',65],['58°',45]];
-          const [club,typ]=clubs.slice().sort((a,b)=>Math.abs(a[1]-Math.min(rem,220))-Math.abs(b[1]-Math.min(rem,220)))[0];
-          await page.getByRole('button',{name:club,exact:true}).first().click();
-          const svg=page.locator('svg.aim-map-v2'),box=await svg.boundingBox(),desired=Math.min(typ,rem);
-          const tries=[];
-          for(const frac of [.15,.25,.35,.45,.55,.65,.75,.85]){
-            await page.mouse.click(box.x+box.width/2,box.y+box.height*frac);
-            await page.waitForTimeout(70);
-            const t=await page.locator('body').innerText(),m=t.match(/狙いまでの距離\s*(\d+)yd/);
-            if(m)tries.push([frac,Number(m[1])]);
+          const context=await browser.newContext({
+            viewport:{width:390,height:844},
+            isMobile:true,
+            hasTouch:true
+          });
+
+          const CLUBS=[
+            ['Dr',220],['5W',195],['3U',190],['4U',180],
+            ['5I',165],['6I',155],['7I',145],['8I',135],
+            ['9I',120],['P',100],['48°',85],['52°',65],['58°',45]
+          ];
+
+          await context.addInitScript(() => {
+            const clubs=[
+              {name:'Dr',typical:220,approach:false},{name:'5W',typical:195,approach:false},
+              {name:'3U',typical:190,approach:false},{name:'4U',typical:180,approach:false},
+              {name:'5I',typical:165,approach:false},{name:'6I',typical:155,approach:false},
+              {name:'7I',typical:145,approach:false},{name:'8I',typical:135,approach:false},
+              {name:'9I',typical:120,approach:false},{name:'P',typical:100,approach:false},
+              {name:'48°',typical:85,approach:true},{name:'52°',typical:65,approach:true},
+              {name:'58°',typical:45,approach:true}
+            ];
+            localStorage.setItem('golf-aim:priv:club-config',JSON.stringify(clubs));
+            localStorage.setItem('golf-aim:priv:skill-level',JSON.stringify('break90'));
+            localStorage.setItem('golfAim.shotStyleConfig.v1',JSON.stringify({
+              version:1,
+              items:[
+                {id:'style-full',label:'フルショット',enabled:true,custom:false},
+                {id:'style-line',label:'ライン出し',enabled:true,custom:false}
+              ]
+            }));
+            localStorage.setItem('golfAim.feedbackConfig.v1',JSON.stringify({
+              version:1,
+              good:[
+                {id:'good-swing-through',label:'振り切れた',enabled:true,custom:false},
+                {id:'good-posture',label:'前傾維持',enabled:true,custom:false},
+                {id:'good-turn',label:'回転できた',enabled:true,custom:false}
+              ],
+              miss:[
+                {id:'miss-fat',label:'ダフリ',enabled:true,custom:false},
+                {id:'miss-top',label:'トップ',enabled:true,custom:false},
+                {id:'miss-face-open',label:'フェース開いた',enabled:true,custom:false},
+                {id:'miss-pull',label:'ひっかけ',enabled:true,custom:false},
+                {id:'miss-arms',label:'手打ち',enabled:true,custom:false}
+              ]
+            }));
+          });
+
+          const page=await context.newPage();
+          page.setDefaultTimeout(3500);
+          page.on('pageerror',e=>console.log('PAGE_ERROR',e.message));
+
+          const patterns=[
+            [
+              {d:-5,l:5,curve:'フェード',contact:'良い',good:'振り切れた'},
+              {d:0,l:-5,curve:'ストレート',contact:'普通',good:'前傾維持'},
+              {d:-10,l:5,curve:'フェード',contact:'普通'}
+            ],
+            [
+              {d:-20,l:15,curve:'スライス',contact:'ヒール',miss:'フェース開いた'},
+              {d:-5,l:-5,curve:'フェード',contact:'普通'},
+              {d:-15,l:10,curve:'ストレート',contact:'普通',miss:'ダフリ'}
+            ],
+            [
+              {d:5,l:0,curve:'フェード',contact:'良い',good:'回転できた'},
+              {d:-25,l:20,curve:'スライス',contact:'普通',miss:'トップ'},
+              {d:-5,l:-10,curve:'ドロー',contact:'普通',miss:'ひっかけ'}
+            ]
+          ];
+
+          async function home(){
+            await page.goto('http://127.0.0.1:8000/',{waitUntil:'networkidle'});
           }
-          tries.sort((a,b)=>Math.abs(a[1]-desired)-Math.abs(b[1]-desired));
-          const best=tries[0];
-          let xoff=0;if(/OB（左）|池（左）/.test(txt))xoff=.06;else if(/OB（右）|池（右）/.test(txt))xoff=-.06;
-          await page.mouse.click(box.x+box.width*(.5+xoff),box.y+box.height*best[0]);
-          await page.waitForTimeout(100);
-          console.log('REM',rem,'CLUB',club,'DESIRED',desired,'TRIES',JSON.stringify(tries),'BEST',JSON.stringify(best));
-          console.log('AIM_BODY\n'+(await page.locator('body').innerText()).slice(-5000));
-          const fade=page.getByRole('button',{name:'フェード',exact:true});if(await fade.count())await fade.first().click();
-          const normal=page.getByRole('button',{name:'ノーマル',exact:true});if(await normal.count())await normal.first().click();
-          await page.getByRole('button',{name:/この狙いで打つ/}).first().click();
-          await page.waitForTimeout(150);
-          console.log('=== COURSE_RESULT_INPUT ===\n'+(await page.locator('body').innerText()).slice(0,16000));
-          console.log('BUTTONS',JSON.stringify(await page.locator('button').allInnerTexts()));
+          function closestClub(dist){
+            const under=CLUBS.filter(x=>x[1]<=dist+8);
+            const pool=under.length?under:CLUBS;
+            return pool.slice().sort((a,b)=>Math.abs(a[1]-dist)-Math.abs(b[1]-dist))[0];
+          }
+          async function clickIf(name,exact=true){
+            const b=page.getByRole('button',{name,exact});
+            if(await b.count()){await b.first().click();return true}
+            return false;
+          }
+          async function setDistance(delta){
+            if(!delta)return;
+            const txt=await page.locator('body').innerText();
+            const m=txt.match(/狙いまで\s*(\d+)yd/);
+            const target=m?Number(m[1]):null;
+            if(target!==null){
+              const nums=(await page.locator('button').allInnerTexts())
+                .map(x=>Number(x.trim())).filter(Number.isFinite);
+              if(nums.length){
+                const desired=Math.max(1,target+delta);
+                const n=nums.slice().sort((a,b)=>Math.abs(a-desired)-Math.abs(b-desired))[0];
+                const btn=page.getByRole('button',{name:String(n),exact:true});
+                if(await btn.count()){await btn.first().click();return}
+              }
+            }
+            const minus=(await page.getByRole('button',{name:'−1yd',exact:true}).count())?'−1yd':'−5yd';
+            const plus=(await page.getByRole('button',{name:'＋1yd',exact:true}).count())?'＋1yd':'＋5yd';
+            const unit=minus==='−1yd'?1:5;
+            const step=delta<0?minus:plus;
+            for(let i=0;i<Math.round(Math.abs(delta)/unit);i++) await clickIf(step);
+          }
+          async function setLateral(v){
+            if(!v)return;
+            const one=v<0?'左1yd':'右1yd';
+            const five=v<0?'左5yd':'右5yd';
+            const useOne=(await page.getByRole('button',{name:one,exact:true}).count())>0;
+            const step=useOne?one:five,unit=useOne?1:5;
+            for(let i=0;i<Math.round(Math.abs(v)/unit);i++) await clickIf(step);
+          }
+          async function fillResult(p){
+            await setDistance(p.d||0);
+            await setLateral(p.l||0);
+            if(p.curve) await clickIf(p.curve);
+            if(p.contact) await clickIf(p.contact);
+            if(p.good) await clickIf(p.good);
+            if(p.miss) await clickIf(p.miss);
+            const rec=page.getByRole('button',{name:/記録して(?:次へ|結果を見る)/});
+            if(await rec.count()) await rec.last().click();
+            await page.waitForTimeout(170);
+          }
+          async function dispatchAim(frac){
+            return await page.evaluate(({frac})=>{
+              const svg=document.querySelector('svg.aim-map-v2');
+              if(!svg)return false;
+              const r=svg.getBoundingClientRect();
+              const ev=new MouseEvent('click',{
+                bubbles:true,cancelable:true,view:window,
+                clientX:r.left+r.width*.5,
+                clientY:r.top+r.height*frac
+              });
+              return svg.dispatchEvent(ev);
+            },{frac});
+          }
+          async function selectCourseAim(){
+            const txt=await page.locator('body').innerText();
+            const remM=txt.match(/残り\s*(\d+)yd/);
+            const rem=remM?Number(remM[1]):150;
+            const holeM=txt.match(/PAR\s*\d+[\s\S]{0,80}?(\d+)yd/i) || txt.match(/Par\s*\d+[\s\S]{0,80}?(\d+)yd/i);
+            const holeDist=holeM?Number(holeM[1]):rem;
+            const [club,typical]=closestClub(rem);
+
+            const selectedTxt=txt.match(/使用クラブ\s*([^\n]+)/);
+            if(!selectedTxt){
+              await clickIf(club);
+              await page.waitForTimeout(80);
+            }
+
+            const currentAbs=Math.max(0,holeDist-rem);
+            const desired=Math.min(typical,rem);
+            const aimAbs=Math.min(holeDist,currentAbs+desired);
+            let frac=(holeDist+40-aimAbs)/(holeDist+62);
+            frac=Math.max(.035,Math.min(.965,frac));
+
+            let ready=false;
+            for(const offset of [0,.018,-.018,.04,-.04]){
+              await dispatchAim(Math.max(.025,Math.min(.975,frac+offset)));
+              await page.waitForTimeout(100);
+              ready=(await page.getByRole('button',{name:'この狙いで打つ'}).count())>0;
+              if(ready)break;
+            }
+            if(!ready){
+              console.log('AIM_FAILED',JSON.stringify({rem,holeDist,club,typical,frac}));
+              return null;
+            }
+            await clickIf('フェード');
+            await clickIf(rem<=100?'ライン出し':'フルショット');
+            await page.getByRole('button',{name:'この狙いで打つ'}).last().click();
+            await page.waitForTimeout(120);
+
+            const rtxt=await page.locator('body').innerText();
+            const aimM=rtxt.match(/狙いまで\s*(\d+)yd/);
+            return {rem,holeDist,club,typical,aim:aimM?Number(aimM[1]):null};
+          }
+          async function finishInterim(){
+            const names=await page.locator('button').allInnerTexts();
+            const candidate=names.find(x=>/次のホール|次へ進む|次のH|結果を見る|ラウンド結果/.test(x));
+            if(candidate){
+              const b=page.getByRole('button',{name:candidate,exact:true});
+              if(await b.count()){await b.first().click();await page.waitForTimeout(150);return true}
+            }
+            return false;
+          }
+
+          async function runCourse(session){
+            await home();
+            await page.evaluate(()=>localStorage.removeItem('golf-aim:priv:active-round'));
+            await page.reload({waitUntil:'networkidle'});
+
+            await page.getByRole('button',{name:/コース想定モード/}).click();
+            await page.getByRole('button',{name:/3H/}).click();
+            await page.getByRole('button',{name:'コースを開始'}).click();
+
+            const plans=[];
+            let resultNo=0;
+            let completed=false;
+            for(let guard=0;guard<70;guard++){
+              await page.waitForTimeout(80);
+              const txt=await page.locator('body').innerText();
+
+              if(/今回の出来/.test(txt) || /現在の実力/.test(txt)){
+                completed=true;break;
+              }
+              if(/結果を入力/.test(txt)){
+                const p=patterns[session][resultNo%patterns[session].length];
+                await fillResult(p);
+                resultNo++;
+                continue;
+              }
+              if(/現在のショット/.test(txt)){
+                const aim=await selectCourseAim();
+                if(!aim)break;
+                plans.push(aim);
+                continue;
+              }
+              if(await finishInterim()) continue;
+
+              console.log('UNHANDLED_SCREEN',txt.slice(0,5000));
+              break;
+            }
+            await page.waitForTimeout(250);
+            const summary=(await page.locator('body').innerText()).slice(0,18000);
+            console.log('=== COURSE_SESSION_'+(session+1)+' ===');
+            console.log('COMPLETED',completed,'RESULT_SHOTS',resultNo);
+            console.log('SHOT_PLANS',JSON.stringify(plans));
+            console.log(summary);
+            return completed;
+          }
+
+          const done=[];
+          for(let s=0;s<3;s++) done.push(await runCourse(s));
+          console.log('=== COURSE_COMPLETION ===',JSON.stringify(done));
+          console.log('=== COURSE_HISTORY_RAW ===',await page.evaluate(()=>localStorage.getItem('golf-aim:priv:round-history')));
           await browser.close();
           JS
           node qa.mjs
