@@ -1272,15 +1272,40 @@ function aimFwWidthAt(h,y){return Math.max(0,Math.round(bu(Dt(y,0,h.distance),h)
 rp=function(){return null};
 AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=false,expanded=false,zoom=false,focusCurrent=false}){
  const ref=P.useRef(null),drag=P.useRef(false),justDragged=P.useRef(false),tapStart=P.useRef(null),touchStart=P.useRef(null),suppressClickUntil=P.useRef(0),[dragging,setDragging]=P.useState(false),[dragPoint,setDragPoint]=P.useState(null);
- const xs=h.centerline.map(p=>p.v);let xmin=Math.min(...xs)-72,xmax=Math.max(...xs)+72,ymin=-22,ymax=h.distance+40;
- const baseW=xmax-xmin,baseH=ymax-ymin;
- if(zoom){xmin=h.greenCenter.x-42;xmax=xmin+84;ymin=h.greenCenter.y-42;ymax=ymin+84}
- else if(focusCurrent&&!mini&&prevPos){
-   const currentYRatio=.60;
-   xmin=prevPos.x-baseW/2;xmax=prevPos.x+baseW/2;
-   ymax=prevPos.y+baseH*currentYRatio;ymin=ymax-baseH;
+ const xs=h.centerline.map(p=>p.v);
+ const baseXMin=Math.min(...xs)-72,baseXMax=Math.max(...xs)+72,baseYMin=-22,baseYMax=h.distance+40;
+ let xmin=baseXMin,xmax=baseXMax,ymin=baseYMin,ymax=baseYMax;
+ const baseW=baseXMax-baseXMin,baseH=baseYMax-baseYMin;
+ const clampYWindow=function(lo,hi){
+   let height=Math.min(baseH,Math.max(1,hi-lo));
+   let y0=lo,y1=y0+height;
+   if(y1>baseYMax){y1=baseYMax;y0=y1-height}
+   if(y0<baseYMin){y0=baseYMin;y1=y0+height}
+   return [Math.max(baseYMin,y0),Math.min(baseYMax,y1)];
+ };
+ if(zoom){
+   xmin=h.greenCenter.x-42;xmax=xmin+84;
+   const yr=clampYWindow(h.greenCenter.y-42,h.greenCenter.y+42);ymin=yr[0];ymax=yr[1];
+ }else if(focusCurrent&&!mini&&prevPos){
+   /*
+    * After the tee shot, fit the current position and the next target naturally.
+    * Do not pin the ball to the lower part of the map. The visible range becomes
+    * shorter as the remaining distance decreases, while never extending beyond
+    * the original hole layout above the green.
+    */
+   const focusTarget=aimPoint||h.pin||h.greenCenter;
+   const focusDistance=Math.max(0,se(prevPos.x,prevPos.y,focusTarget.x,focusTarget.y));
+   const focusHeight=Dt(Math.round(focusDistance*1.55+55),140,baseH);
+   const centerY=(prevPos.y+focusTarget.y)/2;
+   const yr=clampYWindow(centerY-focusHeight/2,centerY+focusHeight/2);
+   ymin=yr[0];ymax=yr[1];
+   xmin=baseXMin;xmax=baseXMax;
  }
- if(mini&&!expanded&&pendingPoint){const target=aimPoint||pendingPoint,cx=(target.x+pendingPoint.x)/2,cy=(target.y+pendingPoint.y)/2,w=Math.max(95,Math.abs(target.x-pendingPoint.x)+45,(Math.abs(target.y-pendingPoint.y)+45)*1.6);xmin=cx-w/2;xmax=cx+w/2;ymin=cy-w/3.2;ymax=cy+w/3.2}
+ if(mini&&!expanded&&pendingPoint){
+   const target=aimPoint||pendingPoint,cx=(target.x+pendingPoint.x)/2,cy=(target.y+pendingPoint.y)/2,w=Math.max(95,Math.abs(target.x-pendingPoint.x)+45,(Math.abs(target.y-pendingPoint.y)+45)*1.6);
+   xmin=cx-w/2;xmax=cx+w/2;
+   const miniH=w/1.6,yr=clampYWindow(cy-miniH/2,cy+miniH/2);ymin=yr[0];ymax=yr[1];
+ }
  const W=xmax-xmin,H=ymax-ymin,u=W/360,pt=p=>[p.x-xmin,ymax-p.y],path=poly=>'M'+poly.map(p=>pt(p).join(',')).join('L')+'Z',els=[];
  const add=(type,props,...children)=>els.push(AH(type,{...props,key:els.length},...children)),circle=(p,r,props)=>{const [cx,cy]=pt(p);add('circle',{cx,cy,r,...props})},land=(poly,fill,stroke,width=1)=>add('path',{d:path(poly),fill,stroke,strokeWidth:width,strokeLinejoin:'round'});
  add('rect',{width:W,height:H,fill:h.terrain==='links'?'#365C3C':'#245E39'});
