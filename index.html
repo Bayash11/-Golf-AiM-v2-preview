@@ -685,6 +685,18 @@ body:has(.ga-home-v2){overflow-x:hidden;overscroll-behavior-y:none;}
 .ga-suspended-actions .ga-btn{min-height:52px}
 .ga-suspended-actions .ga-btn svg{vertical-align:-3px;margin-right:7px}
 </style>
+
+<style id="ga-ios-input-zoom-fix">
+/* Prevent iOS Safari from auto-zooming form controls whose text is below 16px.
+   Keep pinch zoom available; only form-control text sizing is adjusted. */
+@supports (-webkit-touch-callout: none) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+</style>
 </head>
 <body>
 <script>window.GOLF_AIM_ASSETS={"course":"assets/course.webp","range":"assets/range.webp","tee":"assets/tee.webp","long":"assets/long.webp","iron":"assets/iron.webp","approach":"assets/approach.webp"};</script>
