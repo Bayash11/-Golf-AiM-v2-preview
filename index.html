@@ -3655,6 +3655,136 @@ pp=function(props){
  );
 };
 
+const gaDailyAnalysisStyle=document.createElement('style');
+gaDailyAnalysisStyle.textContent=`
+.ga-daily-analysis-card{padding:15px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);}
+.ga-daily-overview-grid{display:grid;grid-template-columns:1.1fr 1fr .85fr;align-items:stretch;}
+.ga-daily-overview-kpi{min-width:0;padding:1px 10px;text-align:center;}
+.ga-daily-overview-kpi:first-child{padding-left:2px;text-align:left;}
+.ga-daily-overview-kpi+.ga-daily-overview-kpi{border-left:1px solid var(--ga-border);}
+.ga-daily-overview-kpi small{display:block;color:var(--ga-sub);font-size:9px;font-weight:700;}
+.ga-daily-overview-kpi strong{display:block;margin-top:5px;color:var(--ga-text);font-size:25px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums;}
+.ga-daily-overview-kpi.success strong{color:var(--ga-blue);}
+.ga-daily-overview-kpi em{margin-left:2px;color:inherit;font-size:10px;font-style:normal;font-weight:800;}
+.ga-daily-overview-kpi span{display:block;margin-top:5px;color:var(--ga-sub);font-size:8px;font-weight:700;white-space:nowrap;}
+.ga-daily-mode-summary{display:flex;align-items:center;gap:7px 13px;flex-wrap:wrap;margin-top:14px;padding-top:11px;border-top:1px solid var(--ga-border);color:var(--ga-sub);font-size:10px;font-weight:750;}
+.ga-daily-mode-summary span{display:flex;align-items:center;gap:6px;}
+.ga-daily-mode-summary i{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.ga-daily-mode-summary i.random{background:var(--ga-orange);}.ga-daily-mode-summary i.fixed{background:#FF9A61;}.ga-daily-mode-summary i.course{background:var(--ga-blue);}
+.ga-daily-analysis-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;}
+.ga-daily-analysis-head strong{color:var(--ga-text);font-size:13px;font-weight:900;}
+.ga-daily-analysis-head span{color:var(--ga-sub);font-size:9px;font-weight:700;}
+.ga-daily-miss-list{display:grid;gap:10px;}
+.ga-daily-miss-row{display:grid;grid-template-columns:24px minmax(0,1fr) auto;align-items:center;gap:8px;}
+.ga-daily-miss-rank{width:24px;height:24px;display:grid;place-items:center;border-radius:8px;background:var(--ga-orange-soft);color:var(--ga-orange);font-size:10px;font-weight:900;}
+.ga-daily-miss-main{min-width:0;}
+.ga-daily-miss-main strong{display:block;color:var(--ga-text);font-size:12px;font-weight:850;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ga-daily-miss-bar{height:6px;margin-top:5px;border-radius:999px;background:var(--ga-soft);overflow:hidden;}
+.ga-daily-miss-bar i{display:block;height:100%;border-radius:999px;background:var(--ga-orange);}
+.ga-daily-miss-value{text-align:right;color:var(--ga-text);font-size:11px;font-weight:900;white-space:nowrap;}
+.ga-daily-miss-value small{display:block;margin-top:2px;color:var(--ga-sub);font-size:8px;font-weight:700;}
+.ga-daily-empty{padding:12px;border-radius:12px;background:var(--ga-soft);color:var(--ga-sub);font-size:10px;line-height:1.6;text-align:center;font-weight:650;}
+.ga-daily-analysis-note{margin:10px 1px 0;color:var(--ga-sub);font-size:8px;line-height:1.55;font-weight:600;}
+.ga-daily-impact-group+.ga-daily-impact-group{margin-top:13px;padding-top:12px;border-top:1px solid var(--ga-border);}
+.ga-daily-impact-group>small{display:block;margin-bottom:8px;color:var(--ga-sub);font-size:9px;font-weight:800;}
+.ga-daily-impact-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.ga-daily-impact-item{padding:9px 5px;border-radius:12px;background:var(--ga-soft);text-align:center;}
+.ga-daily-impact-item strong{display:block;color:var(--ga-text);font-size:11px;font-weight:850;}
+.ga-daily-impact-item b{display:block;margin-top:4px;color:var(--ga-blue);font-size:18px;line-height:1;font-weight:900;}
+.ga-daily-impact-item span{display:block;margin-top:3px;color:var(--ga-sub);font-size:8px;font-weight:700;}
+.ga-daily-curve-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.ga-daily-curve-item{padding:12px 5px;border-radius:13px;background:var(--ga-soft);text-align:center;}
+.ga-daily-curve-item strong{display:block;font-size:23px;line-height:1;font-weight:900;}
+.ga-daily-curve-item span{display:block;margin-top:6px;color:var(--ga-text);font-size:10px;font-weight:850;}
+.ga-daily-curve-item small{display:block;margin-top:3px;color:var(--ga-sub);font-size:8px;font-weight:700;}
+.ga-daily-curve-item.match strong{color:var(--ga-blue);}.ga-daily-curve-item.reverse strong{color:var(--ga-error);}.ga-daily-curve-item.other strong{color:var(--ga-sub);}
+.ga-daily-club-list{display:grid;gap:0;}
+.ga-daily-club-row{display:grid;grid-template-columns:56px 68px minmax(0,1fr);align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--ga-border);}
+.ga-daily-club-row:first-child{padding-top:2px}.ga-daily-club-row:last-child{padding-bottom:2px;border-bottom:0;}
+.ga-daily-club-name strong{display:block;color:var(--ga-text);font-size:14px;font-weight:900;}.ga-daily-club-name small{display:block;margin-top:2px;color:var(--ga-sub);font-size:8px;font-weight:700;}
+.ga-daily-club-success{text-align:center}.ga-daily-club-success small{display:block;color:var(--ga-sub);font-size:8px;font-weight:700;}.ga-daily-club-success strong{display:block;margin-top:2px;color:var(--ga-blue);font-size:15px;font-weight:900;}
+.ga-daily-club-miss{min-width:0;color:var(--ga-sub);font-size:9px;line-height:1.45;font-weight:650;}.ga-daily-club-miss b{display:block;color:var(--ga-text);font-size:10px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media(max-width:360px){
+ .ga-daily-overview-kpi{padding-left:6px;padding-right:6px}.ga-daily-overview-kpi strong{font-size:22px}
+ .ga-daily-club-row{grid-template-columns:50px 62px minmax(0,1fr)}
+}
+`;
+document.head.appendChild(gaDailyAnalysisStyle);
+
+function gaDailyRawShots(day){
+ const rows=[];
+ (day&&day.sessions||[]).forEach(function(item){
+  const entry=item&&item.entry||{};
+  if(item&&item.kind==='random'){
+   (entry.shots||[]).forEach(function(shot){if(shot)rows.push({...shot,_dailySource:'random'})});
+   return;
+  }
+  (entry.holes||[]).forEach(function(hole){
+   (hole&&hole.shots||[]).forEach(function(shot){if(shot)rows.push({...shot,_dailySource:'course',_dailyHole:hole.number})});
+  });
+ });
+ return rows;
+}
+function gaDailyShotSuccess(shot){
+ if(!shot)return null;
+ if(typeof shot.success==='boolean')return shot.success;
+ if(typeof shot.resultSuccess==='boolean')return shot.resultSuccess;
+ const ev=shot.evaluation||{};
+ if(typeof ev.success==='boolean')return ev.success;
+ if(typeof ev.overallSuccess==='boolean')return ev.overallSuccess;
+ if(ev.resultEvaluation&&typeof ev.resultEvaluation.success==='boolean')return ev.resultEvaluation.success;
+ return null;
+}
+function gaDailyAnalysis(day){
+ const shots=gaDailyRawShots(day),missMap=new Map(),impactMap=new Map(GA_IMPACT_OPTIONS.map(function(v){return [v,0]})),clubMap=new Map();
+ let success=0,judged=0,impactRecorded=0,curveTotal=0,curveMatch=0,curveReverse=0,curveOther=0,randomSessions=0,fixedSessions=0,courseSessions=0;
+ (day&&day.sessions||[]).forEach(function(item){
+  if(item.kind==='course')courseSessions++;
+  else if(item.entry&&item.entry.clubMode==='fixed')fixedSessions++;
+  else randomSessions++;
+ });
+ shots.forEach(function(shot){
+  const ok=gaDailyShotSuccess(shot);
+  if(typeof ok==='boolean'){judged++;if(ok)success++;}
+  const misses=ra(shot);
+  misses.forEach(function(label){missMap.set(label,(missMap.get(label)||0)+1)});
+  const impacts=gaImpactSelections(shot);
+  if(impacts.length)impactRecorded++;
+  impacts.forEach(function(label){impactMap.set(label,(impactMap.get(label)||0)+1)});
+  if(shot.isApproach!==true){
+   const aim=shot.curveBase||shot.aimCurve,result=shot.resultCurve;
+   if(aim&&result){
+    curveTotal++;
+    if(gaCurveMatch(aim,result)==='match')curveMatch++;
+    else if(gaIsReverseCurve(aim,result))curveReverse++;
+    else curveOther++;
+   }
+  }
+  const club=String(shot.club||'').trim();
+  if(club){
+   if(!clubMap.has(club))clubMap.set(club,{club:club,count:0,success:0,judged:0,misses:new Map()});
+   const row=clubMap.get(club);row.count++;
+   if(typeof ok==='boolean'){row.judged++;if(ok)row.success++;}
+   misses.forEach(function(label){row.misses.set(label,(row.misses.get(label)||0)+1)});
+  }
+ });
+ const missRows=[...missMap.entries()].sort(function(a,b){return (b[1]-a[1])||a[0].localeCompare(b[0],'ja')});
+ const impactRows=GA_IMPACT_OPTIONS.map(function(label){return {label:label,count:impactMap.get(label)||0,pct:shots.length?Math.round((impactMap.get(label)||0)/shots.length*100):0}});
+ const matchPct=curveTotal?Math.round(curveMatch/curveTotal*100):null;
+ const reversePct=curveTotal?Math.round(curveReverse/curveTotal*100):null;
+ const otherPct=curveTotal?Math.max(0,100-matchPct-reversePct):null;
+ const clubRows=[...clubMap.values()].map(function(row){
+  const top=[...row.misses.entries()].sort(function(a,b){return (b[1]-a[1])||a[0].localeCompare(b[0],'ja')})[0]||null;
+  return {club:row.club,count:row.count,successRate:row.judged?Math.round(row.success/row.judged*100):null,success:row.success,judged:row.judged,topMiss:top};
+ }).sort(function(a,b){return (b.count-a.count)||a.club.localeCompare(b.club,'ja')});
+ return {
+  shots:shots,totalShots:shots.length,success:success,judged:judged,successRate:judged?Math.round(success/judged*100):null,
+  missRows:missRows,impactRows:impactRows,impactRecorded:impactRecorded,
+  curve:{total:curveTotal,match:curveMatch,reverse:curveReverse,other:curveOther,matchPct:matchPct,reversePct:reversePct,otherPct:otherPct},
+  clubRows:clubRows,randomSessions:randomSessions,fixedSessions:fixedSessions,courseSessions:courseSessions
+ };
+}
+
 function gaBuildDailyRows(courseHistory,randomHistory){
  const all=[];
  (courseHistory||[]).filter(function(x){return x&&!x.incomplete}).forEach(function(entry,index){all.push({kind:'course',entry:entry,sort:gaDataDateValue(entry.date),order:index})});
@@ -3704,27 +3834,85 @@ function GaDailyDetail({day,onBack}){
   if(selected.kind==='random')return AH(GaRandomHistoryDetail,{entry:selected.entry,onBack:function(){setSelected(null)}});
   return AH(GaCourseHistoryDetail,{entry:selected.entry,onBack:function(){setSelected(null)}});
  }
+ const analysis=gaDailyAnalysis(day);
+ const missTop=analysis.missRows.length?analysis.missRows[0][1]:0;
+ const feelRows=analysis.impactRows.filter(function(x){return ['良い','普通','悪い'].includes(x.label)});
+ const pointRows=analysis.impactRows.filter(function(x){return !['良い','普通','悪い'].includes(x.label)});
  const saveReflection=function(){const v=String(draft||'').trim();gaReflectionSave(day.key,v);setReflection(v);setEditing(false)};
  return AH('main',{className:'ga-daily-detail'},
   AH('header',{className:'ga-history-head'},
    AH('button',{type:'button',className:'ga-history-back',onClick:onBack},'‹ 戻る'),
-   AH('div',{className:'ga-history-title'},AH('small',null,'DATA'),AH('h1',null,gaDailyLabel(day.key).replace(/\s*\([^)]*\)$/,'')+'の練習')),
+   AH('div',{className:'ga-history-title'},AH('small',null,'DAILY ANALYSIS'),AH('h1',null,gaDailyLabel(day.key).replace(/\s*\([^)]*\)$/,'')+'の練習')),
    AH('div',{className:'ga-history-count'})
   ),
+
   AH('h2',{className:'ga-daily-section-title'},'その日のサマリー'),
-  AH('section',{className:'ga-daily-summary'},
-   AH('div',{className:'ga-data-day-top'},AH('strong',null,gaDailyLabel(day.key))),
-   AH('div',{className:'ga-data-day-kpis'},
-    AH('div',{className:'ga-data-day-kpi success'},AH('small',null,'成功率'),AH('strong',null,day.rate===null?'—':day.rate,day.rate===null?null:AH('em',null,'%'))),
-    AH('div',{className:'ga-data-day-kpi'},AH('small',null,'練習実施'),AH('strong',null,day.totalSessions,AH('em',null,'回')))
+  AH('section',{className:'ga-daily-analysis-card'},
+   AH('div',{className:'ga-daily-overview-grid'},
+    AH('div',{className:'ga-daily-overview-kpi'},AH('small',null,'練習量'),AH('strong',null,analysis.totalShots,AH('em',null,'球')),AH('span',null,day.totalSessions+'セッション')),
+    AH('div',{className:'ga-daily-overview-kpi success'},AH('small',null,'成功率'),AH('strong',null,analysis.successRate===null?'—':analysis.successRate,analysis.successRate===null?null:AH('em',null,'%')),AH('span',null,analysis.judged?analysis.success+' / '+analysis.judged+'成功':'判定なし')),
+    AH('div',{className:'ga-daily-overview-kpi'},AH('small',null,'実施'),AH('strong',null,day.totalSessions,AH('em',null,'回')),AH('span',null,gaDailyLabel(day.key).replace(/^\d{4}\//,'')))
    ),
-   AH('div',{className:'ga-data-day-modes'},
-    day.randomCount?AH('span',null,AH('i',{className:'random'}),'ランダム '+day.randomCount+'回'):null,
-    day.courseCount?AH('span',null,AH('i',{className:'course'}),'コース想定 '+day.courseCount+'回'):null
+   AH('div',{className:'ga-daily-mode-summary'},
+    analysis.randomSessions?AH('span',null,AH('i',{className:'random'}),'ランダム '+analysis.randomSessions+'回'):null,
+    analysis.fixedSessions?AH('span',null,AH('i',{className:'fixed'}),'同じ番手 '+analysis.fixedSessions+'回'):null,
+    analysis.courseSessions?AH('span',null,AH('i',{className:'course'}),'コース想定 '+analysis.courseSessions+'回'):null
    )
   ),
+
+  AH('h2',{className:'ga-daily-section-title'},'ミス傾向'),
+  AH('section',{className:'ga-daily-analysis-card'},
+   AH('div',{className:'ga-daily-analysis-head'},AH('strong',null,'ミスランキング'),AH('span',null,analysis.missRows.length?analysis.missRows.length+'項目':'記録なし')),
+   analysis.missRows.length?AH('div',{className:'ga-daily-miss-list'},...analysis.missRows.map(function(row,index){
+    const pct=analysis.totalShots?Math.round(row[1]/analysis.totalShots*100):0;
+    const width=missTop?Math.round(row[1]/missTop*100):0;
+    return AH('div',{className:'ga-daily-miss-row',key:row[0]},
+     AH('div',{className:'ga-daily-miss-rank'},index+1),
+     AH('div',{className:'ga-daily-miss-main'},AH('strong',null,row[0]),AH('div',{className:'ga-daily-miss-bar'},AH('i',{style:{width:Math.max(5,width)+'%'}}))),
+     AH('div',{className:'ga-daily-miss-value'},row[1]+'回',AH('small',null,pct+'%'))
+    );
+   })):AH('div',{className:'ga-daily-empty'},'この日のショットにはミス項目が記録されていません。'),
+   analysis.missRows.length?AH('p',{className:'ga-daily-analysis-note'},'1ショットで複数のミスを選んだ場合は、それぞれ1回として集計します。'):null
+  ),
+
+  AH('h2',{className:'ga-daily-section-title'},'打感・打点'),
+  AH('section',{className:'ga-daily-analysis-card'},
+   AH('div',{className:'ga-daily-analysis-head'},AH('strong',null,'打感・打点傾向'),AH('span',null,'入力 '+analysis.impactRecorded+' / '+analysis.totalShots+'球')),
+   AH('div',{className:'ga-daily-impact-group'},AH('small',null,'打感'),AH('div',{className:'ga-daily-impact-grid'},...feelRows.map(function(row){
+    return AH('div',{className:'ga-daily-impact-item',key:row.label},AH('strong',null,row.label),AH('b',null,row.count),AH('span',null,row.pct+'%'));
+   }))),
+   AH('div',{className:'ga-daily-impact-group'},AH('small',null,'打点'),AH('div',{className:'ga-daily-impact-grid'},...pointRows.map(function(row){
+    return AH('div',{className:'ga-daily-impact-item',key:row.label},AH('strong',null,row.label),AH('b',null,row.count),AH('span',null,row.pct+'%'));
+   }))),
+   AH('p',{className:'ga-daily-analysis-note'},'複数選択された項目はそれぞれ集計します。割合はその日の総ショット数に対する比率です。')
+  ),
+
+  AH('h2',{className:'ga-daily-section-title'},'球筋傾向'),
+  AH('section',{className:'ga-daily-analysis-card'},
+   AH('div',{className:'ga-daily-analysis-head'},AH('strong',null,'狙いに対する球筋'),AH('span',null,analysis.curve.total?analysis.curve.total+'球':'記録なし')),
+   analysis.curve.total?AH('div',{className:'ga-daily-curve-grid'},
+    AH('div',{className:'ga-daily-curve-item match'},AH('strong',null,analysis.curve.matchPct+'%'),AH('span',null,'狙い通り'),AH('small',null,analysis.curve.match+'球')),
+    AH('div',{className:'ga-daily-curve-item reverse'},AH('strong',null,analysis.curve.reversePct+'%'),AH('span',null,'逆球'),AH('small',null,analysis.curve.reverse+'球')),
+    AH('div',{className:'ga-daily-curve-item other'},AH('strong',null,analysis.curve.otherPct+'%'),AH('span',null,'その他'),AH('small',null,analysis.curve.other+'球'))
+   ):AH('div',{className:'ga-daily-empty'},'狙い球筋と結果球筋の両方が記録されたショットがありません。'),
+   analysis.curve.total?AH('p',{className:'ga-daily-analysis-note'},'アプローチを除き、狙い球筋と結果球筋の両方があるショットで集計します。逆球はドロー系⇔フェード系など、狙いと反対方向へ曲がった球です。'):null
+  ),
+
+  AH('h2',{className:'ga-daily-section-title'},'クラブ別'),
+  AH('section',{className:'ga-daily-analysis-card'},
+   AH('div',{className:'ga-daily-analysis-head'},AH('strong',null,'クラブ別サマリー'),AH('span',null,analysis.clubRows.length+'クラブ')),
+   analysis.clubRows.length?AH('div',{className:'ga-daily-club-list'},...analysis.clubRows.map(function(row){
+    return AH('div',{className:'ga-daily-club-row',key:row.club},
+     AH('div',{className:'ga-daily-club-name'},AH('strong',null,row.club),AH('small',null,row.count+'球')),
+     AH('div',{className:'ga-daily-club-success'},AH('small',null,'成功率'),AH('strong',null,row.successRate===null?'—':row.successRate+'%')),
+     AH('div',{className:'ga-daily-club-miss'},row.topMiss?AH(P.Fragment,null,AH('small',null,'最多ミス'),AH('b',null,row.topMiss[0]+' ×'+row.topMiss[1])):AH('b',null,'ミス記録なし'))
+    );
+   })):AH('div',{className:'ga-daily-empty'},'クラブ別に集計できるショットがありません。')
+  ),
+
   AH('h2',{className:'ga-daily-section-title'},'実施した練習'),
   AH('section',{className:'ga-daily-session-list'},...day.sessions.map(function(item,index){return AH(GaDailySessionCard,{item:item,key:(item.entry&&item.entry.sessionId)||index,onOpen:function(){setSelected(item)}})})),
+
   AH('h2',{className:'ga-daily-section-title'},'今日の振り返り'),
   AH('section',{className:'ga-daily-reflection'},
    AH('div',{className:'ga-daily-reflection-head'},AH('strong',null,'1日につき1件'),!editing?AH('button',{type:'button',onClick:function(){setDraft(reflection);setEditing(true)}},reflection?'編集':'入力'):null),
@@ -3782,10 +3970,10 @@ GaDataDashboard=function({courseHistory=[],randomHistory=[],clubs=[],onCourseHis
  if(selectedClub)return AH(GaClubDetailV2,{club:selectedClub,shots:periodShots,period:period,periodControl:null,onBack:function(){setSelectedClub(null)}});
  const periodControl=AH('div',{className:'ga-data-range','aria-label':'集計期間'},...[['recent10','直近10回'],['1m','1か月'],['3m','3か月'],['all','すべて']].map(function(x){return AH('button',{type:'button','aria-pressed':period===x[0],onClick:function(){setPeriod(x[0])},key:x[0]},x[1])}));
  return AH('main',{className:'ga-data-dashboard'},
-  AH('header',{className:'ga-data-head'},AH('button',{type:'button',className:'ga-data-back',onClick:onHome},'‹ 戻る'),AH('div',{className:'ga-data-head-title'},AH('small',null,'DATA'),AH('h1',null,tab==='day'?'日別':'データ'))),
+  AH('header',{className:'ga-data-head'},AH('button',{type:'button',className:'ga-data-back',onClick:onHome},'‹ 戻る'),AH('div',{className:'ga-data-head-title'},AH('small',null,'DATA'),AH('h1',null,tab==='day'?'日別分析':'データ'))),
   AH('div',{className:'ga-data-tabs',role:'tablist'},
    AH('button',{type:'button',className:'ga-data-tab',role:'tab','aria-selected':tab==='recent',onClick:function(){setTab('recent')}},'最近の練習'),
-   AH('button',{type:'button',className:'ga-data-tab',role:'tab','aria-selected':tab==='day',onClick:function(){setTab('day')}},'日別'),
+   AH('button',{type:'button',className:'ga-data-tab',role:'tab','aria-selected':tab==='day',onClick:function(){setTab('day')}},'日別分析'),
    AH('button',{type:'button',className:'ga-data-tab',role:'tab','aria-selected':tab==='club',onClick:function(){setTab('club')}},'クラブ別')
   ),
   tab!=='day'?periodControl:null,
