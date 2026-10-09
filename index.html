@@ -4567,10 +4567,10 @@ function GaDataBackupScreen({onBack,onHome,onPractice,onData,onSettings}){
   setBusy(true);setNotice(null);
   try{
    const result=await gaBackupExport(preferShare);
-   if(result.status==='cancelled')setNotice({error:false,text:'共有がキャンセルされました。保存データは変更されていません。'});
-   else if(result.status==='shared')setNotice({error:false,text:'共有メニューを閉じました。「ファイルに保存」で保存した場合は、ファイルアプリでJSONを確認してください。'});
-   else setNotice({error:false,text:'ファイルのダウンロードを開始しました。ファイルアプリのダウンロード先でJSONを確認してください。'});
-  }catch(error){setNotice({error:true,text:'出力できませんでした：'+String(error?.message||error)})}
+   if(result.status==='cancelled')setNotice({area:'backup',error:false,text:'共有がキャンセルされました。保存データは変更されていません。'});
+   else if(result.status==='shared')setNotice({area:'backup',error:false,text:'共有メニューを閉じました。「ファイルに保存」で保存した場合は、ファイルアプリでJSONを確認してください。'});
+   else setNotice({area:'backup',error:false,text:'ファイルのダウンロードを開始しました。ファイルアプリのダウンロード先でJSONを確認してください。'});
+  }catch(error){setNotice({area:'backup',error:true,text:'出力できませんでした：'+String(error?.message||error)})}
   finally{setBusy(false);setStatus(gaBackupStatus())}
  };
  const loadFile=async function(event){
@@ -4586,7 +4586,7 @@ function GaDataBackupScreen({onBack,onHome,onPractice,onData,onSettings}){
    const initial=gaRestoreBuildPlan(parsed,defaults,current);
    setPreview({parsed,current,fileName:file.name,initial});
    setSelection(defaults);
-  }catch(error){setNotice({error:true,text:'ファイルの読み込みに失敗しました：'+String(error?.message||error)})}
+  }catch(error){setNotice({area:'restore',error:true,text:'ファイルの読み込みに失敗しました：'+String(error?.message||error)})}
   finally{
    setImportBusy(false);
    if(event?.target)event.target.value='';
@@ -4604,7 +4604,7 @@ function GaDataBackupScreen({onBack,onHome,onPractice,onData,onSettings}){
    window.alert(written+'種類のデータを復元しました。反映するためGOLF AiMを再読み込みします。');
    window.location.reload();
   }catch(error){
-   setNotice({error:true,text:String(error?.message||error)});
+   setNotice({area:'restore',error:true,text:String(error?.message||error)});
    setStatus(gaBackupStatus());
    setPreview(null);
   }finally{setImportBusy(false)}
@@ -4658,7 +4658,8 @@ function GaDataBackupScreen({onBack,onHome,onPractice,onData,onSettings}){
     AH('p',{className:'ga-backup-desc'},'保存済みの練習履歴・途中データ・クラブや打ち方などの設定・日別メモを、そのまま1つのJSONファイルにまとめます。'),
     AH('button',{type:'button',className:'ga-backup-primary',disabled:!enabled,onClick:function(){exportFile(true)}},busy?'準備中...':'バックアップJSONを保存'),
     AH('button',{type:'button',className:'ga-backup-secondary',disabled:!enabled,onClick:function(){exportFile(false)}},'直接ダウンロード'),
-    AH('p',{className:'ga-backup-disclaimer'},'iPhoneでは共有メニューの「ファイルに保存」を選んでください。共有メニューが使えない場合は「直接ダウンロード」を利用できます。ファイルが保存されたか必ず確認してください。')
+    AH('p',{className:'ga-backup-disclaimer'},'iPhoneでは共有メニューの「ファイルに保存」を選んでください。共有メニューが使えない場合は「直接ダウンロード」を利用できます。ファイルが保存されたか必ず確認してください。'),
+    notice&&notice.area==='backup'?AH('div',{className:'ga-backup-notice'+(notice.error?' error':''),role:notice.error?'alert':'status'},notice.text):null
    )
   ),
   AH('section',{className:'ga-settings-section'},
@@ -4684,7 +4685,7 @@ function GaDataBackupScreen({onBack,onHome,onPractice,onData,onSettings}){
      AH('div',{className:'ga-restore-warning'},'履歴の復元には現在の保存上限（コース想定10件・ランダム20件）があります。上限を超える選択は実行できません。復元前に現在のデータもバックアップしてください。'),
      AH('button',{type:'button',className:'ga-restore-submit',disabled:busy||importBusy||Boolean(plan.blockers.length)||!plan.writes.length,onClick:doRestore},'選択したデータを復元')
     ):null,
-    notice?AH('div',{className:'ga-backup-notice'+(notice.error?' error':''),role:notice.error?'alert':'status'},notice.text):null
+    notice&&notice.area==='restore'?AH('div',{className:'ga-backup-notice'+(notice.error?' error':''),role:notice.error?'alert':'status'},notice.text):null
    )
   ),
   AH('p',{className:'ga-backup-disclaimer'},'バックアップ出力と復元はこの端末内で処理します。復元はJSONを選択し、項目を選び、最終確認をした場合にのみ実行されます。'),
