@@ -4601,6 +4601,8 @@ function GaDataBackupScreen({onBack,onHome,onPractice,onData,onSettings}){
   setImportBusy(true);setNotice(null);
   try{
    const written=gaRestoreCommit(plan,preview.current);
+   setPreview(null);
+   setStatus(gaBackupStatus());
    window.alert(written+'種類のデータを復元しました。反映するためGOLF AiMを再読み込みします。');
    window.location.reload();
   }catch(error){
