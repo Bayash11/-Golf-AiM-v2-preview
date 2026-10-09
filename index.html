@@ -701,6 +701,26 @@ body:has(.ga-home-v2){overflow-x:hidden;overscroll-behavior-y:none;}
     font-size: 16px !important;
   }
 }
+
+/* GOLF AiM backup export. Read-only localStorage status and JSON download. */
+.ga-backup-page .ga-settings-section{margin-top:18px}
+.ga-backup-card{background:#fff;border-radius:16px;padding:17px 15px;box-shadow:var(--ga-shadow-light)}
+.ga-backup-card-head{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:850;color:var(--ga-text);margin-bottom:8px}
+.ga-backup-card-head .ga-backup-icon{display:inline-flex;align-items:center;justify-content:center;border-radius:11px;background:rgba(255,106,36,.11);color:var(--ga-orange);width:35px;height:35px;flex:0 0 auto}
+.ga-backup-desc{font-size:12px;line-height:1.7;color:var(--ga-sub);margin:6px 0 14px}
+.ga-backup-rows{padding:0 12px;border-radius:12px;background:#F8FAFC}
+.ga-backup-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #E7ECF2;font-size:12px}
+.ga-backup-row:last-child{border-bottom:0}
+.ga-backup-row span{color:var(--ga-sub)}
+.ga-backup-row strong{font-weight:800;color:var(--ga-text);text-align:right;font-variant-numeric:tabular-nums}
+.ga-backup-primary{width:100%;min-height:52px;border:0;border-radius:999px;background:var(--ga-orange);color:white;font-weight:850;font-size:14px;margin-top:18px;touch-action:manipulation}
+.ga-backup-primary:disabled{opacity:.48;cursor:not-allowed}
+.ga-backup-secondary{margin-top:8px;width:100%;min-height:44px;border:1px solid var(--ga-border);background:#fff;border-radius:12px;color:var(--ga-blue);font-weight:750;font-size:12px;touch-action:manipulation}
+.ga-backup-secondary:disabled{opacity:.5}
+.ga-backup-notice{margin-top:12px;padding:12px;border-radius:12px;line-height:1.6;background:#EDF4FF;color:#24559C;font-size:12px;overflow-wrap:anywhere}
+.ga-backup-notice.error{background:#FFF3ED;color:#A83D10}
+.ga-backup-disclaimer{font-size:11px;line-height:1.7;color:var(--ga-sub);margin:11px 2px 0}
+.ga-backup-refresh{display:block;width:100%;background:none;border:0;color:var(--ga-blue);font-size:12px;font-weight:750;text-align:right;padding:12px 2px;min-height:44px}
 </style>
 </head>
 <body>
@@ -4241,7 +4261,156 @@ function GaShotStyleSettingsScreen({onBack,onHome,onPractice,onData,onSettings})
 }
 
 /* Settings menu: Club -> Shot style -> Good/Miss */
-GaSettingsHome=function({skillLevel,onSkillLevelChange,onOpenClubs,onOpenStyles,onOpenFeedback,onBack,onHome,onPractice,onData,onSettings}){
+
+/* Data protection v1: export only. Never writes, imports, clears, or migrates storage. */
+function gaBackupReadStorage(){
+ const store=window.localStorage;
+ if(!store)throw new Error('この環境では保存データを読み取れません。');
+ const keys=[];
+ for(let i=0;i<store.length;i++){
+  const key=store.key(i);
+  if(typeof key==='string'&&(key.startsWith('golf-aim:')||key.startsWith('golfAim.')))keys.push(key);
+ }
+ keys.sort();
+ const entries=Object.create(null);
+ for(const key of keys){
+  const value=store.getItem(key);
+  if(value===null)throw new Error('バックアップ中に保存データが変更されました。もう一度お試しください。');
+  entries[key]=value;
+ }
+ return entries;
+}
+function gaBackupDescribe(entries){
+ function arrayCount(key){
+  const raw=entries['golf-aim:priv:'+key];
+  if(raw===undefined)return 0;
+  try{const value=JSON.parse(raw);return Array.isArray(value)?value.length:null}catch{return null}
+ }
+ function hasActive(key){
+  const raw=entries['golf-aim:priv:'+key];
+  if(raw===undefined)return false;
+  try{return Boolean(JSON.parse(raw))}catch{return true}
+ }
+ let reflections=0;
+ const rawReflections=entries['golfAim.dailyReflections.v1'];
+ if(rawReflections!==undefined){
+  try{const value=JSON.parse(rawReflections);reflections=value&&typeof value==='object'&&!Array.isArray(value)?Object.keys(value).length:null}
+  catch{reflections=null}
+ }
+ const settingKeys=['golf-aim:priv:club-config','golf-aim:priv:skill-level','golfAim.feedbackConfig.v1','golfAim.shotStyleConfig.v1'];
+ const bytes=new Blob([JSON.stringify(entries)]).size;
+ const courses=arrayCount('round-history'),random=arrayCount('random10-sessions');
+ return {
+  keyCount:Object.keys(entries).length,courseCount:courses,randomCount:random,
+  activeCourse:hasActive('active-round'),activeRandom:hasActive('random10-active'),
+  settingsCount:settingKeys.filter(key=>Object.prototype.hasOwnProperty.call(entries,key)).length,
+  reflectionDays:reflections,bytes,
+  unverified:[courses,random,reflections].some(value=>value===null)
+ };
+}
+function gaBackupStatus(){
+ try{const entries=gaBackupReadStorage();return {ok:true,...gaBackupDescribe(entries)}}
+ catch(error){return{ok:false,error:String(error?.message||error)}}
+}
+function gaBackupFilename(){
+ const now=new Date(),pad=n=>String(n).padStart(2,'0');
+ return 'GOLF-AiM-backup-'+now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate())+'-'+pad(now.getHours())+pad(now.getMinutes())+'.json';
+}
+async function gaBackupExport(preferShare){
+ const entries=gaBackupReadStorage();
+ const report=gaBackupDescribe(entries);
+ if(!report.keyCount)throw new Error('バックアップする保存済みデータがありません。');
+ const json=JSON.stringify({
+  app:'GOLF AiM',
+  format:'golf-aim-localstorage-backup',
+  formatVersion:1,
+  generatedAt:new Date().toISOString(),
+  storage:entries
+ },null,2);
+ const filename=gaBackupFilename();
+ if(preferShare&&typeof File!=='undefined'&&navigator&&typeof navigator.share==='function'&&typeof navigator.canShare==='function'){
+  const file=new File([json],filename,{type:'application/json'});
+  if(navigator.canShare({files:[file]})){
+   try{await navigator.share({files:[file],title:'GOLF AiM バックアップ'});return{status:'shared',filename}}
+   catch(error){
+    if(error?.name==='AbortError')return{status:'cancelled',filename};
+    throw error;
+   }
+  }
+ }
+ const blob=new Blob([json],{type:'application/json;charset=utf-8'});
+ const url=URL.createObjectURL(blob);
+ try{
+  const anchor=document.createElement('a');
+  anchor.href=url;anchor.download=filename;anchor.style.display='none';
+  document.body.appendChild(anchor);
+  try{anchor.click()}finally{anchor.remove()}
+ }finally{
+  // Safari may need the object URL to remain alive while the download starts.
+  window.setTimeout(function(){URL.revokeObjectURL(url)},60000);
+ }
+ return{status:'download',filename};
+}
+function GaDataBackupScreen({onBack,onHome,onPractice,onData,onSettings}){
+ gaUseEdgeSwipeBack(onBack,true);
+ gaUseResetViewportOnMount();
+ const statusState=P.useState(function(){return gaBackupStatus()}),status=statusState[0],setStatus=statusState[1];
+ const busyState=P.useState(false),busy=busyState[0],setBusy=busyState[1];
+ const noticeState=P.useState(null),notice=noticeState[0],setNotice=noticeState[1];
+ const refresh=function(){setStatus(gaBackupStatus());setNotice(null)};
+ const exportFile=async function(preferShare){
+  if(busy)return;
+  setBusy(true);setNotice(null);
+  try{
+   const result=await gaBackupExport(preferShare);
+   if(result.status==='cancelled')setNotice({error:false,text:'共有がキャンセルされました。保存データは変更されていません。'});
+   else if(result.status==='shared')setNotice({error:false,text:'共有メニューを閉じました。「ファイルに保存」で保存した場合は、ファイルアプリでJSONを確認してください。'});
+   else setNotice({error:false,text:'ファイルのダウンロードを開始しました。ファイルアプリのダウンロード先でJSONを確認してください。'});
+  }catch(error){setNotice({error:true,text:'出力できませんでした：'+String(error?.message||error)})}
+  finally{setBusy(false);setStatus(gaBackupStatus())}
+ };
+ const fmtCount=n=>n===null?'確認不可':String(n)+'件';
+ const row=(name,value)=>AH('div',{className:'ga-backup-row'},AH('span',null,name),AH('strong',null,String(value)));
+ const fmtSize=bytes=>bytes>=1048576?(bytes/1048576).toFixed(2)+' MB':(bytes/1024).toFixed(1)+' KB';
+ const enabled=Boolean(status.ok&&status.keyCount>0&&!busy);
+ return AH('main',{className:'ga-settings-home ga-backup-page'},
+  AH(GaSettingsFixedHeader,{title:'データ管理',onBack:function(){gaRunAndResetTop(onBack)}}),
+  AH('section',{className:'ga-settings-section'},
+   AH('div',{className:'ga-settings-section-head'},AH('h2',null,'保存状況')),
+   AH('div',{className:'ga-backup-card'},
+    status.ok?AH(P.Fragment,null,
+     AH('div',{className:'ga-backup-rows'},
+      row('コース想定の履歴',fmtCount(status.courseCount)),
+      row('ランダム練習の履歴',fmtCount(status.randomCount)),
+      row('練習途中',status.activeCourse&&status.activeRandom?'両モードあり':status.activeCourse?'コース想定あり':status.activeRandom?'ランダム練習あり':'なし'),
+      row('保存済み設定',String(status.settingsCount)+'種類'),
+      row('日別振り返りメモ',status.reflectionDays===null?'確認不可':String(status.reflectionDays)+'日'),
+      row('保存キー数',String(status.keyCount)),
+      row('対象データ量（概算）',fmtSize(status.bytes))
+     ),
+     status.unverified?AH('p',{className:'ga-backup-disclaimer'},'件数を読み取れない保存値があります。バックアップ時はその値も変更せず収録します。'):null,
+     AH('p',{className:'ga-backup-disclaimer'},'現在この端末・ブラウザに残っているデータを表示しています。以前の保存上限で削除された履歴は含まれません。')
+    ):AH('div',{className:'ga-backup-notice error',role:'alert'},'保存状況を読み取れません：'+status.error),
+    AH('button',{type:'button',className:'ga-backup-refresh',onClick:refresh},'保存状況を再確認')
+   )
+  ),
+  AH('section',{className:'ga-settings-section'},
+   AH('div',{className:'ga-settings-section-head'},AH('h2',null,'JSONバックアップ')),
+   AH('div',{className:'ga-backup-card'},
+    AH('div',{className:'ga-backup-card-head'},AH('span',{className:'ga-backup-icon','aria-hidden':true},'↓'),AH('span',null,'バックアップファイルを作成')),
+    AH('p',{className:'ga-backup-desc'},'保存済みの練習履歴・途中データ・クラブや打ち方などの設定・日別メモを、そのまま1つのJSONファイルにまとめます。'),
+    AH('button',{type:'button',className:'ga-backup-primary',disabled:!enabled,onClick:function(){exportFile(true)}},busy?'準備中...':'バックアップJSONを保存'),
+    AH('button',{type:'button',className:'ga-backup-secondary',disabled:!enabled,onClick:function(){exportFile(false)}},'直接ダウンロード'),
+    AH('p',{className:'ga-backup-disclaimer'},'iPhoneでは共有メニューの「ファイルに保存」を選んでください。共有メニューが使えない場合は「直接ダウンロード」を利用できます。ファイルが保存されたか必ず確認してください。'),
+    notice?AH('div',{className:'ga-backup-notice'+(notice.error?' error':''),role:notice.error?'alert':'status'},notice.text):null
+   )
+  ),
+  AH('p',{className:'ga-backup-disclaimer'},'この画面でデータの削除・復元・上書きは行いません。ファイルは選んだ保存先にのみ保存され、外部へ自動送信しません。'),
+  AH(GaBottomNav,{active:'settings',onHome:onHome,onPractice:onPractice,onData:onData,onSettings:onSettings})
+ );
+}
+
+GaSettingsHome=function({skillLevel,onSkillLevelChange,onOpenClubs,onOpenStyles,onOpenFeedback,onOpenBackup,onBack,onHome,onPractice,onData,onSettings}){
  gaUseEdgeSwipeBack(onBack,true);
  gaUseResetViewportOnMount();
  return AH('main',{className:'ga-settings-home'},
@@ -4258,6 +4427,9 @@ GaSettingsHome=function({skillLevel,onSkillLevelChange,onOpenClubs,onOpenStyles,
     ),
     AH('button',{type:'button',className:'ga-settings-menu-card',onClick:function(){gaRunAndResetTop(onOpenFeedback)}},
      AH('div',null,AH('strong',null,'Good・ミスの設定'),AH('small',null,'表示項目や独自項目を管理')),AH('b',null,'›')
+    ),
+    AH('button',{type:'button',className:'ga-settings-menu-card',onClick:function(){gaRunAndResetTop(onOpenBackup)}},
+     AH('div',null,AH('strong',null,'データ管理'),AH('small',null,'保存状況の確認・JSONバックアップ')),AH('b',null,'›')
     )
    )
   ),
@@ -4284,6 +4456,11 @@ Mp=function(props){
  if(view==='styles')return AH(GaShotStyleSettingsScreen,{
   onBack:goHome,onHome:props.onHome,onPractice:props.onPractice,onData:props.onData,onSettings:navSettings
  });
+ if(view==='backup')return AH(GaDataBackupScreen,{
+  onBack:function(){setView('home');gaResetViewportTop()},
+  onHome:props.onHome,onPractice:props.onPractice,onData:props.onData,
+  onSettings:function(){setView('home');gaResetViewportTop()}
+ });
  if(view==='feedback')return AH(GaFeedbackSettingsScreen,{
   onBack:goHome,onHome:props.onHome,onPractice:props.onPractice,onData:props.onData,onSettings:navSettings
  });
@@ -4292,6 +4469,7 @@ Mp=function(props){
   onOpenClubs:function(){setView('clubs');gaResetViewportTop()},
   onOpenStyles:function(){setView('styles');gaResetViewportTop()},
   onOpenFeedback:function(){setView('feedback');gaResetViewportTop()},
+  onOpenBackup:function(){setView('backup');gaResetViewportTop()},
   onBack:props.onBack,onHome:props.onHome,onPractice:props.onPractice,onData:props.onData,
   onSettings:function(){gaResetViewportTop()}
  });
