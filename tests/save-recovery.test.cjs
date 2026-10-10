@@ -60,7 +60,7 @@ function fixture() {
     navigator: {canShare() {return true;}, async share(payload) { shares.push(payload); }},
     File: FileMock, Blob, document,
     URL: {createObjectURL() {return 'blob:test';},revokeObjectURL() {}},
-    setTimeout() {}, console, AH(tag, props, ...children) {return {tag, props, children};},
+    setTimeout(callback, delay) {return setTimeout(callback,Math.min(delay,1));}, console, AH(tag, props, ...children) {return {tag, props, children};},
     gaUseResetViewportOnMount() {}
   });
   vm.runInContext(implementation, context);
