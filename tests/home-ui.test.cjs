@@ -40,7 +40,7 @@ function collect(root,fn,into=[]){
  for(const child of root.children||[])collect(child,fn,into);
  return into;
 }
-function named(root,name){return collect(root,x=>(x.props.className||'').split(' ').includes(name))}
+function named(root,name){return collect(root,x=>((x.props||{}).className||'').split(' ').includes(name))}
 const dummy={date:'2026-10-10',key:'2026-10-10',label:'10/10',rate:80,randomCount:2,courseCount:1,totalSessions:3};
 test('inline scripts remain syntactically valid JavaScript',()=>{
  let count=0;
