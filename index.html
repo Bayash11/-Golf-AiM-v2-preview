@@ -5096,6 +5096,13 @@ Mp=function(props){
 };
 
 /* Random aim: enabled shot styles only; always mount at viewport top. */
+
+/* Refined random aiming UI: original shot planning values and callbacks retained. */
+const gaRandomAimRefinedStyle=document.createElement('style');
+gaRandomAimRefinedStyle.id='ga-random-aim-refined-style';
+gaRandomAimRefinedStyle.textContent="\n/* 2026-10-11 approved random aim redesign; preserve generated course information. */\n.ga-random-aim{padding:calc(var(--ga-header-total) + 14px) 16px calc(135px + env(safe-area-inset-bottom,0px));}\n.ga-random-aim-head{background:#fff;}\n.ga-random-aim-head h1{font-size:18px;font-weight:850;}\n.ga-random-aim-progress{height:30px;min-width:65px;bottom:17px;padding:0 9px;border-radius:9px;background:#FFF0E8;color:#E96726;font-size:12px;justify-content:center;}\n.ga-random-aim-target{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:17px 17px 15px;border-radius:17px;background:linear-gradient(125deg,#FFF4EB,#FFF9F5);border:1px solid #F7E1D2;}\n.ga-random-aim-target small{display:block;color:#96745D;font-size:11px;font-weight:700;}\n.ga-random-aim-target strong{display:block;margin-top:4px;font-size:38px;letter-spacing:-1.5px;line-height:1.16;font-weight:900;color:#E96622;}\n.ga-random-aim-target strong span{margin-left:4px;font-size:16px;letter-spacing:0;}\n.ga-random-aim-target-art{position:relative;width:68px;height:68px;flex:0 0 68px;display:grid;place-items:center;}\n.ga-random-aim-target-art:before,.ga-random-aim-target-art:after,.ga-random-aim-target-art span{content:\"\";position:absolute;display:block;border:1.7px solid #EDAF89;border-radius:50%;}\n.ga-random-aim-target-art:before{width:62px;height:62px;opacity:.6;}\n.ga-random-aim-target-art:after{width:42px;height:42px;}\n.ga-random-aim-target-art span{width:21px;height:21px;border-color:#F18F56;}\n.ga-random-aim-target-art i{display:block;width:8px;height:8px;border-radius:50%;background:#FF6A24;}\n.ga-random-course-info{margin-top:10px;padding:13px 14px;border:1px solid #E8EDF2;background:#fff;border-radius:15px;box-shadow:0 2px 8px rgba(25,40,60,.035);}\n.ga-random-course-title{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:11px;}\n.ga-random-course-title h2{margin:0;font-size:13px;font-weight:850;color:var(--ga-text);}\n.ga-random-course-title span{font-size:10px;color:var(--ga-sub);}\n.ga-random-course-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px 12px;}\n.ga-random-course-metric{min-width:0;}\n.ga-random-course-metric small{display:block;margin-bottom:5px;font-size:10px;color:var(--ga-sub);font-weight:650;}\n.ga-random-course-metric strong{display:block;font-size:13px;font-weight:800;line-height:1.45;color:var(--ga-text);overflow-wrap:anywhere;}\n.ga-random-course-hazards{display:grid;gap:8px;margin-top:12px;padding-top:11px;border-top:1px solid #EDF0F4;}\n.ga-random-course-hazard{display:flex;gap:9px;align-items:flex-start;min-width:0;padding:9px 10px;border-radius:10px;background:#F5F8FC;}\n.ga-random-course-hazard.ob{background:#FFF1EB;}\n.ga-random-course-hazard.water{background:#EEF4FF;}\n.ga-random-course-hazard.bunker{background:#FFF7E8;}\n.ga-random-course-hazard-mark{width:19px;height:19px;flex:0 0 19px;border-radius:50%;display:grid;place-items:center;background:#6D8198;color:#fff;font-size:12px;font-weight:850;}\n.ga-random-course-hazard.ob .ga-random-course-hazard-mark{background:#E36A3E;}\n.ga-random-course-hazard.water .ga-random-course-hazard-mark{background:#2F6FE4;}\n.ga-random-course-hazard.bunker .ga-random-course-hazard-mark{background:#C58A29;}\n.ga-random-course-hazard-copy{display:block;min-width:0;overflow-wrap:anywhere;}\n.ga-random-course-hazard-copy strong{display:block;margin-bottom:3px;font-size:11px;font-weight:850;line-height:1.35;color:var(--ga-text);}\n.ga-random-course-hazard-copy span{display:block;font-size:11px;line-height:1.5;color:var(--ga-sub);}\n.ga-random-form-section{margin-top:20px;}\n.ga-random-form-title{margin-bottom:10px;font-size:14px;}\n.ga-random-aim-clubs{gap:7px;}\n.ga-random-aim-clubs button{min-height:43px;border-radius:11px;}\n.ga-random-aim-clubs button[aria-pressed=\"true\"]{box-shadow:0 3px 10px rgba(255,106,36,.14);}\n.ga-random-direction-box{padding:11px;border-radius:15px;background:#F0F4F8;}\n.ga-random-direction-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;}\n.ga-random-direction-grid button{display:grid;justify-items:center;align-content:center;gap:3px;min-height:48px;padding:7px 2px;border:1px solid #E1E7ED;border-radius:10px;background:#fff;color:#526176;}\n.ga-random-direction-grid button[aria-pressed=\"true\"]{background:#FF6A24;color:#fff;border-color:#FF6A24;box-shadow:0 3px 10px rgba(255,106,36,.15);}\n.ga-random-direction-glyph{font-size:16px;font-weight:750;line-height:1;}\n.ga-random-direction-label{font-size:11px;font-weight:750;line-height:1.3;}\n.ga-random-choice{gap:8px;}\n.ga-random-choice button{min-height:43px;border-radius:11px;}\n.ga-random-aim-footer{position:fixed;left:50%;bottom:0;z-index:84;transform:translateX(-50%);width:min(100vw,390px);padding:11px 16px calc(13px + env(safe-area-inset-bottom,0px));border-top:1px solid #E9EDF2;background:#fff;box-sizing:border-box;}\n.ga-random-aim-recap{margin:0 0 9px;color:#8794A4;font-size:11px;font-weight:600;text-align:center;overflow-wrap:anywhere;}\n.ga-random-aim-recap b{color:#26374F;font-weight:800;}\n.ga-random-aim-footer .ga-random-hit{width:100%;min-height:53px;margin:0;border-radius:14px;font-size:16px;}\n@media(max-width:350px){\n .ga-random-aim{padding-left:12px;padding-right:12px;}\n .ga-random-aim-head h1{font-size:17px;}\n .ga-random-aim-footer{padding-left:12px;padding-right:12px;}\n .ga-random-direction-label{font-size:10px;}\n}\n";
+document.head.appendChild(gaRandomAimRefinedStyle);
+
 zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,clubs,isApproach,plan,onPlanField,onStartShot}){
  gaUseResetViewportOnMount();
  const aimItems=target.isGreenShot
@@ -5109,29 +5116,62 @@ zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,c
     {label:'中央',value:'フェアウェイセンター'},
     {label:'右',value:'フェアウェイ右'}
    ];
+ const directionGlyphs={'左奥':'↖','中央奥':'↑','右奥':'↗','左':'←','中央':'●','右':'→','左手前':'↙','手前':'↓','右手前':'↘'};
  const ballItems=[
   {label:'ドロー',value:'ドロー'},
   {label:'ストレート',value:'ストレート'},
   {label:'フェード',value:'フェード'}
  ];
  const shotItems=gaShotStyleEnabled().map(function(x){return {label:x,value:x}});
- const situationItems=(target.courseInfo||[]).filter(function(x){
-  return !(target.isGreenShot&&/OB/i.test(String(x.label||'')+' '+String(x.value||'')));
- });
+ const courseItems=(target.courseInfo||[]).filter(function(x){return x&&x.label});
+ const isHazard=function(x){return !!x.warn||/(OB|池|ハザード|バンカー|木)/i.test(String(x.label))};
+ const measurements=courseItems.filter(function(x){return !isHazard(x)});
+ const hazards=courseItems.filter(isHazard);
+ const hazardClass=function(x){
+  const label=String(x.label);
+  return /OB/i.test(label)?'ob':/池|ハザード/.test(label)?'water':/バンカー/.test(label)?'bunker':'other';
+ };
  const clubReady=!!selectedClub;
  const selectedStyle=plan.style==='普通'?'ノーマル':plan.style;
+ const selectedAim=aimItems.find(function(x){return x.value===plan.aimTarget});
+ const selectedSummary=[selectedClub||'クラブ未選択',selectedAim?selectedAim.label:'方向未選択',plan.curveBase||'球筋未選択',selectedStyle||'打ち方未選択'];
  return AH('main',{className:'ga-random-aim'},
   AH('header',{className:'ga-random-aim-head'},
    AH('h1',null,'狙いを決める'),
-   AH('div',{className:'ga-random-aim-progress'},(shotIndex+1)+' / '+totalShots)
+   AH('div',{className:'ga-random-aim-progress'},(shotIndex+1)+' / '+totalShots+' 球')
   ),
-  AH('div',{className:'ga-random-question'},
-   AH('div',null,AH('small',null,'今回の距離'),AH('strong',null,target.targetDistance,AH('span',null,'yd'))),
-   selectedClub?AH('div',{style:{textAlign:'right'}},AH('small',null,'クラブ'),AH('strong',{style:{fontSize:'19px'}},selectedClub)):null
+  AH('section',{className:'ga-random-aim-target'},
+   AH('div',null,
+    AH('small',null,'今回のターゲット距離'),
+    AH('strong',null,target.targetDistance,AH('span',null,'yd'))
+   ),
+   AH('div',{className:'ga-random-aim-target-art','aria-hidden':'true'},AH('span',null),AH('i',null))
   ),
-  situationItems.length?AH('section',{className:'ga-random-situation'},
-   AH('h3',null,'状況'),
-   ...situationItems.map(function(x,idx){return AH('p',{key:idx},AH('strong',null,x.label),AH('span',null,x.value))})
+  courseItems.length?AH('section',{className:'ga-random-course-info'},
+   AH('div',{className:'ga-random-course-title'},
+    AH('h2',null,'コース情報'),
+    AH('span',null,target.isGreenShot?'グリーン狙い':'通常ショット')
+   ),
+   measurements.length?AH('div',{className:'ga-random-course-metrics'},
+    ...measurements.map(function(x,idx){
+     return AH('div',{className:'ga-random-course-metric',key:'measurement-'+idx},
+      AH('small',null,x.label),
+      AH('strong',null,x.value)
+     );
+    })
+   ):null,
+   hazards.length?AH('div',{className:'ga-random-course-hazards'},
+    ...hazards.map(function(x,idx){
+     const kind=hazardClass(x);
+     return AH('div',{className:'ga-random-course-hazard '+kind,key:'hazard-'+idx},
+      AH('span',{className:'ga-random-course-hazard-mark','aria-hidden':'true'},'!'),
+      AH('span',{className:'ga-random-course-hazard-copy'},
+       AH('strong',null,x.label),
+       AH('span',null,x.value)
+      )
+     );
+    })
+   ):null
   ):null,
   AH('section',{className:'ga-random-form-section'},
    AH('h2',{className:'ga-random-form-title'},'クラブ'),
@@ -5143,7 +5183,16 @@ zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,c
   ),
   AH('section',{className:'ga-random-form-section'},
    AH('h2',{className:'ga-random-form-title'},'方向'),
-   gaAimChoices(aimItems,plan.aimTarget,function(v){onPlanField('aimTarget',v)},target.isGreenShot?'cols9':'cols3')
+   AH('div',{className:'ga-random-direction-box'},
+    AH('div',{className:'ga-random-direction-grid'},
+     ...aimItems.map(function(x){
+      return AH('button',{type:'button',key:x.value,'aria-pressed':plan.aimTarget===x.value,onClick:function(){onPlanField('aimTarget',x.value)}},
+       AH('span',{className:'ga-random-direction-glyph','aria-hidden':'true'},directionGlyphs[x.label]||'●'),
+       AH('span',{className:'ga-random-direction-label'},x.label)
+      );
+     })
+    )
+   )
   ),
   AH('section',{className:'ga-random-form-section'},
    AH('h2',{className:'ga-random-form-title'},'球筋'),
@@ -5155,7 +5204,10 @@ zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,c
     ?gaAimChoices(shotItems,selectedStyle,function(v){onPlanField('style',v)},'cols6')
     :AH('p',{className:'ga-shot-style-empty'},'設定 ＞ 打ち方設定で、使用する打ち方をONにしてください。')
   ),
-  AH('button',{type:'button',className:'ga-random-hit',disabled:!clubReady,onClick:onStartShot},'この狙いで打つ')
+  AH('div',{className:'ga-random-aim-footer'},
+   AH('p',{className:'ga-random-aim-recap'},'選択内容：',AH('b',null,selectedSummary.join(' ・ '))),
+   AH('button',{type:'button',className:'ga-random-hit',disabled:!clubReady,onClick:onStartShot},'この狙いで打つ →')
+  )
  );
 };
 
