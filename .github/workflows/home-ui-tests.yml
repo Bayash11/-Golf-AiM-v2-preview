@@ -1,0 +1,21 @@
+name: GOLF AiM home UI checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/home-ui.test.cjs'
+      - '.github/workflows/home-ui-tests.yml'
+  workflow_dispatch:
+jobs:
+  home-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify home UI and charts
+        run: node --test tests/home-ui.test.cjs
