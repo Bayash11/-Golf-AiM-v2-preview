@@ -1266,6 +1266,10 @@ function GaHomeGrowth({rows,onOpen}){
    AH('button',{type:'button',className:'ga-home-growth-link',onClick:onOpen},'データを見る ›')
   ),
   rows.length?AH(P.Fragment,null,
+   AH('div',{className:'ga-home-growth-metrics'},
+     AH('div',{className:'ga-home-growth-metric'},AH('small',null,'最新日の成功率'),AH('strong',{className:'is-accent'},rows[rows.length-1].rate===null?'—':rows[rows.length-1].rate+'%')),
+     AH('div',{className:'ga-home-growth-metric'},AH('small',null,'最新日の練習回数'),AH('strong',null,rows[rows.length-1].totalSessions+'回'))
+   ),
    AH('div',{className:'ga-home-growth-panel'},
     AH('div',{className:'ga-home-growth-panel-head'},AH('strong',null,'ショット成功率'),AH('small',null,'ランダム＋コース想定')),
     AH(GaHomeSuccessChart,{rows:rows})
@@ -1355,16 +1359,32 @@ Ep=function({onCourse,onRandom10,onHistory,onSettings,onHowTo}){
  if(analysis)return AH(AimClubAnalysis,{onBack:()=>setAnalysis(false)});
  const toPractice=()=>{const el=document.querySelector('.ga-home-practice-grid');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
  return AH('main',{className:'ga-home-v2'},
-   AH('section',{className:'ga-home-hero'},AH('div',{className:'ga-home-brand'},AH('h1',{className:'ga-home-logo'},AH('span',null,'GOLF'),AH('span',{className:'aim'},'AiM')),AH('p',{className:'ga-home-tagline'},'狙って、打って、振り返る。')),AH('button',{type:'button',className:'ga-home-howto','aria-label':'使い方',onClick:onHowTo},'使い方')),
-   AH('section',{className:'ga-home-practice-grid','aria-label':'練習モード'},
-     AH('button',{type:'button',className:'ga-home-tile ga-home-tile--random',onClick:onRandom10},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-icon-circle'},gaSvgIcon('random',34)),AH('h2',null,'ランダムモード'),AH('p',null,'さまざまな状況で\n対応力を鍛える'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null)))),
-     AH('button',{type:'button',className:'ga-home-tile ga-home-tile--course',onClick:onCourse},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-icon-circle'},gaSvgIcon('course',34)),AH('h2',null,'コース想定モード'),AH('p',null,'コースをイメージして\n実践力を高める'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null))))
+   AH('section',{className:'ga-home-hero'},
+     AH('div',{className:'ga-home-brand'},AH('h1',{className:'ga-home-logo'},AH('span',null,'GOLF'),AH('span',{className:'aim'},'AiM')),AH('p',{className:'ga-home-tagline'},'狙って、打って、振り返る。')),
+     AH('button',{type:'button',className:'ga-home-howto','aria-label':'使い方',onClick:onHowTo},'使い方')
    ),
-   AH('section',{className:'ga-home-secondary-grid'},
-     AH('button',{type:'button',className:'ga-home-small-card ga-home-small-card--data',onClick:onHistory},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-small-icon'},gaSvgIcon('data',28)),AH('h3',null,'データ'),AH('p',null,'練習結果を確認して\n成長を見える化'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null)))),
-     AH('button',{type:'button',className:'ga-home-small-card ga-home-small-card--settings',onClick:onSettings},AH('span',{className:'ga-arrow','aria-hidden':true},'›'),AH('div',{className:'ga-home-small-icon'},gaSvgIcon('settings',28)),AH('h3',null,'設定'),AH('p',null,'クラブ設定・\n目標スコアなどを管理'.split('\n').map((t,i)=>P.createElement(P.Fragment,{key:i},t,i===0?AH('br'):null))))
+   AH('section',{className:'ga-home-intro'},
+     AH('span',{className:'ga-home-eyebrow'},'PRACTICE'),
+     AH('h2',null,'今日は何を練習する？'),
+     AH('p',null,'目的に合わせて練習モードを選択')
+   ),
+   AH('section',{className:'ga-home-practice-grid','aria-label':'練習モード'},
+     AH('button',{type:'button',className:'ga-home-tile ga-home-tile--random',onClick:onRandom10},
+       AH('div',{className:'ga-home-mode-mark'},gaSvgIcon('random',36)),
+       AH('div',{className:'ga-home-mode-copy'},AH('small',null,'RANDOM PRACTICE'),AH('h2',null,'ランダムモード'),AH('p',null,'さまざまな状況でショット精度を磨く')),
+       AH('span',{className:'ga-arrow','aria-hidden':true},'›')
+     ),
+     AH('button',{type:'button',className:'ga-home-tile ga-home-tile--course',onClick:onCourse},
+       AH('div',{className:'ga-home-mode-mark'},gaSvgIcon('course',36)),
+       AH('div',{className:'ga-home-mode-copy'},AH('small',null,'COURSE PRACTICE'),AH('h2',null,'コース想定モード'),AH('p',null,'判断力とコースマネジメントを磨く')),
+       AH('span',{className:'ga-arrow','aria-hidden':true},'›')
+     )
    ),
    AH(GaHomeGrowth,{rows:growth,onOpen:onHistory}),
+   AH('section',{className:'ga-home-quick-actions','aria-label':'その他の機能'},
+     AH('button',{type:'button',className:'ga-home-quick-link',onClick:onHistory},AH('span',null,'練習履歴'),AH('span',{'aria-hidden':true},'›')),
+     AH('button',{type:'button',className:'ga-home-quick-link',onClick:onSettings},AH('span',null,'各種設定'),AH('span',{'aria-hidden':true},'›'))
+   ),
    AH(GaBottomNav,{active:'home',onHome:()=>window.scrollTo({top:0,behavior:'smooth'}),onPractice:toPractice,onData:onHistory,onSettings})
  );
 };
@@ -4316,7 +4336,7 @@ GaBottomNav=function({active='home',onHome,onPractice,onData,onSettings}){
    return AH('button',{
     type:'button',
     className:'ga-bottom-nav__item'+(active===key?' is-active':''),
-    onClick:function(){gaRunAndResetTop(fn)},
+    onClick:function(){if(active==='home'&&key==='practice'){fn();return;}gaRunAndResetTop(fn)},
     key:key
    },gaSvgIcon(key,24),AH('span',null,label));
   })
