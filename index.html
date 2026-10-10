@@ -844,6 +844,73 @@ body:has(.ga-home-v2){overflow-x:hidden;overscroll-behavior-y:none;}
   .ga-home-v2 .ga-home-tile,.ga-home-v2 .ga-home-quick-link{transition:none}
 }
 
+
+/* 2026-10-10 approved card artwork: no change to chart, routing, or saved data. */
+.ga-home-v2 .ga-home-practice-grid .ga-home-tile{
+  min-height:174px;
+  display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;gap:0;
+  padding:17px 17px 14px;isolation:isolate;overflow:hidden;
+  border-radius:18px;box-shadow:0 8px 20px rgba(23,32,51,.10);
+}
+.ga-home-v2 .ga-home-practice-grid .ga-home-tile--random{
+  background:linear-gradient(118deg,#F65B1D 0%,#FF6A24 54%,#FF8A42 100%);
+}
+.ga-home-v2 .ga-home-practice-grid .ga-home-tile--course{
+  background:linear-gradient(118deg,#2057C4 0%,#2F6FE4 54%,#4D91F5 100%);
+}
+.ga-home-v2 .ga-home-mode-art{
+  position:absolute;inset:0;width:100%;height:100%;z-index:0;
+  pointer-events:none;overflow:hidden;
+}
+.ga-home-v2 .ga-home-mode-top{
+  position:relative;z-index:1;display:flex;align-items:flex-start;gap:13px;min-height:54px;
+}
+.ga-home-v2 .ga-home-mode-mark{
+  width:54px;height:54px;flex:0 0 54px;border-radius:15px;
+  background:rgba(255,255,255,.17);border:1px solid rgba(255,255,255,.29);
+  display:grid;place-items:center;color:#fff;
+}
+.ga-home-v2 .ga-home-mode-mark svg{width:32px;height:32px;max-width:32px;max-height:32px}
+.ga-home-v2 .ga-home-mode-kicker{
+  display:block;margin-top:3px;color:rgba(255,255,255,.93);
+  font-size:9px;font-weight:800;letter-spacing:1.15px;line-height:1.35;
+}
+.ga-home-v2 .ga-home-tile .ga-home-mode-copy{
+  position:relative;z-index:1;flex:none;min-width:0;margin-top:9px;
+}
+.ga-home-v2 .ga-home-tile .ga-home-mode-copy h2{
+  margin:0 0 5px;font-size:20px;line-height:1.18;font-weight:850;
+  letter-spacing:-.5px;color:#fff;white-space:normal;
+}
+.ga-home-v2 .ga-home-tile .ga-home-mode-copy p{
+  margin:0;max-width:none;font-size:11px;line-height:1.45;font-weight:650;
+  color:rgba(255,255,255,.96);
+}
+.ga-home-v2 .ga-home-mode-bottom{
+  position:relative;z-index:1;display:flex;align-items:flex-end;
+  justify-content:space-between;margin-top:8px;min-height:27px;
+}
+.ga-home-v2 .ga-home-mode-pills{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.ga-home-v2 .ga-home-mode-pills span{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:19px;padding:2px 9px;border-radius:999px;
+  background:rgba(255,255,255,.21);color:white;
+  font-size:10px;line-height:1.25;font-weight:750;
+}
+.ga-home-v2 .ga-home-tile .ga-arrow{
+  position:static;z-index:2;flex:0 0 29px;width:29px;height:29px;
+  display:grid;place-items:center;border-radius:50%;
+  background:rgba(255,255,255,.21);border:0;
+  color:#fff;font-size:26px;line-height:1;font-weight:400;
+}
+@media(max-width:360px){
+  .ga-home-v2 .ga-home-practice-grid .ga-home-tile{min-height:168px;padding:15px 14px 12px}
+  .ga-home-v2 .ga-home-mode-top{min-height:49px}
+  .ga-home-v2 .ga-home-mode-mark{width:49px;height:49px;flex-basis:49px}
+  .ga-home-v2 .ga-home-tile .ga-home-mode-copy h2{font-size:19px}
+  .ga-home-v2 .ga-home-tile .ga-home-mode-copy p{font-size:10.5px}
+}
+
 </style>
 </head>
 <body>
@@ -1459,14 +1526,49 @@ Ep=function({onCourse,onRandom10,onHistory,onSettings,onHowTo}){
    ),
    AH('section',{className:'ga-home-practice-grid','aria-label':'練習モード'},
      AH('button',{type:'button',className:'ga-home-tile ga-home-tile--random',onClick:onRandom10},
-       AH('div',{className:'ga-home-mode-mark'},gaSvgIcon('random',36)),
-       AH('div',{className:'ga-home-mode-copy'},AH('small',null,'RANDOM PRACTICE'),AH('h2',null,'ランダムモード'),AH('p',null,'さまざまな状況でショット精度を磨く')),
-       AH('span',{className:'ga-arrow','aria-hidden':true},'›')
+       AH('svg',{className:'ga-home-mode-art',viewBox:'0 0 360 174','aria-hidden':'true',focusable:'false'},
+         AH('circle',{cx:309,cy:83,r:76,fill:'none',stroke:'white',strokeWidth:1.4,strokeOpacity:.20}),
+         AH('circle',{cx:309,cy:83,r:53,fill:'none',stroke:'white',strokeWidth:1.4,strokeOpacity:.23}),
+         AH('circle',{cx:309,cy:83,r:30,fill:'none',stroke:'white',strokeWidth:1.4,strokeOpacity:.25}),
+         AH('circle',{cx:309,cy:83,r:10,fill:'none',stroke:'white',strokeWidth:1.4,strokeOpacity:.28}),
+         AH('path',{d:'M253 145L294 92L329 43',fill:'none',stroke:'white',strokeWidth:2,strokeOpacity:.62,strokeDasharray:'4 6'}),
+         AH('circle',{cx:253,cy:145,r:3,fill:'white',fillOpacity:.86}),
+         AH('circle',{cx:329,cy:43,r:4,fill:'white',fillOpacity:.92})
+       ),
+       AH('div',{className:'ga-home-mode-top'},
+         AH('div',{className:'ga-home-mode-mark'},gaSvgIcon('random',32)),
+         AH('small',{className:'ga-home-mode-kicker'},'RANDOM PRACTICE')
+       ),
+       AH('div',{className:'ga-home-mode-copy'},
+         AH('h2',null,'ランダムモード'),
+         AH('p',null,'さまざまな状況で、ショット精度を磨く')
+       ),
+       AH('div',{className:'ga-home-mode-bottom'},
+         AH('span',{className:'ga-home-mode-pills'},AH('span',null,'精度'),AH('span',null,'対応力')),
+         AH('span',{className:'ga-arrow','aria-hidden':true},'›')
+       )
      ),
      AH('button',{type:'button',className:'ga-home-tile ga-home-tile--course',onClick:onCourse},
-       AH('div',{className:'ga-home-mode-mark'},gaSvgIcon('course',36)),
-       AH('div',{className:'ga-home-mode-copy'},AH('small',null,'COURSE PRACTICE'),AH('h2',null,'コース想定モード'),AH('p',null,'判断力とコースマネジメントを磨く')),
-       AH('span',{className:'ga-arrow','aria-hidden':true},'›')
+       AH('svg',{className:'ga-home-mode-art',viewBox:'0 0 360 174','aria-hidden':'true',focusable:'false'},
+         AH('path',{d:'M236 185C203 138 256 108 271 67C281 38 272 15 312 -16L390 -16L390 185Z',fill:'white',fillOpacity:.075,stroke:'white',strokeWidth:1.2,strokeOpacity:.20}),
+         AH('path',{d:'M268 160C262 136 293 111 303 82S321 38 308 15',fill:'none',stroke:'white',strokeOpacity:.68,strokeWidth:2,strokeDasharray:'4 7'}),
+         AH('ellipse',{cx:304,cy:37,rx:24,ry:11,fill:'white',fillOpacity:.15,stroke:'white',strokeOpacity:.40}),
+         AH('path',{d:'M304 41V8L327 16L304 24',fill:'none',stroke:'white',strokeWidth:2,strokeLinejoin:'round'}),
+         AH('circle',{cx:268,cy:141,r:5,fill:'white',fillOpacity:.95}),
+         AH('circle',{cx:268,cy:141,r:10,fill:'none',stroke:'white',strokeWidth:1,strokeOpacity:.47})
+       ),
+       AH('div',{className:'ga-home-mode-top'},
+         AH('div',{className:'ga-home-mode-mark'},gaSvgIcon('course',32)),
+         AH('small',{className:'ga-home-mode-kicker'},'COURSE PRACTICE')
+       ),
+       AH('div',{className:'ga-home-mode-copy'},
+         AH('h2',null,'コース想定モード'),
+         AH('p',null,'コースを読み、判断力と戦略を磨く')
+       ),
+       AH('div',{className:'ga-home-mode-bottom'},
+         AH('span',{className:'ga-home-mode-pills'},AH('span',null,'実戦'),AH('span',null,'戦略')),
+         AH('span',{className:'ga-arrow','aria-hidden':true},'›')
+       )
      )
    ),
    AH(GaHomeGrowth,{rows:growth,onOpen:onHistory}),
