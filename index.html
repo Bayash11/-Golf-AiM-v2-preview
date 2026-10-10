@@ -756,6 +756,95 @@ body:has(.ga-home-v2){overflow-x:hidden;overscroll-behavior-y:none;}
 .ga-backup-disclaimer{font-size:11px;line-height:1.7;color:var(--ga-sub);margin:11px 2px 0}
 .ga-backup-refresh{display:block;width:100%;background:none;border:0;color:var(--ga-blue);font-size:12px;font-weight:750;text-align:right;padding:12px 2px;min-height:44px}
 </style>
+<style id="ga-home-layout-20261010">
+
+/* 2026-10-10 home UI: phone-first layout; original growth charts are retained. */
+.ga-home-v2{
+  --ga-home-header-height:max(128px, calc(100px + env(safe-area-inset-top, 0px)));
+  padding:calc(var(--ga-home-header-height) + 21px) 16px calc(var(--ga-bottom-total) + 28px);
+}
+.ga-home-v2 .ga-home-hero{
+  height:var(--ga-home-header-height);min-height:0;
+  padding:calc(env(safe-area-inset-top, 0px) + 11px) 19px 12px;
+  border-bottom:1px solid #E8EDF3;
+}
+.ga-home-v2 .ga-home-brand{padding-top:0}
+.ga-home-v2 .ga-home-logo{font-size:31px;letter-spacing:-1.4px}
+.ga-home-v2 .ga-home-tagline{font-size:11px;margin-top:7px}
+.ga-home-v2 .ga-home-howto{top:calc(env(safe-area-inset-top, 0px) + 11px);height:44px;min-height:44px}
+.ga-home-intro{padding:2px 2px 17px}
+.ga-home-eyebrow{display:block;color:var(--ga-orange);font-size:10px;letter-spacing:1.5px;font-weight:850;margin-bottom:6px}
+.ga-home-intro h2{margin:0;color:#17243A;font-size:23px;line-height:1.3;font-weight:850;letter-spacing:-.6px}
+.ga-home-intro p{margin:7px 0 0;font-size:12px;line-height:1.5;color:#8793A4;font-weight:550}
+.ga-home-v2 .ga-home-practice-grid{
+  display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:0;
+  scroll-margin-top:calc(var(--ga-home-header-height) + 12px)
+}
+.ga-home-v2 .ga-home-practice-grid .ga-home-tile{
+  display:flex;align-items:center;gap:13px;min-height:116px;width:100%;padding:17px 16px;
+  border:0;border-radius:17px;text-align:left;box-shadow:0 5px 14px rgba(23,32,51,.07)
+}
+.ga-home-v2 .ga-home-mode-mark{
+  width:62px;height:62px;flex:0 0 62px;border-radius:17px;
+  display:grid;place-items:center;background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.24);color:#fff
+}
+.ga-home-v2 .ga-home-mode-mark svg{display:block;max-width:39px;max-height:39px}
+.ga-home-v2 .ga-home-mode-copy{flex:1;min-width:0;position:relative;z-index:2}
+.ga-home-v2 .ga-home-mode-copy small{
+  display:block;color:rgba(255,255,255,.83);font-size:9px;font-weight:850;letter-spacing:.7px
+}
+.ga-home-v2 .ga-home-tile .ga-home-mode-copy h2{
+  margin:8px 0 5px;font-size:19px;font-weight:850;line-height:1.2;
+  letter-spacing:-.5px;white-space:normal
+}
+.ga-home-v2 .ga-home-tile .ga-home-mode-copy p{
+  max-width:none;margin:0;font-size:11px;line-height:1.45;
+  color:rgba(255,255,255,.95);font-weight:550
+}
+.ga-home-v2 .ga-home-tile .ga-arrow{
+  position:static;z-index:2;flex:0 0 auto;width:19px;height:auto;
+  border:0;background:none;display:block;font-size:25px;line-height:1;
+  color:rgba(255,255,255,.87)
+}
+.ga-home-v2 .ga-home-growth{margin-top:23px;padding:16px 15px;border-radius:17px}
+.ga-home-v2 .ga-home-growth-head{align-items:center}
+.ga-home-v2 .ga-home-growth-metrics{
+  margin-top:14px;padding:2px 0 12px;display:grid;grid-template-columns:1fr 1fr;
+  border-bottom:1px solid #E9EDF3
+}
+.ga-home-v2 .ga-home-growth-metric{padding:3px 10px 3px 4px;min-width:0}
+.ga-home-v2 .ga-home-growth-metric+.ga-home-growth-metric{border-left:1px solid #E9EDF3;padding-left:17px}
+.ga-home-v2 .ga-home-growth-metric small{
+  display:block;font-size:10px;color:#8090A2;font-weight:650;margin-bottom:6px
+}
+.ga-home-v2 .ga-home-growth-metric strong{
+  display:block;font-size:25px;font-weight:850;letter-spacing:-.6px;
+  color:#17243A;line-height:1.1
+}
+.ga-home-v2 .ga-home-growth-metric strong.is-accent{color:var(--ga-orange)}
+.ga-home-v2 .ga-home-growth-panel{margin-top:14px;border-radius:14px}
+.ga-home-v2 .ga-home-quick-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.ga-home-v2 .ga-home-quick-link{
+  min-height:53px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:12px 14px;border:1px solid #E7EDF3;border-radius:14px;background:#fff;
+  color:#23354C;font-weight:800;font-size:13px;text-align:left;
+  box-shadow:0 5px 14px rgba(23,32,51,.04)
+}
+.ga-home-v2 .ga-home-quick-link span:last-child{color:#97A4B3;font-size:22px;font-weight:400}
+.ga-home-v2 .ga-home-quick-link:active{transform:scale(.985)}
+@media(max-width:360px){
+  .ga-home-v2 .ga-home-practice-grid .ga-home-tile{gap:10px;padding:14px 12px;min-height:108px}
+  .ga-home-v2 .ga-home-mode-mark{width:53px;height:53px;flex-basis:53px}
+  .ga-home-v2 .ga-home-tile .ga-home-mode-copy h2{font-size:17px}
+  .ga-home-v2 .ga-home-tile .ga-home-mode-copy p{font-size:10px}
+  .ga-home-v2 .ga-home-intro h2{font-size:21px}
+}
+@media(prefers-reduced-motion:reduce){
+  .ga-home-v2 .ga-home-tile,.ga-home-v2 .ga-home-quick-link{transition:none}
+}
+
+</style>
 </head>
 <body>
 <script>window.GOLF_AIM_ASSETS={"course":"assets/course.webp","range":"assets/range.webp","tee":"assets/tee.webp","long":"assets/long.webp","iron":"assets/iron.webp","approach":"assets/approach.webp"};</script>
