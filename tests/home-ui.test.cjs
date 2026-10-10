@@ -115,3 +115,48 @@ test('phone layout uses one full-width mode column and fixed UI safe areas',()=>
  assert.match(html,/AH\(GaBottomNav,\{active:'home'/);
  assert.match(html,/gaPersistSession\(/);
 });
+
+test('approved card design contains target and fairway graphics without changing navigation',()=>{
+ const {context}=fixture(),called=[];
+ const home=vm.runInContext('Ep',context)({
+  onRandom10:()=>called.push('random'),onCourse:()=>called.push('course'),
+  onHistory:()=>{},onSettings:()=>{},onHowTo:()=>{}
+ });
+ const modes=named(home,'ga-home-tile');
+ assert.equal(modes.length,2);
+ assert.equal(named(modes[0],'ga-home-mode-art').length,1);
+ assert.equal(named(modes[1],'ga-home-mode-art').length,1);
+ const firstArt=named(modes[0],'ga-home-mode-art')[0];
+ const secondArt=named(modes[1],'ga-home-mode-art')[0];
+ assert.equal(firstArt.props['aria-hidden'],'true');
+ assert.equal(secondArt.props['aria-hidden'],'true');
+ assert.ok(collect(firstArt,x=>x.tag==='circle').length>=4,'random target rings');
+ assert.ok(collect(secondArt,x=>x.tag==='path').length>=2,'course shape and flag');
+ modes[0].props.onClick();modes[1].props.onClick();
+ assert.deepEqual(called,['random','course']);
+});
+test('approved copy, English labels and paired tags appear exactly once per mode',()=>{
+ const {context}=fixture();
+ const home=vm.runInContext('Ep',context)({
+  onRandom10:()=>{},onCourse:()=>{},onHistory:()=>{},onSettings:()=>{},onHowTo:()=>{}
+ });
+ const [random,course]=named(home,'ga-home-tile');
+ assert.match(JSON.stringify(random),/RANDOM PRACTICE/);
+ assert.match(JSON.stringify(random),/さまざまな状況で、ショット精度を磨く/);
+ assert.match(JSON.stringify(course),/COURSE PRACTICE/);
+ assert.match(JSON.stringify(course),/コースを読み、判断力と戦略を磨く/);
+ const rPills=named(random,'ga-home-mode-pills')[0];
+ const cPills=named(course,'ga-home-mode-pills')[0];
+ assert.deepEqual(rPills.children.map(x=>x.children[0]),['精度','対応力']);
+ assert.deepEqual(cPills.children.map(x=>x.children[0]),['実戦','戦略']);
+ assert.equal(named(random,'ga-arrow').length,1);
+ assert.equal(named(course,'ga-arrow').length,1);
+});
+test('decorative graphics remain noninteractive and phone width is supported',()=>{
+ assert.match(html,/\/\* 2026-10-10 approved card artwork/);
+ assert.match(html,/\.ga-home-v2 \.ga-home-mode-art\s*\{[^}]*pointer-events:none/);
+ assert.match(html,/\.ga-home-v2 \.ga-home-practice-grid \.ga-home-tile\s*\{[^}]*min-height:174px/);
+ assert.match(html,/@media\(max-width:360px\)\s*\{[\s\S]*?min-height:168px/);
+ assert.match(html,/linear-gradient\(118deg,#F65B1D/);
+ assert.match(html,/linear-gradient\(118deg,#2057C4/);
+});
