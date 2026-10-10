@@ -51,7 +51,7 @@ function fixture() {
   const document = {
     body: {appendChild() {}},
     createElement() {
-      const item = {remove() {},click() { downloads.push({name: item.download, href: item.href}); }};
+      const item = {style: {},remove() {},click() { downloads.push({name: item.download, href: item.href}); }};
       return item;
     }
   };
