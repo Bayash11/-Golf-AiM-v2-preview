@@ -863,13 +863,13 @@ async function gaPersistSession(kind,record){
  const result=kind==="course"?await U1(updated):await Y1(updated);
  return result?.ok?{ok:true,history:updated}:{ok:false,error:result?.error||"保存できませんでした。"};
 }
-async function gaEmergencyExport(entry){
+async function gaEmergencyExport(entry,preferShare=true){
  if(!entry?.record||!["course","random"].includes(entry.kind))throw Error("復旧データがありません。");
  const key=entry.kind==="course"?"golf-aim:priv:round-history":"golf-aim:priv:random10-sessions";
  const json=JSON.stringify({app:"GOLF AiM",format:"golf-aim-localstorage-backup",formatVersion:1,generatedAt:new Date().toISOString(),storage:{[key]:JSON.stringify([entry.record])}},null,2);
  const d=new Date(),pad=x=>String(x).padStart(2,"0");
  const filename="GOLF-AiM-emergency-"+d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+"-"+pad(d.getHours())+pad(d.getMinutes())+".json";
- if(typeof File!=="undefined"&&typeof navigator.share==="function"&&typeof navigator.canShare==="function"){
+ if(preferShare&&typeof File!=="undefined"&&typeof navigator.share==="function"&&typeof navigator.canShare==="function"){
   const file=new File([json],filename,{type:"application/json"});
   if(navigator.canShare({files:[file]})){
    try{await navigator.share({files:[file],title:"GOLF AiM 緊急バックアップ"});return{status:"shared",filename}}
@@ -883,6 +883,7 @@ async function gaEmergencyExport(entry){
  return{status:"download",filename}
 }
 function GaSaveRecoveryScreen({recovery,busy,error,onRetry,onExport,onLeave,exported}){
+ gaUseResetViewportOnMount();
  const isCourse=recovery.kind==="course";
  return AH("main",{className:"ga-save-recovery"},
   AH("div",{className:"ga-save-recovery-symbol","aria-hidden":true},"!"),
@@ -896,7 +897,8 @@ function GaSaveRecoveryScreen({recovery,busy,error,onRetry,onExport,onLeave,expo
   ),
   error?AH("div",{className:"ga-save-recovery-error",role:"alert"},error):null,
   AH("button",{type:"button",className:"ga-save-recovery-primary",disabled:busy,onClick:onRetry},busy?"保存中…":"もう一度保存する"),
-  AH("button",{type:"button",className:"ga-save-recovery-secondary",disabled:busy,onClick:onExport},"緊急JSONをファイルに保存"),
+  AH("button",{type:"button",className:"ga-save-recovery-secondary",disabled:busy,onClick:()=>onExport(true)},"緊急JSONを共有して保存"),
+  AH("button",{type:"button",className:"ga-save-recovery-secondary",disabled:busy,onClick:()=>onExport(false)},"緊急JSONを直接ダウンロード"),
   AH("p",{className:"ga-save-recovery-note"},"iPhoneの共有メニューで「ファイルに保存」を選び、保存されたJSONを確認してください。このファイルは設定→データ管理から復元できます。"),
   exported?AH("button",{type:"button",className:"ga-save-recovery-leave",disabled:busy,onClick:onLeave},"保存したJSONを確認したので履歴画面へ"):null,
   AH("p",{className:"ga-save-recovery-note"},"保存成功かJSONの確保前に画面を閉じると、練習結果が失われる可能性があります。")
@@ -954,11 +956,11 @@ async function Rg(){try{let t=await window.storage.get("club-config",!1);return 
   gaSetRecovery(null);gaSetRecoveryExported(!1)
  }catch(err){gaSetRecoveryError("再保存中に問題が発生しました："+String(err?.message||err))}
  finally{gaSetRecoveryBusy(!1)}
-},gaExportRecovery=async()=>{
+},gaExportRecovery=async(preferShare=true)=>{
  if(!gaRecovery||gaRecoveryBusy)return;
  gaSetRecoveryBusy(!0);
  try{
-  const result=await gaEmergencyExport(gaRecovery);
+  const result=await gaEmergencyExport(gaRecovery,preferShare);
   if(result.status==="cancelled")gaSetRecoveryError("共有がキャンセルされました。JSONファイルを保存してください。");
   else{gaSetRecoveryExported(!0);gaSetRecoveryError("共有・ダウンロードが終わったら、ファイルアプリで実際の保存を確認してください。")}
  }catch(err){gaSetRecoveryError("緊急JSONの出力に失敗しました："+String(err?.message||err))}
