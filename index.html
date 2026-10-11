@@ -2709,6 +2709,18 @@ gaCourseAimStyle.textContent=`
 `;
 document.head.appendChild(gaCourseAimStyle);
 
+const gaCourseStep02Style=document.createElement('style');
+gaCourseStep02Style.id='ga-course-step02-20261011';
+gaCourseStep02Style.textContent="\n.ga-course-playing:not(:has(.ga-course-result)):not(:has(.ga-course-hole-finish)){padding-top:calc(var(--ga-header-total) + 166px);}\n.ga-course-topbar{display:grid;grid-template-columns:84px minmax(0,1fr) 84px;align-items:center;justify-content:normal;height:var(--ga-header-total);padding:calc(var(--ga-header-total) - 54px) 14px 7px;background:rgba(248,250,252,.97);box-sizing:border-box;}\n.ga-course-topbar h1{justify-self:center;max-width:100%;overflow:hidden;margin:0;font-size:17px;font-weight:800;line-height:1.3;letter-spacing:-.35px;text-overflow:ellipsis;white-space:nowrap;}\n.ga-course-entry-back{justify-self:start;display:flex;align-items:center;justify-content:flex-start;width:84px;min-height:44px;padding:0;border:0;background:transparent;color:var(--ga-text);font-size:14px;font-weight:750;text-align:left;}\n.ga-course-entry-logo{justify-self:end;display:flex;align-items:baseline;gap:3px;color:#202635;font-size:14px;font-weight:850;letter-spacing:-.65px;white-space:nowrap;pointer-events:none;user-select:none;}\n.ga-course-entry-logo b{color:var(--ga-orange);font-style:italic;font-weight:850;}\n.ga-course-topbar-progress{position:static;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:34px;height:auto;margin:0 14px 8px;padding:0 1px;color:#7D8D9D;font-size:11px;font-weight:700;}\n.ga-course-topbar-progress strong{display:inline-flex;align-items:center;min-height:27px;padding:5px 10px;border-radius:8px;background:#FFF0E7;color:#E76A29;font-size:11px;font-weight:850;font-variant-numeric:tabular-nums;}\n.ga-course-hole-card{margin:0 14px 9px;padding:11px 12px 10px;border:1px solid #E8ECF1;box-shadow:none;}\n.ga-course-hole-primary>div{min-height:49px;padding:0 6px;}\n.ga-course-hole-primary strong{font-size:24px;}\n.ga-course-hole-primary .yard strong{font-size:22px;}\n.ga-course-hole-primary .score strong{font-size:24px;}\n.ga-course-hole-meta{margin-top:7px;padding-top:7px;font-size:10px;}\n.ga-course-hole-meta>span{min-width:0;padding:0 6px;white-space:normal;}\n.ga-course-map-toolbar{gap:7px;}\n.ga-course-map-toolbar button{min-height:44px;padding:0 12px;border-radius:12px;font-size:12px;}\n.ga-course-map-help{padding:10px 12px;min-height:36px;box-sizing:border-box;font-size:11px;line-height:1.45;}\n.ga-course-map-card .aim-target-lens{top:calc(var(--ga-header-total) + 180px)!important;z-index:75!important;}\n.ga-course-shot-strip{border:1px solid #E8ECF1;box-shadow:none;}\n.ga-course-shot-strip .remaining strong{color:var(--ga-blue);font-size:21px;}\n.ga-course-clubs{grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;}\n.ga-course-clubs button{min-height:46px;padding:5px 1px;border-radius:12px;font-size:11px;line-height:1.15;overflow-wrap:anywhere;box-shadow:none;}\n.ga-course-clubs button[aria-pressed=\"true\"]{box-shadow:none;}\n.ga-course-selected-club{min-height:47px;box-sizing:border-box;}\n.ga-course-reset{min-height:44px;margin-top:8px;padding:8px 14px;border-radius:12px;color:var(--ga-blue);font-size:12px;}\n.ga-course-choice button{min-height:44px;}\n.ga-course-hit{border-radius:16px;box-shadow:none;}\n.ga-course-playing:has(.ga-course-fixed)>.aim-quit .aim-quit-open{display:none!important;}\n@media(max-width:360px){.ga-course-topbar{grid-template-columns:76px minmax(0,1fr) 76px;padding-left:12px;padding-right:12px;}.ga-course-entry-back{width:76px;font-size:13px;}.ga-course-entry-logo{font-size:12px;}.ga-course-topbar h1{font-size:16px;}.ga-course-clubs{gap:4px;}.ga-course-clubs button{font-size:10px;}.ga-course-hole-primary strong{font-size:20px;}.ga-course-hole-primary .yard strong{font-size:19px;}}";
+document.head.appendChild(gaCourseStep02Style);
+
+function gaOpenCourseQuitMenu(){
+ const toggle=typeof window!=='undefined'&&window.__aimQuitToggle;
+ if(typeof toggle==='function'){toggle();return;}
+ const button=document.querySelector('.ga-course-playing > .aim-quit .aim-quit-open');
+ if(button&&typeof button.click==='function')button.click();
+}
+
 mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
  const doneScore=completedHoles.reduce((sum,h)=>sum+(Number(h.total)||0),0);
  const donePar=completedHoles.reduce((sum,h)=>sum+(Number(h.par)||0),0);
@@ -2717,25 +2729,29 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
  const pin=(current.pinLabel||hole.pinLabel||((hole.features||[]).find(f=>/ピン/.test(f.text||''))?.text||'—')).replace(/^ピン[:：]?\s*/,'');
  const gw=Math.round((hole.green?.halfWidth||0)*2),gd=Math.round((hole.green?.depth||0)*2);
  return AH('div',{className:'ga-course-fixed'},
-   AH('div',{className:'ga-course-topbar'},
-     AH('h1',null,'コース想定モード'),
-     AH('div',{className:'ga-course-topbar-progress'},`${holeIdx+1} / ${totalHoles}`)
+   AH('header',{className:'ga-course-topbar'},
+     AH('button',{type:'button',className:'ga-course-entry-back',onClick:gaOpenCourseQuitMenu,'aria-label':'中断メニューを開く'},'‹ 戻る'),
+     AH('h1',null,'狙い入力'),
+     AH('div',{className:'ga-course-entry-logo','aria-label':'GOLF AiM'},AH('span',null,'GOLF'),AH('b',null,'AiM'))
+   ),
+   AH('div',{className:'ga-course-topbar-progress'},
+     AH('span',null,'コース想定'),
+     AH('strong',null,(holeIdx+1)+' / '+totalHoles+' H')
    ),
    AH('section',{className:'ga-course-hole-card'},
      AH('div',{className:'ga-course-hole-primary'},
        AH('div',null,AH('small',null,'Hole'),AH('strong',null,holeIdx+1)),
        AH('div',null,AH('small',null,'Par'),AH('strong',null,hole.par)),
-       AH('div',{className:'yard'},AH('small',{'aria-hidden':true},'\u00A0'),AH('strong',null,`${hole.distance}yd`)),
+       AH('div',{className:'yard'},AH('small',{'aria-hidden':true},'\u00A0'),AH('strong',null,hole.distance+'yd')),
        AH('div',{className:'score'},AH('small',null,'現在'),AH('strong',null,score))
      ),
      AH('div',{className:'ga-course-hole-meta'},
        AH('span',null,'ピン位置 ',AH('b',null,pin)),
-       AH('span',null,'グリーン幅 ',AH('b',null,`${gw}yd × ${gd}yd`))
+       AH('span',null,'グリーン幅 ',AH('b',null,gw+'yd × '+gd+'yd'))
      )
    )
  );
 };
-
 dp=function(props){
  const h=props.hole;
  const [viewMode,setViewMode]=P.useState('normal');
@@ -2746,8 +2762,8 @@ dp=function(props){
  return AH(P.Fragment,null,
    AH('section',{className:`ga-course-map-card ga-course-par${h.par}${greenZoom?' ga-course-zoom':''}${overview?' ga-course-overview':''}`},
      AH('div',{className:'ga-course-map-toolbar'},
-       AH('button',{type:'button','aria-pressed':overview,onClick:()=>setViewMode(v=>v==='overview'?'normal':'overview')},'全体図'),
-       AH('button',{type:'button','aria-pressed':greenZoom,onClick:()=>setViewMode(v=>v==='green'?'normal':'green')},'グリーン拡大')
+       AH('button',{type:'button','aria-label':'コース全体図を切り替え','aria-pressed':overview,onClick:()=>setViewMode(v=>v==='overview'?'normal':'overview')},'全体図'),
+       AH('button',{type:'button','aria-label':'グリーン拡大を切り替え','aria-pressed':greenZoom,onClick:()=>setViewMode(v=>v==='green'?'normal':'green')},'グリーン拡大')
      ),
      AH(AimMap,{...props,zoom:greenZoom,focusCurrent:effectiveShotNo>1&&!overview&&!greenZoom,tapEnabled:overview?false:props.tapEnabled}),
      AH('p',{className:'ga-course-map-help'},
