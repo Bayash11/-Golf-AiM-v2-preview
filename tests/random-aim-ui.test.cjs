@@ -86,7 +86,7 @@ test('nine-position green aim preserves stored aim values and updates callback',
  const options=named(view,'ga-random-direction-grid')[0].children;
  assert.equal(options.length,9);
  assert.equal(options[4].props['aria-pressed'],true);
- assert.equal(flattenText(options[0]),'左奥');
+ assert.equal(flattenText(options[0]).trim(),'左奥');
  options[0].props.onClick();
  options[8].props.onClick();
  assert.deepEqual(changes,[['aimTarget','グリーン左奥'],['aimTarget','グリーン右手前']]);
@@ -94,7 +94,7 @@ test('nine-position green aim preserves stored aim values and updates callback',
 test('fairway aim offers left center right without changing original data values',()=>{
  const {view,changes}=fixture({green:false});
  const options=named(view,'ga-random-direction-grid')[0].children;
- assert.deepEqual(options.map(flattenText),['左','中央','右']);
+ assert.deepEqual(options.map(x=>flattenText(x).trim()),['左','中央','右']);
  options[1].props.onClick();
  assert.deepEqual(changes,[['aimTarget','フェアウェイセンター']]);
 });
