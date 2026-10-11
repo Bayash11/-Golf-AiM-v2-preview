@@ -60,7 +60,7 @@ test('header has back, centered title, small GOLF AiM logo and fixed 3-column la
  assert.equal(header.children.length,3);
  assert.equal(textOf(header.children[0]),'‹ 戻る');
  assert.equal(textOf(header.children[1]),'コース想定');
- assert.equal(textOf(header.children[2]),'GOLFAiM');
+ assert.equal(textOf(header.children[2]),'GOLF AiM');
  assert.equal(header.children[2].props['aria-label'],'GOLF AiM');
  header.children[0].props.onClick();
  assert.ok(x.actions.includes('back'));
@@ -72,7 +72,7 @@ test('default 9H and selecting 3H or 18H passes unchanged hole counts to existin
  let view=x.render();
  let buttons=named(view,'ga-course-length-card');
  assert.equal(buttons.length,3);
- assert.deepEqual(buttons.map(b=>textOf(b)),['3H短時間','9Hハーフ','18Hフル']);
+ assert.deepEqual(buttons.map(b=>textOf(b)),['3H 短時間','9H ハーフ','18H フル']);
  assert.deepEqual(buttons.map(b=>b.props['aria-pressed']),[false,true,false]);
  const start=()=>named(view,'ga-course-start')[0].props.onClick();
  assert.equal(named(view,'ga-course-start')[0].props.disabled,false);
