@@ -73,7 +73,7 @@ test('Shot log style aiming header keeps a safe pause action and separates progr
  assert.deepEqual(menuEvents,['open-quit-menu']);
  assert.equal(named(view,'ga-shot-entry-progress').length,1);
  const progress=named(view,'ga-shot-entry-progress')[0];
- assert.equal(textOfForHeader(progress).trim().replace(/\\s+/g,' '),'ランダム練習 1 / 10 球');
+ assert.equal(textOfForHeader(progress).trim().replace(/\s+/g,' '),'ランダム練習 1 / 10 球');
  assert.equal(named(head,'ga-shot-entry-count').length,0);
 });
 function textOfForHeader(x){
