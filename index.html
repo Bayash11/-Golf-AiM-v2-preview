@@ -2527,89 +2527,90 @@ Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
 const gaCourseSetupStyle=document.createElement('style');
 gaCourseSetupStyle.textContent=`
 #root:has(.ga-course-setup){padding-top:0!important;padding-bottom:0!important;}
-.ga-course-setup{width:100%;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 22px) 16px calc(var(--ga-bottom-total) + 28px);background:var(--ga-bg);color:var(--ga-text);box-sizing:border-box;}
-.ga-course-setup-head{position:fixed;top:0;left:50%;z-index:70;width:min(100vw,390px);height:var(--ga-header-total);transform:translateX(-50%);display:flex;align-items:flex-end;justify-content:center;padding:0 16px 10px;background:var(--ga-bg);border-bottom:1px solid var(--ga-border);box-sizing:border-box;}
-.ga-course-setup-head h1{margin:0;font-size:20px;line-height:44px;font-weight:800;color:var(--ga-text);}
-.ga-course-back{position:absolute;left:8px;bottom:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--ga-text);font-size:31px;line-height:1;padding:0;border-radius:50%;}
+.ga-course-setup{width:100%;max-width:390px;min-height:100dvh;margin:0 auto;padding:calc(var(--ga-header-total) + 22px) 14px calc(var(--ga-bottom-total) + 30px);background:var(--ga-bg);color:var(--ga-text);box-sizing:border-box;}
+.ga-course-setup-head{position:fixed;top:0;left:50%;z-index:70;width:min(100vw,390px);height:var(--ga-header-total);transform:translateX(-50%);display:grid;grid-template-columns:80px minmax(0,1fr) 80px;align-items:end;padding:0 10px 10px;background:rgba(248,250,252,.98);border-bottom:1px solid var(--ga-border);box-sizing:border-box;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
+.ga-course-setup-head h1{display:grid;place-items:center;height:44px;min-width:0;margin:0;font-size:18px;line-height:1.15;font-weight:850;color:var(--ga-text);text-align:center;white-space:nowrap;}
+.ga-course-back{display:flex;align-items:center;justify-content:flex-start;width:100%;height:44px;min-height:44px;padding:0 5px;border:0;border-radius:12px;background:transparent;color:var(--ga-text);font-size:13px;font-weight:800;text-align:left;}
 .ga-course-back:active{background:var(--ga-soft);}
-.ga-course-setup-body{display:grid;gap:18px;}
-.ga-course-setup-intro{padding:0 2px;}
-.ga-course-setup-intro strong{display:block;font-size:23px;line-height:1.3;font-weight:800;letter-spacing:-.02em;}
-.ga-course-setup-intro p{margin:6px 0 0;color:var(--ga-sub);font-size:13px;line-height:1.65;}
-.ga-course-resume{padding:15px 16px;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);}
-.ga-course-resume-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
-.ga-course-resume-top div{min-width:0}
-.ga-course-resume small{display:block;color:var(--ga-sub);font-size:10px;font-weight:600;margin-bottom:3px;}
-.ga-course-resume strong{font-size:15px;font-weight:800;color:var(--ga-text);}
-.ga-course-resume button.primary{width:100%;min-height:46px;margin-top:12px;border:0;border-radius:14px;background:var(--ga-blue);color:#fff;font-size:14px;font-weight:800;}
-.ga-course-resume button.discard{display:block;margin:7px auto -2px;border:0;background:transparent;color:var(--ga-error);font-size:11px;font-weight:700;min-height:34px;}
-.ga-course-empty{padding:13px 15px;border-radius:16px;background:#fff;color:var(--ga-sub);box-shadow:var(--ga-shadow-light);font-size:12px;line-height:1.55;}
-.ga-course-section-title{display:flex;align-items:center;gap:8px;margin:0 0 11px;color:var(--ga-text);font-size:15px;font-weight:800;}
-.ga-course-section-title:before{content:"";width:4px;height:19px;border-radius:99px;background:var(--ga-orange);}
-.ga-course-length-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
-.ga-course-length-card{position:relative;min-height:100px;padding:14px 8px;border:1px solid var(--ga-border);border-radius:16px;background:#fff;color:var(--ga-text);box-shadow:var(--ga-shadow-light);text-align:center;}
-.ga-course-length-card[aria-pressed="true"]{border:2px solid var(--ga-orange);background:var(--ga-orange-soft);color:var(--ga-orange);}
-.ga-course-length-card b{display:block;font-size:28px;line-height:1.1;font-weight:850;}
-.ga-course-length-card span{display:block;margin-top:5px;color:var(--ga-sub);font-size:11px;font-weight:600;}
-.ga-course-length-card[aria-pressed="true"] span{color:var(--ga-orange);}
-.ga-course-length-check{position:absolute;right:8px;top:8px;width:21px;height:21px;display:grid;place-items:center;border-radius:50%;background:var(--ga-orange);color:#fff;font-size:13px;font-weight:800;}
-.ga-course-note{padding:13px 15px;border-radius:14px;background:var(--ga-blue-soft);color:var(--ga-sub);font-size:11px;line-height:1.6;}
-.ga-course-note b{color:var(--ga-text);}
-.ga-course-start{position:relative;width:100%;min-height:56px;border:0;border-radius:999px;background:var(--ga-orange);color:#fff;font-size:16px;font-weight:800;box-shadow:0 6px 16px rgba(255,106,36,.22);}
-.ga-course-start:after{content:"›";position:absolute;right:20px;top:50%;transform:translateY(-54%);font-size:30px;font-weight:300;}
-.ga-course-history-link{width:100%;min-height:46px;border:1px solid var(--ga-blue);border-radius:16px;background:#fff;color:var(--ga-blue);font-size:13px;font-weight:800;}
+.ga-course-setup-brand{display:flex;align-items:center;justify-content:flex-end;gap:3px;height:44px;padding-right:3px;white-space:nowrap;font-size:10px;font-weight:850;letter-spacing:-.02em;color:var(--ga-text);}
+.ga-course-setup-brand b{color:var(--ga-orange);font-size:12px;font-weight:900;}
+.ga-course-setup-body{display:grid;gap:15px;}
+.ga-course-setup-intro{padding:0 2px 2px;}
+.ga-course-setup-intro strong{display:block;font-size:23px;line-height:1.28;font-weight:850;letter-spacing:-.025em;}
+.ga-course-setup-intro p{margin:7px 0 0;color:var(--ga-sub);font-size:12px;line-height:1.65;}
+.ga-course-resume{display:grid;gap:11px;padding:15px;border:1px solid #D6E3FF;border-radius:16px;background:#fff;box-shadow:var(--ga-shadow-light);}
+.ga-course-resume-top{display:flex;align-items:center;gap:10px;}
+.ga-course-resume-icon{display:grid;place-items:center;flex:0 0 34px;height:34px;border-radius:12px;background:#EEF4FF;color:var(--ga-blue);}
+.ga-course-resume small{display:block;color:var(--ga-sub);font-size:10px;font-weight:700;}
+.ga-course-resume strong{display:block;margin-top:2px;font-size:14px;font-weight:850;color:var(--ga-text);}
+.ga-course-resume button.primary{width:100%;min-height:48px;border:0;border-radius:14px;background:var(--ga-blue);color:#fff;font-size:14px;font-weight:800;}
+.ga-course-resume button.discard{justify-self:center;min-height:44px;padding:5px 14px;border:0;border-radius:12px;background:transparent;color:#B94D30;font-size:12px;font-weight:750;}
+.ga-course-resume-note{margin:0;color:var(--ga-sub);font-size:11px;line-height:1.5;}
+.ga-course-length-section{padding:15px 13px 14px;border:1px solid var(--ga-border);border-radius:16px;background:#fff;}
+.ga-course-section-title{display:flex;align-items:center;gap:8px;margin:0 0 13px;color:var(--ga-text);font-size:15px;font-weight:850;}
+.ga-course-section-title:before{content:"";width:4px;height:18px;border-radius:99px;background:var(--ga-orange);}
+.ga-course-length-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;}
+.ga-course-length-card{display:flex;min-width:0;min-height:78px;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:11px 3px;border:2px solid var(--ga-border);border-radius:14px;background:var(--ga-soft);color:var(--ga-text);text-align:center;box-sizing:border-box;}
+.ga-course-length-card[aria-pressed="true"]{border-color:var(--ga-orange);background:#FFF1E9;color:var(--ga-orange);}
+.ga-course-length-card b{display:block;font-size:25px;line-height:1.12;font-weight:900;letter-spacing:-.035em;}
+.ga-course-length-card span{display:block;color:var(--ga-sub);font-size:11px;font-weight:650;}
+.ga-course-length-card[aria-pressed="true"] span{color:#B6501D;}
+.ga-course-note{display:flex;align-items:flex-start;gap:9px;padding:13px 14px;border-radius:14px;background:#EEF4FF;color:var(--ga-sub);font-size:11px;line-height:1.6;}
+.ga-course-note-icon{flex:0 0 17px;color:var(--ga-blue);font-size:16px;line-height:1.1;font-weight:850;text-align:center;}
+.ga-course-note b{display:block;color:var(--ga-text);font-size:12px;font-weight:850;}
+.ga-course-start{position:relative;width:100%;min-height:56px;padding:10px 34px 10px 16px;border:0;border-radius:16px;background:var(--ga-orange);color:#fff;font-size:16px;font-weight:850;box-shadow:0 6px 16px rgba(255,106,36,.18);}
+.ga-course-start:after{content:"›";position:absolute;right:18px;top:50%;transform:translateY(-54%);font-size:26px;font-weight:400;}
+.ga-course-start:disabled{background:#C4CBD6;color:#fff;box-shadow:none;cursor:not-allowed;}
+.ga-course-start:disabled:after{content:"";}
+.ga-course-start-hint{margin:-8px 1px 0;color:#B94D30;font-size:11px;font-weight:700;line-height:1.6;text-align:center;}
+@media(max-width:360px){.ga-course-setup{padding-left:12px;padding-right:12px;}.ga-course-setup-head{grid-template-columns:70px minmax(0,1fr) 70px;}.ga-course-length-grid{gap:6px;}.ga-course-length-card b{font-size:23px;}}
 `;
 document.head.appendChild(gaCourseSetupStyle);
 
-Tp=function({onStart,onResume,onDiscard,hasActive,onHistory,onData,onSettings,onHome,onBack}){
+Tp=function({onStart,onResume,onDiscard,hasActive,onData,onSettings,onHome,onBack}){
  gaUseEdgeSwipeBack(onBack,true);
+ gaUseResetViewportOnMount();
  const [holes,setHoles]=P.useState(9);
- const start=()=>onStart(holes);
+ const start=()=>{if(!hasActive)onStart(holes)};
+ const description=holes===3?'PAR3・PAR4・PAR5を1ホールずつ構成します。':'ホール構成は自動生成されます。';
  return AH('main',{className:'ga-course-setup'},
    AH('header',{className:'ga-course-setup-head'},
-     AH('button',{type:'button',className:'ga-course-back',onClick:onBack,'aria-label':'戻る'},'‹'),
-     AH('h1',null,'コース想定モード')
+     AH('button',{type:'button',className:'ga-course-back',onClick:onBack,'aria-label':'戻る'},'‹ 戻る'),
+     AH('h1',null,'コース想定'),
+     AH('div',{className:'ga-course-setup-brand','aria-label':'GOLF AiM'},AH('span',null,'GOLF'),AH('b',null,'AiM'))
    ),
    AH('div',{className:'ga-course-setup-body'},
      AH('section',{className:'ga-course-setup-intro'},
-       AH('strong',null,'プレーするホール数を選択'),
-       AH('p',null,'コースを想定して、1打ずつ狙いと結果を記録します。')
+       AH('strong',null,'練習設定'),
+       AH('p',null,'実際のコースを想定して、狙いと結果を1打ずつ記録します。')
      ),
-
-     hasActive
-       ?AH('section',{className:'ga-course-resume'},
-          AH('div',{className:'ga-course-resume-top'},
-            AH('div',null,AH('small',null,'中断中の練習'),AH('strong',null,'前回の続きがあります')),
-            AH('span',{style:{color:'var(--ga-blue)',fontSize:'20px',fontWeight:800}},'↻')
-          ),
-          AH('button',{type:'button',className:'primary',onClick:onResume},'前回の続きから再開'),
-          AH('button',{type:'button',className:'discard',onClick:()=>{if(window.confirm('中断中のコース想定練習を破棄しますか？'))onDiscard()}},'保存中の練習を破棄')
-        )
-       :AH('div',{className:'ga-course-empty'},'中断中の練習はありません。新しいコース想定練習を開始できます。'),
-
-     AH('section',null,
-       AH('h2',{className:'ga-course-section-title'},'ホール数'),
-       AH('div',{className:'ga-course-length-grid'},
+     hasActive?AH('section',{className:'ga-course-resume','aria-label':'中断中の練習'},
+       AH('div',{className:'ga-course-resume-top'},
+         AH('div',{className:'ga-course-resume-icon','aria-hidden':'true'},'↻'),
+         AH('div',null,AH('small',null,'中断中の練習'),AH('strong',null,'前回の続きがあります'))
+       ),
+       AH('button',{type:'button',className:'primary',onClick:onResume},'前回の続きから再開'),
+       AH('p',{className:'ga-course-resume-note'},'新しい練習を開始するには、先に中断データを破棄してください。'),
+       AH('button',{type:'button',className:'discard',onClick:()=>{if(window.confirm('中断中のコース想定練習を破棄しますか？\n保存中の進行状況は元に戻せません。'))onDiscard()}},'保存中の練習を破棄')
+     ):null,
+     AH('section',{className:'ga-course-length-section'},
+       AH('h2',{className:'ga-course-section-title'},'ホール数を選択'),
+       AH('div',{className:'ga-course-length-grid',role:'group','aria-label':'ホール数'},
          ...[3,9,18].map(n=>AH('button',{type:'button',key:n,className:'ga-course-length-card','aria-pressed':holes===n,onClick:()=>setHoles(n)},
-           holes===n?AH('span',{className:'ga-course-length-check'},'✓'):null,
-           AH('b',null,n+'H'),
-           AH('span',null,n===3?'PAR3・4・5を各1H':n===9?'短時間で実戦練習':'18Hを通して練習')
+           AH('b',null,n+'H'),AH('span',null,n===3?'短時間':n===9?'ハーフ':'フル')
          ))
        )
      ),
-
-     AH('div',{className:'ga-course-note'},
-       AH('b',null,holes+'Hで開始'),
-       holes===3?'。PAR3・PAR4・PAR5を1ホールずつ構成します。':'。ホール構成は自動生成されます。'
+     AH('div',{className:'ga-course-note','aria-live':'polite'},
+       AH('span',{className:'ga-course-note-icon','aria-hidden':'true'},'i'),
+       AH('div',null,AH('b',null,holes+'ホールで開始'),AH('span',null,description))
      ),
-
-     AH('button',{type:'button',className:'ga-course-start',onClick:start},'コースを開始'),
-     AH('button',{type:'button',className:'ga-course-history-link',onClick:onHistory},'過去のコース想定結果を見る')
+     AH('button',{type:'button',className:'ga-course-start',onClick:start,disabled:!!hasActive},'コース想定を開始'),
+     hasActive?AH('p',{className:'ga-course-start-hint'},'新規開始は中断データの破棄後に利用できます。'):null
    ),
-   AH(GaBottomNav,{active:'practice',onHome:onHome||onBack,onPractice:()=>{},onData:onData||onHistory,onSettings})
+   AH(GaBottomNav,{active:'practice',onHome:onHome||onBack,onPractice:()=>{},onData,onSettings})
  );
 };
-
 
 /* =========================================================
    GOLF AiM v2 — STEP8
