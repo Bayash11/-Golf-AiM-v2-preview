@@ -2465,7 +2465,7 @@ Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
        AH('div',{className:'ga-random-result-cell'},AH('small',null,'平均横ズレ'),AH('strong',null,avgL),AH('em',null,'yd'))
      )
    ),
-   AH('section',{className:'ga-random-summary-card'},AH('h2',null,'今回の評価'),
+   AH('section',{className:'ga-random-summary-card'},AH('h2',null,'今回の評価（この練習のみ）'),
      AH('div',{className:'ga-random-eval-grid'},
        AH('div',{className:'ga-random-eval-card'},AH('small',null,'総合'),AH('strong',null,overallGrade)),
        AH('div',{className:'ga-random-eval-card'},AH('small',null,'距離'),AH('strong',null,distanceGrade)),
@@ -2473,7 +2473,7 @@ Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
      ),
      AH('details',{className:'ga-final-explain'},
        AH('summary',null,'評価基準を見る'),
-       AH('p',null,'総合評価は成功率と距離・方向の精度を50%ずつ反映。距離・方向は各ショットの目標距離と設定済み許容誤差に対する実際のズレから判定します。')
+       AH('p',null,'総合評価は成功率50%＋精度50%。精度は距離点・方向点の有効値の平均です。各点数は「100−50×（絶対誤差÷許容誤差）の平均」を0〜100に収め四捨五入。総合点はA（85以上）、B+（78以上）、B（70以上）、C+（60以上）、C（50以上）、D（40以上）、Fの順に判定。今回の1回分のみの評価です。')
      )
    ),
    AH('section',{className:'ga-random-summary-card'},AH('h2',null,'今回の傾向'),
@@ -3003,6 +3003,13 @@ xp=function({round:t,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
  const clubs=Object.entries(clubCount).sort(function(a,b){return b[1]-a[1]});
  const misses=Object.entries(missCount).sort(function(a,b){return b[1]-a[1]});
  const getData=function(){return sp(t)};
+ const courseShots=u.flatMap(function(h){return h.shots||[]});
+ const courseCurve=gaTopValue(courseShots.map(function(sh){return sh.resultCurve}),'—');
+ const courseGoodItems=courseShots.flatMap(function(sh){return Array.isArray(sh.contactPositive)?sh.contactPositive:[]});
+ const courseGood=gaTopValue(courseGoodItems,'記録なし');
+ const courseStyle=gaTopValue(courseShots.map(function(sh){return sh.style==='普通'?'ノーマル':sh.style}),'—');
+ const coursePair=gaRandomTopPair(courseShots);
+ const coursePairCount=coursePair==='—'?0:courseShots.filter(function(sh){return gaRandomImpactLabel(sh)===coursePair}).length;
  return AH('main',{className:'ga-course-final'},
    gaFinalSummaryHeader('コース結果',onMenu||onHome),
    gaFinalSummaryProgress('コース想定',(t.holeCount||u.length)+'H 完了'),
@@ -3021,7 +3028,7 @@ xp=function({round:t,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
      )
    ),
    AH('section',{className:'ga-course-final-card'},
-     AH('h2',null,'今回の評価'),
+     AH('h2',null,'今回の評価（このラウンドのみ）'),
      AH('div',{className:'ga-course-eval-grid'},
        AH('div',{className:'ga-course-eval'},AH('small',null,'総合'),AH('strong',null,current.score===null?'—':current.score)),
        AH('div',{className:'ga-course-eval'},AH('small',null,'ショット精度'),AH('strong',null,shotScore===null?'—':shotScore)),
@@ -3029,7 +3036,7 @@ xp=function({round:t,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
      ),
      AH('details',{className:'ga-final-explain'},
        AH('summary',null,'評価内容を見る'),
-       AH('p',null,'総合・ショット精度・マネジメントは現行のコース想定評価に基づきます。今回のスコアとは別に、目標に対するショットの実行結果と狙い方を振り返れます。')
+       AH('p',null,'総合点はスコア35%、ショット精度25%、マネジメント20%、大ミス耐性10%、アプローチ10%の加重平均です。未記録項目は除外して重みを再計算。ショット精度は各球の結果ランク（100・70・35・0点）の平均、マネジメントは各球の狙い判断点の平均。スコア項目はホールごとのPAR差平均から算出します。評価計算式自体は変更していません。')
      ),
      AH('div',{className:'ga-course-quality'},
        AH('div',{className:'ga-course-quality-row'},AH('span',null,'距離・横誤差の中央値'),AH('strong',null,ratioText)),
@@ -3047,11 +3054,21 @@ xp=function({round:t,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
        );
      }))
    ),
-   misses.length?AH('section',{className:'ga-course-final-card'},AH('h2',null,'ミス傾向'),AH('div',{className:'ga-course-chip-wrap'},...misses.slice(0,8).map(function(item){return AH('span',{className:'ga-course-chip miss',key:item[0]},item[0]+' ×'+item[1])}))):null,
+   AH('section',{className:'ga-course-final-card'},AH('h2',null,'ショット傾向・振り返り'),
+      AH('div',{className:'ga-course-trends-grid'},
+        AH('div',{className:'ga-course-trend'},AH('small',null,'球筋'),AH('strong',null,courseCurve)),
+        AH('div',{className:'ga-course-trend'},AH('small',null,'Good'),AH('strong',null,courseGood)),
+        AH('div',{className:'ga-course-trend'},AH('small',null,'ミス（最多）'),AH('strong',null,misses.length?misses[0][0]+' '+misses[0][1]+'回':'記録なし')),
+        AH('div',{className:'ga-course-trend'},AH('small',null,'打ち方'),AH('strong',null,courseStyle))
+      ),
+      gaSummaryImpactPanel(courseShots,coursePair,coursePairCount,courseShots.length)
+    ),
+    misses.length?AH('section',{className:'ga-course-final-card'},AH('h2',null,'ミス傾向'),AH('div',{className:'ga-course-chip-wrap'},...misses.slice(0,8).map(function(item){return AH('span',{className:'ga-course-chip miss',key:item[0]},item[0]+' ×'+item[1])}))):null,
    clubs.length?AH('section',{className:'ga-course-final-card'},AH('h2',null,'使用クラブ'),AH('div',{className:'ga-course-chip-wrap'},...clubs.map(function(item){return AH('span',{className:'ga-course-chip',key:item[0]},item[0]+' ×'+item[1])}))):null,
    AH('section',{className:'ga-course-final-card'},
-     AH('div',{className:'ga-course-skill-head'},AH('h2',null,'現在の実力'),AH('span',{className:'badge'},recent.status+'・直近'+recent.sessionsUsed+'回')),
-     AH('div',{className:'ga-course-quality'},
+     AH('div',{className:'ga-course-skill-head'},AH('h2',null,'現在の実力（履歴ベース）'),AH('span',{className:'badge'},recent.status+'・直近'+recent.sessionsUsed+'回')),
+     AH('p',{className:'ga-course-skill-note'},'今回を含む最大5回の完了履歴に基づく実力判定です。今回1回の点数とは別指標です。'),
+      AH('div',{className:'ga-course-quality'},
        AH('div',{className:'ga-course-quality-row'},AH('span',null,'ショット再現性'),AH('strong',null,_gaLevelText(recent.shotLevel))),
        AH('div',{className:'ga-course-quality-row'},AH('span',null,'マネジメント'),AH('strong',null,_gaLevelText(recent.managementLevel))),
        AH('div',{className:'ga-course-quality-row'},AH('span',null,'アプローチ'),AH('strong',null,_gaLevelText(recent.approachLevel))),
