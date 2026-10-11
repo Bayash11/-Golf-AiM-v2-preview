@@ -2780,18 +2780,15 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
    )
  );
 };
-/* Safe approach auto-zoom: driven only by remaining pin distance, never the tap/aim position. */
-function gaCourseShouldAutoGreenZoom(h){
- const remaining=Number(h&&h.remaining);
- return Number(h&&h.strokes)>0&&Number.isFinite(remaining)&&remaining>0&&remaining<=120;
-}
 dp=function(props){
  const h=props.hole;
- /* Auto is the default for each shot. "normal" keeps the full map manually selected. */
+ /* Only the remaining pin distance controls auto zoom. Aim taps must not affect it. */
+ const remaining=Number(h.remaining);
+ const autoGreen=Number(h.strokes)>0&&Number.isFinite(remaining)&&remaining>0&&remaining<=120;
  const [viewMode,setViewMode]=P.useState('auto');
  P.useEffect(()=>setViewMode('auto'),[h.number,h.strokes,h.penalty]);
  const overview=viewMode==='overview';
- const greenZoom=viewMode==='green'||(viewMode==='auto'&&gaCourseShouldAutoGreenZoom(h));
+ const greenZoom=viewMode==='green'||(viewMode==='auto'&&autoGreen);
  const effectiveShotNo=(h.strokes||0)+(h.penalty||0)+1;
  const shotLabel=h.strokes===0&&h.penalty===0?'ティーショット':`${effectiveShotNo}打目・${h.lie}`;
  const prevShot=Array.isArray(props.shots)&&props.shots.length?props.shots[props.shots.length-1]:null;
