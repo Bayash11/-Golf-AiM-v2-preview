@@ -2726,7 +2726,7 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
  const donePar=completedHoles.reduce((sum,h)=>sum+(Number(h.par)||0),0);
  const diff=doneScore-donePar;
  const score=completedHoles.length?aimScoreText(diff):'E';
- const pin=(current.pinLabel||hole.pinLabel||((hole.features||[]).find(f=>/ピン/.test(f.text||''))?.text||'—')).replace(/^ピン[:：]?\\s*/,'');
+ const pin=(current.pinLabel||hole.pinLabel||((hole.features||[]).find(f=>/ピン/.test(f.text||''))?.text||'—')).replace(/^ピン[:：]?\s*/,'');
  const gw=Math.round((hole.green?.halfWidth||0)*2),gd=Math.round((hole.green?.depth||0)*2);
  return AH('div',{className:'ga-course-fixed'},
    AH('header',{className:'ga-course-topbar'},
@@ -2742,7 +2742,7 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
      AH('div',{className:'ga-course-hole-primary'},
        AH('div',null,AH('small',null,'Hole'),AH('strong',null,holeIdx+1)),
        AH('div',null,AH('small',null,'Par'),AH('strong',null,hole.par)),
-       AH('div',{className:'yard'},AH('small',{'aria-hidden':true},'\\u00A0'),AH('strong',null,hole.distance+'yd')),
+       AH('div',{className:'yard'},AH('small',{'aria-hidden':true},'\u00A0'),AH('strong',null,hole.distance+'yd')),
        AH('div',{className:'score'},AH('small',null,'現在'),AH('strong',null,score))
      ),
      AH('div',{className:'ga-course-hole-meta'},
