@@ -3987,19 +3987,35 @@ const gaResultPointOptions=['上目','ヒール','真ん中','トゥ','下目'];
 
 /* Exactly one feel and one point; tapping the selected item clears only its group.
    The original contactImpact string array is kept for existing history/export compatibility. */
-function gaResultChooseImpact(current,label){
+/* One feel, and either center alone or a single horizontal + a single vertical point.
+   Normalize historical invalid combinations only when a user edits the shot. */
+const gaResultHorizontalPoints=['ヒール','トゥ'];
+const gaResultVerticalPoints=['上目','下目'];
+function gaResultNormalizeImpact(current){
  const old=Array.isArray(current)?current:[];
- const feel=gaResultFeelOptions.includes(label),point=gaResultPointOptions.includes(label);
- if(!feel&&!point)return [...old];
- const currentFeel=old.find(x=>gaResultFeelOptions.includes(x))||null;
- const currentPoint=old.find(x=>gaResultPointOptions.includes(x))||null;
- const nextFeel=feel?(currentFeel===label?null:label):currentFeel;
- const nextPoint=point?(currentPoint===label?null:label):currentPoint;
- return [nextFeel,nextPoint].filter(Boolean);
+ const feel=old.find(x=>gaResultFeelOptions.includes(x))||null;
+ const horizontal=old.find(x=>gaResultHorizontalPoints.includes(x))||null;
+ const vertical=old.find(x=>gaResultVerticalPoints.includes(x))||null;
+ const points=horizontal||vertical?[horizontal,vertical].filter(Boolean):old.includes('真ん中')?['真ん中']:[];
+ return [feel,...points].filter(Boolean);
+}
+function gaResultChooseImpact(current,label){
+ const old=gaResultNormalizeImpact(current);
+ if(!gaResultFeelOptions.includes(label)&&!gaResultPointOptions.includes(label))return old;
+ const oldFeel=old.find(x=>gaResultFeelOptions.includes(x))||null;
+ const oldHorizontal=old.find(x=>gaResultHorizontalPoints.includes(x))||null;
+ const oldVertical=old.find(x=>gaResultVerticalPoints.includes(x))||null;
+ const center=old.includes('真ん中');
+ if(gaResultFeelOptions.includes(label))return [oldFeel===label?null:label,...old.filter(x=>gaResultPointOptions.includes(x))].filter(Boolean);
+ if(label==='真ん中')return [oldFeel,...(center?[]:['真ん中'])].filter(Boolean);
+ const horizontal=gaResultHorizontalPoints.includes(label)?(oldHorizontal===label?null:label):oldHorizontal;
+ const vertical=gaResultVerticalPoints.includes(label)?(oldVertical===label?null:label):oldVertical;
+ return [oldFeel,horizontal,vertical].filter(Boolean);
 }
 function gaResultImpactEditor(impact,onChange){
- const activeFeel=gaResultFeelOptions.find(x=>impact.includes(x))||null;
- const activePoint=gaResultPointOptions.find(x=>impact.includes(x))||null;
+ const normalized=gaResultNormalizeImpact(impact);
+ const activeFeel=gaResultFeelOptions.find(x=>normalized.includes(x))||null;
+ const activePoints=normalized.filter(x=>gaResultPointOptions.includes(x));
  const face=[null,'上目',null,'ヒール','真ん中','トゥ',null,'下目',null];
  const choose=function(label){onChange(gaResultChooseImpact(impact,label));};
  return AH('div',{className:'ga-result-impact-card'},
@@ -4008,22 +4024,22 @@ function gaResultImpactEditor(impact,onChange){
    ...gaResultFeelOptions.map(x=>AH('button',{type:'button',key:x,'aria-pressed':x===activeFeel,onClick:function(){choose(x)}},x))
   ),
   AH('div',{className:'ga-result-impact-separator','aria-hidden':'true'}),
-  AH('div',{className:'ga-result-impact-heading'},AH('strong',null,'打点'),AH('span',null,'1箇所を選択')),
+  AH('div',{className:'ga-result-impact-heading'},AH('strong',null,'打点'),AH('span',null,'縦＋横は2つ選択可')),
   AH('div',{className:'ga-result-face-layout'},
    AH('div',{className:'ga-result-face-grid',role:'group','aria-label':'フェースの打点'},
     ...face.map(function(label,index){
      return label
-      ?AH('button',{type:'button',key:label,'aria-pressed':label===activePoint,onClick:function(){choose(label)}},label)
+      ?AH('button',{type:'button',key:label,'aria-pressed':activePoints.includes(label),onClick:function(){choose(label)}},label)
       :AH('span',{key:'blank-'+index,className:'ga-result-face-blank','aria-hidden':'true'});
     })
    ),
    AH('div',{className:'ga-result-face-note'},
     AH('strong',null,'フェース打点'),
     '打点位置をタップして記録',
-    AH('b',null,activePoint?activePoint+'を選択中':'打点は未選択')
+    AH('b',null,activePoints.length?activePoints.join('＋')+'を選択中':'打点は未選択')
    )
   ),
-  AH('p',{className:'ga-result-impact-footnote'},'選択中の項目を再タップすると解除できます。')
+  AH('p',{className:'ga-result-impact-footnote'},'上目・下目 ＋ ヒール・トゥは組み合わせ可。真ん中は単独選択。再タップで解除できます。')
  );
 }
 function gaResultDistanceEditor(t,choices,step,onField){
@@ -4064,8 +4080,9 @@ function gaResultCurveEditor(value,onChange,expanded,setExpanded){
  );
 }
 function gaResultEntryFooter(t,impact,caption,onConfirm){
- const feel=gaResultFeelOptions.find(x=>impact.includes(x))||'未選択';
- const point=gaResultPointOptions.find(x=>impact.includes(x))||'未選択';
+ const chosen=gaResultNormalizeImpact(impact);
+ const feel=gaResultFeelOptions.find(x=>chosen.includes(x))||'未選択';
+ const point=chosen.filter(x=>gaResultPointOptions.includes(x)).join('＋')||'未選択';
  return AH('div',{className:'ga-result-footer'},
   AH('p',{className:'ga-result-footer-summary'},
    '打感：',AH('b',null,feel),'　打点：',AH('b',null,point),
