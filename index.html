@@ -2477,14 +2477,15 @@ Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
      )
    ),
    AH('section',{className:'ga-random-summary-card'},AH('h2',null,'今回の傾向'),
-     AH('div',{className:'ga-random-tendency-grid'},
-       AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'→'),AH('div',null,AH('small',null,'球筋'),AH('strong',null,curve==='—'?'—':curve+(curveCount?' '+curveCount+'/'+total:'')))),
-       AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'▥'),AH('div',null,AH('small',null,'打感・打点'),AH('strong',null,contact==='—'?'—':contact+(contactCount?' '+contactCount+'/'+total:'')))),
-       AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'×'),AH('div',null,AH('small',null,'ミス'),AH('strong',null,miss==='大きなミスなし'?miss:miss+' '+missCount+'回'))),
-       AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'♙'),AH('div',null,AH('small',null,'打ち方'),AH('strong',null,style==='—'?'—':style+(styleCount?' '+styleCount+'/'+total:''))))
-     )
-   ),
-   AH('section',{className:'ga-random-summary-card'},AH('h2',null,total+'球の記録'),
+      AH('div',{className:'ga-random-tendency-grid'},
+        AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'↗'),AH('div',null,AH('small',null,'球筋'),AH('strong',null,curve==='—'?'—':curve+(curveCount?' '+curveCount+'/'+total:'')))),
+        AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'＋'),AH('div',null,AH('small',null,'Good'),AH('strong',null,good==='記録なし'?good:good+' '+goodCount+'回'))),
+        AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'−'),AH('div',null,AH('small',null,'ミス'),AH('strong',null,miss==='大きなミスなし'?miss:miss+' '+missCount+'回'))),
+        AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'○'),AH('div',null,AH('small',null,'打ち方'),AH('strong',null,style==='—'?'—':style+(styleCount?' '+styleCount+'/'+total:''))))
+      ),
+      gaSummaryImpactPanel(shots,contact,contactCount,total)
+    ),
+    AH('section',{className:'ga-random-summary-card'},AH('h2',null,total+'球の記録'),
      !showAll&&preview.length?AH('div',{className:'ga-random-preview-list'},...preview.map(function(x,idx){
        const ok=!!(x.success||x.resultSuccess);
        const lateral=Number(x.lateral)||0;
