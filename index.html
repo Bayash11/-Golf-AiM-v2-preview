@@ -3976,6 +3976,37 @@ function GaFeedbackSettingsScreen({onBack,onHome,onPractice,onData,onSettings}){
 
 
 
+
+/* Shared shot-entry header based on the existing Shot log 3-column layout. */
+const gaShotEntryHeaderStyle=document.createElement('style');
+gaShotEntryHeaderStyle.id='ga-shot-entry-header-20261011';
+gaShotEntryHeaderStyle.textContent="\n/* Match Shot log's balanced 3-column safe-area header on shot entry screens. */\n.ga-random-aim-head.ga-shot-entry-head,.ga-random-result-head.ga-shot-entry-head{\n display:grid;grid-template-columns:84px minmax(0,1fr) 84px;align-items:center;justify-content:normal;\n height:var(--ga-header-total);padding:calc(var(--ga-header-total) - 54px) 14px 7px;\n background:rgba(248,250,252,.97);border-bottom:1px solid rgba(221,227,234,.9);\n backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);\n box-sizing:border-box;\n}\n#root .ga-shot-entry-head .ga-shot-entry-back{\n position:static!important;left:auto!important;bottom:auto!important;\n justify-self:start;display:flex;align-items:center;justify-content:flex-start;\n width:84px!important;min-height:44px;height:44px!important;max-height:44px;\n margin:0;padding:0!important;background:transparent!important;border:0!important;\n border-radius:0!important;color:var(--ga-text)!important;font-size:14px!important;\n font-weight:750!important;line-height:1.3!important;text-align:left;box-shadow:none!important;\n}\n.ga-shot-entry-head .ga-shot-entry-title{\n display:block;justify-self:center;margin:0!important;max-width:100%;overflow:hidden;\n white-space:nowrap;text-overflow:ellipsis;color:var(--ga-text);font-size:17px!important;\n font-weight:800!important;line-height:1.3!important;letter-spacing:-.35px;\n}\n.ga-shot-entry-logo{\n justify-self:end;display:flex;align-items:baseline;justify-content:flex-end;gap:3px;\n white-space:nowrap;color:#202635;font-size:14px;line-height:1.3;font-weight:850;\n letter-spacing:-.65px;pointer-events:none;user-select:none;\n}\n.ga-shot-entry-logo .ga-shot-entry-logo-aim{color:var(--ga-orange);font-style:italic;}\n.ga-shot-entry-progress{\n display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:29px;\n padding:0 1px;margin:0 0 11px;box-sizing:border-box;\n}\n.ga-shot-entry-progress .ga-shot-entry-mode{color:#7D8D9D;font-size:11px;font-weight:700;}\n.ga-shot-entry-progress .ga-shot-entry-count{\n display:block;min-height:27px;padding:6px 10px;box-sizing:border-box;border-radius:8px;\n background:#FFF0E7;color:#E76A29;font-size:11px;font-weight:850;line-height:1.35;\n font-variant-numeric:tabular-nums;\n}\n/* Existing pause/menu component stays mounted, but its duplicate icon is hidden\n   only on random aiming. The new back button opens that same protected menu. */\n.ga-random-playing:has(.ga-random-aim)>.aim-quit .aim-quit-open{display:none!important;}\n@media(max-width:350px){\n .ga-random-aim-head.ga-shot-entry-head,.ga-random-result-head.ga-shot-entry-head{\n  grid-template-columns:76px minmax(0,1fr) 76px;padding-left:12px;padding-right:12px;\n }\n #root .ga-shot-entry-head .ga-shot-entry-back{width:76px!important;font-size:13px!important;}\n .ga-shot-entry-logo{font-size:13px;}\n .ga-shot-entry-head .ga-shot-entry-title{font-size:16px!important;}\n}\n";
+document.head.appendChild(gaShotEntryHeaderStyle);
+
+/* Random aiming must keep the original pause -> save/discard/continue flow. */
+function gaOpenRandomQuitMenu(){
+ const toggle=typeof window!=='undefined'&&window.__aimQuitToggle;
+ if(typeof toggle==='function'){toggle();return;}
+ const trigger=document.querySelector('.ga-random-playing > .aim-quit .aim-quit-open');
+ if(trigger&&typeof trigger.click==='function')trigger.click();
+}
+function gaShotEntryHeader(kind,title,onBack){
+ const aim=kind==='aim';
+ return AH('header',{className:(aim?'ga-random-aim-head':'ga-random-result-head')+' ga-shot-entry-head'},
+  AH('button',{type:'button',className:'ga-shot-entry-back '+(aim?'ga-random-aim-back':'ga-random-result-back'),'aria-label':aim?'中断メニューを開く':'狙い入力へ戻る',onClick:onBack},'‹ 戻る'),
+  AH('h1',{className:'ga-shot-entry-title'},title),
+  AH('div',{className:'ga-shot-entry-logo','aria-label':'GOLF AiM ロゴ','aria-hidden':'true'},
+   AH('span',null,'GOLF'),AH('span',{className:'ga-shot-entry-logo-aim'},'AiM')
+  )
+ );
+}
+function gaShotEntryProgress(mode,count){
+ return AH('div',{className:'ga-shot-entry-progress'},
+  AH('span',{className:'ga-shot-entry-mode'},mode),
+  AH('strong',{className:'ga-shot-entry-count'},count)
+ );
+}
+
 /* Approved shot-result input redesign (2026-10-11). */
 const gaResultRefinedStyle=document.createElement('style');
 gaResultRefinedStyle.id='ga-result-redesign-20261011';
@@ -4104,11 +4135,8 @@ Cp=function(props){
  const good=gaFeedbackEnabled('good'),miss=gaFeedbackEnabled('miss');
  const [curveExpanded,setCurveExpanded]=P.useState(['フック','テンプラ','スライス','チョロ'].includes(t.resultCurve));
  return AH('main',{className:'ga-random-result'},
-  AH('header',{className:'ga-random-result-head'},
-   AH('button',{type:'button',className:'ga-random-result-back','aria-label':'狙い入力に戻る',onClick:props.onBackToAim||props.onCancel},'‹'),
-   AH('h1',null,'結果を入力'),
-   AH('div',{className:'ga-random-result-progress'},(props.shotIndex+1)+' / '+props.totalShots+' 球')
-  ),
+  gaShotEntryHeader('result','結果入力',props.onBackToAim||props.onCancel),
+  gaShotEntryProgress('ランダム練習',(props.shotIndex+1)+' / '+props.totalShots+' 球'),
   AH('section',{className:'ga-result-summary'},
    AH('div',{className:'ga-result-summary-main'},AH('small',null,'今回の目標距離'),AH('strong',null,target.targetDistance+'yd')),
    AH('div',{className:'ga-result-summary-side'},AH('small',null,'使用クラブ'),AH('strong',null,t.club)),
@@ -4136,11 +4164,8 @@ pp=function(props){
  const planText=[t.curveBase||'ストレート',t.style==='普通'?'ノーマル':t.style].filter(Boolean).join(' / ');
  const [curveExpanded,setCurveExpanded]=P.useState(['フック','テンプラ','スライス','チョロ'].includes(t.resultCurve));
  return AH('main',{className:'ga-random-result ga-course-result'},
-  AH('header',{className:'ga-random-result-head'},
-   AH('button',{type:'button',className:'ga-random-result-back','aria-label':'狙い入力に戻る',onClick:props.onBackToAim||props.onCancel},'‹'),
-   AH('h1',null,'結果を入力'),
-   AH('div',{className:'ga-random-result-progress'},shotNo+'打目')
-  ),
+  gaShotEntryHeader('result','結果入力',props.onBackToAim||props.onCancel),
+  gaShotEntryProgress('コース想定',shotNo+'打目'),
   AH('section',{className:'ga-result-summary'},
    AH('div',{className:'ga-result-summary-main'},AH('small',null,'狙いまで'),AH('strong',null,targetDistance+'yd')),
    AH('div',{className:'ga-result-summary-side'},AH('small',null,'使用クラブ'),AH('strong',null,t.club)),
@@ -5270,10 +5295,8 @@ zp=function({target,shotIndex,totalShots=10,fixedClub=null,selectedClub,onClub,c
  const selectedAim=aimItems.find(function(x){return x.value===plan.aimTarget});
  const selectedSummary=[selectedClub||'クラブ未選択',selectedAim?selectedAim.label:'方向未選択',plan.curveBase||'球筋未選択',selectedStyle||'打ち方未選択'];
  return AH('main',{className:'ga-random-aim'},
-  AH('header',{className:'ga-random-aim-head'},
-   AH('h1',null,'狙いを決める'),
-   AH('div',{className:'ga-random-aim-progress'},(shotIndex+1)+' / '+totalShots+' 球')
-  ),
+  gaShotEntryHeader('aim','狙い入力',gaOpenRandomQuitMenu),
+  gaShotEntryProgress('ランダム練習',(shotIndex+1)+' / '+totalShots+' 球'),
   AH('section',{className:'ga-random-aim-target'},
    AH('div',null,
     AH('small',null,'今回のターゲット距離'),
