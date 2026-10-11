@@ -2778,6 +2778,8 @@ dp=function(props){
  const overview=viewMode==='overview',greenZoom=viewMode==='green';
  const effectiveShotNo=(h.strokes||0)+(h.penalty||0)+1;
  const shotLabel=h.strokes===0&&h.penalty===0?'ティーショット':`${effectiveShotNo}打目・${h.lie}`;
+ const prevShot=Array.isArray(props.shots)&&props.shots.length?props.shots[props.shots.length-1]:null;
+ const prevPenalty=!!(prevShot&&(prevShot.penalty||prevShot.lie==='OB'||prevShot.lie==='池'));
  return AH(P.Fragment,null,
    AH('section',{className:`ga-course-map-card ga-course-par${h.par}${greenZoom?' ga-course-zoom':''}${overview?' ga-course-overview':''}`},
      AH('div',{className:'ga-course-map-toolbar'},
@@ -2798,7 +2800,12 @@ dp=function(props){
    AH('section',{className:'ga-course-shot-strip'},
      AH('div',null,AH('small',null,'現在のショット'),AH('strong',null,shotLabel)),
      AH('div',{className:'remaining'},AH('small',null,'残り'),AH('strong',null,`${h.remaining}yd`))
-   )
+   ),
+   prevShot&&!props.pendingPoint?AH('section',{className:'ga-course-last-shot','aria-label':'直前のショット'},
+     AH('span',{className:'ga-course-last-shot-label'},'直前のショット'),
+     AH('strong',{className:'ga-course-last-shot-value'},(prevShot.club||'—')+' ・ '+(Number.isFinite(Number(prevShot.forward))?Math.round(Number(prevShot.forward)*10)/10+'yd':'—')),
+     AH('span',{className:'ga-course-last-shot-lie'+(prevPenalty?' is-penalty':'')},(prevShot.lie||'—')+(prevPenalty?' ＋1罰打':''))
+   ):null
  );
 };
 
@@ -2935,6 +2942,10 @@ gaCourseHoleFinishStyle.textContent=`
 .ga-hole-finish-next:after{content:"›";position:absolute;right:20px;top:50%;transform:translateY(-54%);font-size:29px;font-weight:300;}
 `;
 document.head.appendChild(gaCourseHoleFinishStyle);
+const gaCourseStep04Style=document.createElement('style');
+gaCourseStep04Style.id='ga-course-step04-20261011';
+gaCourseStep04Style.textContent="\n/* STEP04: previous-shot reminder and finish card in the shared iPhone14 design. */\n.ga-course-last-shot{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;margin:-1px 0 10px;padding:10px 12px;border:1px solid #E1E8F2;border-radius:12px;background:#fff;}\n.ga-course-last-shot-label{color:var(--ga-sub);font-size:10px;font-weight:750;}\n.ga-course-last-shot-value{min-width:0;overflow:hidden;color:var(--ga-text);font-size:12px;font-weight:850;white-space:nowrap;text-overflow:ellipsis;}\n.ga-course-last-shot-lie{max-width:100px;overflow:hidden;padding:5px 7px;border-radius:8px;background:#EEF4FF;color:var(--ga-blue);font-size:10px;font-weight:800;white-space:nowrap;text-overflow:ellipsis;}\n.ga-course-last-shot-lie.is-penalty{background:#FFF1E9;color:#B6501D;}\n.ga-course-hole-finish{padding:calc(var(--ga-header-total) + 13px) 14px 32px;}\n.ga-course-hole-finish-head{display:grid;grid-template-columns:84px minmax(0,1fr) 84px;align-items:center;justify-content:normal;padding:calc(var(--ga-header-total) - 54px) 14px 7px;background:rgba(248,250,252,.97);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}\n.ga-course-hole-finish-head h1{justify-self:center;max-width:100%;font-size:17px;line-height:1.3;white-space:nowrap;}\n.ga-hole-finish-head-side{position:static!important;display:flex!important;justify-self:start;align-items:center;width:auto;height:44px!important;padding:0;color:var(--ga-sub)!important;font-size:11px!important;font-weight:800!important;}\n.ga-hole-finish-head-brand{justify-self:end;display:flex;align-items:baseline;gap:3px;color:#202635;font-size:14px;font-weight:850;letter-spacing:-.65px;white-space:nowrap;pointer-events:none;}\n.ga-hole-finish-head-brand span{position:static!important;right:auto!important;bottom:auto!important;display:inline!important;height:auto!important;color:inherit!important;font-size:inherit!important;font-weight:inherit!important;}\n.ga-hole-finish-head-brand b{color:var(--ga-orange);font-style:italic;}\n.ga-hole-finish-progress{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;padding:0 2px;color:var(--ga-sub);font-size:11px;font-weight:700;}\n.ga-hole-finish-progress strong{display:inline-flex;align-items:center;min-height:27px;padding:5px 10px;border-radius:8px;background:#FFF0E7;color:#E76A29;font-size:11px;font-weight:850;}\n.ga-hole-finish-score{padding:18px 14px 17px;border:1px solid #E8ECF1;border-radius:16px;box-shadow:none;}\n.ga-hole-finish-score strong{color:var(--ga-orange);font-size:56px;}\n.ga-hole-finish-score strong em{color:var(--ga-text);font-size:19px;}\n.ga-hole-finish-score p{margin-top:10px;font-size:10px;line-height:1.5;}\n.ga-hole-finish-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px;}\n.ga-hole-finish-metric{padding:13px 8px;border:1px solid #E8ECF1;border-radius:14px;box-shadow:none;}\n.ga-hole-finish-metric small{font-size:11px;}\n.ga-hole-finish-metric strong{font-size:22px;font-variant-numeric:tabular-nums;}\n.ga-hole-finish-metric.penalty strong{color:#B6501D;}\n.ga-hole-finish-cumulative{margin-top:10px;border:1px solid #E8ECF1;box-shadow:none;}\n.ga-hole-finish-cumulative-row strong{color:var(--ga-blue);}\n.ga-hole-finish-next{min-height:56px;border-radius:16px;box-shadow:none;}\n.ga-hole-finish-next:disabled{background:#BEC6D1;box-shadow:none;cursor:wait;}\n.ga-hole-finish-next:disabled:after{content:\"\";}\n@media(max-width:360px){\n .ga-course-hole-finish-head{grid-template-columns:76px minmax(0,1fr) 76px;padding-left:12px;padding-right:12px;}\n .ga-hole-finish-head-brand{font-size:12px;}\n .ga-course-last-shot{gap:5px;padding:9px 8px;}\n .ga-course-last-shot-value{font-size:11px;}\n .ga-course-last-shot-lie{max-width:80px;font-size:9px;}\n}";
+document.head.appendChild(gaCourseStep04Style);
 
 bp=function({current,isLastHole,onNext,completedHoles=[]}){
  const putts=current.expectedPutts??2;
@@ -2945,23 +2956,47 @@ bp=function({current,isLastHole,onNext,completedHoles=[]}){
  const cumScore=doneScore+holeTotal;
  const cumPar=donePar+current.par;
  const cumDiff=cumScore-cumPar;
- const diffText=holeDiff===0?'E':holeDiff>0?`+${holeDiff}`:`${holeDiff}`;
+ const diffText=holeDiff===0?'E':holeDiff>0?'+'+holeDiff:String(holeDiff);
  const greenM=Number.isFinite(current.remainingAtGreenM)?current.remainingAtGreenM:null;
+ const [submitting,setSubmitting]=P.useState(false);
+ const submissionLock=P.useRef(false);
+ const next=function(){
+  if(submissionLock.current)return;
+  submissionLock.current=true;setSubmitting(true);
+  const retry=function(err){
+   console.error('コース想定のホール確定に失敗しました',err);
+   submissionLock.current=false;setSubmitting(false);
+  };
+  try{Promise.resolve(onNext()).catch(retry)}
+  catch(err){retry(err)}
+ };
  return AH('main',{className:'ga-course-hole-finish'},
    AH('header',{className:'ga-course-hole-finish-head'},
+     AH('span',{className:'ga-hole-finish-head-side'},'コース想定'),
      AH('h1',null,'ホール結果'),
-     AH('span',null,`HOLE ${current.number}`)
+     AH('div',{className:'ga-hole-finish-head-brand','aria-label':'GOLF AiM'},AH('span',null,'GOLF'),AH('b',null,'AiM'))
+   ),
+   AH('div',{className:'ga-hole-finish-progress'},
+     AH('strong',null,current.number+'H 完了'),
+     AH('span',null,isLastHole?'最終ホール':'次は '+(current.number+1)+'H')
    ),
    AH('section',{className:'ga-hole-finish-score'},
-     AH('small',null,`PAR ${current.par}`),
-     AH('div',{className:'hole-line'},`HOLE ${current.number}`),
+     AH('small',null,'HOLE '+current.number+' / PAR '+current.par),
      AH('strong',null,holeTotal,AH('em',null,diffText)),
-     AH('p',null,'グリーンオン後は想定パットを含めてスコア計算')
+     AH('p',null,'ショット・ペナルティ・想定パットを合算して算出')
    ),
-   AH('section',{className:'ga-hole-finish-metrics'},
+   AH('section',{className:'ga-hole-finish-metrics','aria-label':'スコア内訳'},
+     AH('div',{className:'ga-hole-finish-metric'},
+       AH('small',null,'ショット数'),
+       AH('strong',null,current.strokes,AH('em',null,'打'))
+     ),
+     AH('div',{className:'ga-hole-finish-metric'+(current.penalty>0?' penalty':'')},
+       AH('small',null,'ペナルティ'),
+       AH('strong',null,current.penalty,AH('em',null,'打'))
+     ),
      AH('div',{className:'ga-hole-finish-metric'},
        AH('small',null,'想定パット'),
-       AH('strong',null,Number(putts).toFixed(2))
+       AH('strong',null,Number(putts).toFixed(2),AH('em',null,'打'))
      ),
      AH('div',{className:'ga-hole-finish-metric'},
        AH('small',null,'グリーンオン残り'),
@@ -2971,17 +3006,16 @@ bp=function({current,isLastHole,onNext,completedHoles=[]}){
    AH('section',{className:'ga-hole-finish-cumulative'},
      AH('h2',null,'ここまでのスコア'),
      AH('div',{className:'ga-hole-finish-cumulative-row'},
-       AH('span',null,`${completedHoles.length+1}H終了`),
-       AH('strong',null,`${cumScore}打 / ${aimScoreText(cumDiff)}`)
+       AH('span',null,(completedHoles.length+1)+'H終了'),
+       AH('strong',null,cumScore+'打 / '+aimScoreText(cumDiff))
      ),
-     current.penalty>0?AH('div',{className:'ga-hole-finish-penalty'},`ペナルティ ${current.penalty}打を含みます`):null
+     current.penalty>0?AH('div',{className:'ga-hole-finish-penalty'},'ペナルティ '+current.penalty+'打を含みます'):null
    ),
-   AH('button',{type:'button',className:'ga-hole-finish-next',onClick:onNext},
-     isLastHole?'ラウンド結果を見る':'次のホールへ'
+   AH('button',{type:'button',className:'ga-hole-finish-next',onClick:next,disabled:submitting,'aria-busy':submitting},
+     submitting?'記録を確定中…':isLastHole?'ラウンド結果を見る':'次のホールへ'
    )
  );
 };
-
 
 /* =========================================================
    GOLF AiM v2 — STEP12
