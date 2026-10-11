@@ -1651,7 +1651,7 @@ O1=function(number,par){
 };
 function aimFwWidthAt(h,y){return Math.max(0,Math.round(bu(Dt(y,0,h.distance),h)*2))}
 rp=function(){return null};
-AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=false,expanded=false,zoom=false,focusCurrent=false}){
+AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=false,expanded=false,zoom=false}){
  const ref=P.useRef(null),drag=P.useRef(false),justDragged=P.useRef(false),tapStart=P.useRef(null),touchStart=P.useRef(null),suppressClickUntil=P.useRef(0),[dragging,setDragging]=P.useState(false),[dragPoint,setDragPoint]=P.useState(null);
  const xs=h.centerline.map(p=>p.v);
  const baseXMin=Math.min(...xs)-72,baseXMax=Math.max(...xs)+72,baseYMin=-22,baseYMax=h.distance+40;
@@ -1667,20 +1667,6 @@ AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=fals
  if(zoom){
    xmin=h.greenCenter.x-42;xmax=xmin+84;
    const yr=clampYWindow(h.greenCenter.y-42,h.greenCenter.y+42);ymin=yr[0];ymax=yr[1];
- }else if(focusCurrent&&!mini&&prevPos){
-   /*
-    * After the tee shot, fit the current position and the next target naturally.
-    * Do not pin the ball to the lower part of the map. The visible range becomes
-    * shorter as the remaining distance decreases, while never extending beyond
-    * the original hole layout above the green.
-    */
-   const focusTarget=aimPoint||h.pin||h.greenCenter;
-   const focusDistance=Math.max(0,se(prevPos.x,prevPos.y,focusTarget.x,focusTarget.y));
-   const focusHeight=Dt(Math.round(focusDistance*1.55+55),140,baseH);
-   const centerY=(prevPos.y+focusTarget.y)/2;
-   const yr=clampYWindow(centerY-focusHeight/2,centerY+focusHeight/2);
-   ymin=yr[0];ymax=yr[1];
-   xmin=baseXMin;xmax=baseXMax;
  }
  if(mini&&!expanded&&pendingPoint){
    const target=aimPoint||pendingPoint,cx=(target.x+pendingPoint.x)/2,cy=(target.y+pendingPoint.y)/2,w=Math.max(95,Math.abs(target.x-pendingPoint.x)+45,(Math.abs(target.y-pendingPoint.y)+45)*1.6);
@@ -2786,7 +2772,7 @@ dp=function(props){
        AH('button',{type:'button','aria-label':'コース全体図を切り替え','aria-pressed':overview,onClick:()=>setViewMode(v=>v==='overview'?'normal':'overview')},'全体図'),
        AH('button',{type:'button','aria-label':'グリーン拡大を切り替え','aria-pressed':greenZoom,onClick:()=>setViewMode(v=>v==='green'?'normal':'green')},'グリーン拡大')
      ),
-     AH(AimMap,{...props,zoom:greenZoom,focusCurrent:effectiveShotNo>1&&!overview&&!greenZoom,tapEnabled:overview?false:props.tapEnabled}),
+     AH(AimMap,{...props,zoom:greenZoom,tapEnabled:overview?false:props.tapEnabled}),
      AH('p',{className:'ga-course-map-help'},
        overview
          ?'全体図を表示中です。狙いの微調整は通常表示で行います。'
