@@ -14,8 +14,8 @@ function extract(start,end){
 const impact=extract('const GA_IMPACT_OPTIONS=', 'ra=function(t)');
 const progress=extract('function gaShotEntryProgress(mode,count){','/* Approved result-summary redesign: use the same safe-area header as input screens. */');
 const shared=extract('/* Approved result-summary redesign: use the same safe-area header as input screens. */','/* Approved shot-result input redesign (2026-10-11). */');
-const random=extract('function gaTopValue(items','/* GOLF AiM v2 — STEP7');
-const course=extract('xp=function({round:','/* GOLF AiM v2 — STEP13');
+const random=extract('function gaTopValue(items','/* =========================================================\n   GOLF AiM v2 — STEP7');
+const course=extract('xp=function({round:','/* =========================================================\n   GOLF AiM v2 — STEP13');
 const AH=(tag,props,...children)=>({tag,props:props||{},children});
 function all(root,match,acc=[]){
  if(!root||typeof root!=='object')return acc;
@@ -143,7 +143,7 @@ test('expanded shot list remains accessible and uses same status texts',()=>{
  assert.equal(update[1](false),true);
  const full=f.random({session:{...f.props.session,shots:[...shots],totalShots:3}});
  assert.equal(named(full,'ga-random-preview-row').length,3,'Before toggle original 3 entries remain');
- const source=extract('Dp=function({session','/* GOLF AiM v2 — STEP7');
+ const source=extract('Dp=function({session','/* =========================================================\n   GOLF AiM v2 — STEP7');
  assert.match(source,/ga-random-shot-card/);
  assert.match(source,/gaRandomImpactLabel\(x\)/);
 });
@@ -179,7 +179,7 @@ test('old persistence and navigation actions remain and no new storage fields ad
  buttons[0].props.onClick();buttons[1].props.onClick();
  assert.deepEqual(f.events.slice(-2),['restart','data']);
  assert.match(textOf(buttons[2]),/JSONデータをコピー/);
- const code=extract('Dp=function({session','/* GOLF AiM v2 — STEP7');
+ const code=extract('Dp=function({session','/* =========================================================\n   GOLF AiM v2 — STEP7');
  assert.match(code,/copyJson/);
  assert.match(code,/GaBottomNav/);
  assert.match(code,/gaRandomToleranceScore/);
