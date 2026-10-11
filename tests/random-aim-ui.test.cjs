@@ -55,7 +55,7 @@ function fixture({green=true,fixedClub=null,selectedClub='7I',courseInfo=courseD
   clubs:['Dr','7I','8I'],plan,
   onClub:x=>picked.push(x),onPlanField:(field,value)=>changes.push([field,value]),
   onStartShot:()=>hits.push('shot')});
- return {view,changes,picked,hits,menuEvents};
+ return {view,changes,picked,hits,menuEvents,ctx};
 }
 test('Shot log style aiming header keeps a safe pause action and separates progress',()=>{
  const {view,menuEvents}=fixture();
