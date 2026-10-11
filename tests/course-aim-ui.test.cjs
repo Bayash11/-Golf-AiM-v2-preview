@@ -132,6 +132,7 @@ const courseMapSource=extract("AimMap=function({hole:h,prevPos,aimPoint,pendingP
 function layoutFixture(){
  const P={
   useRef(initial){return {current:initial}},
+  useEffect(){},
   useState(initial){return [initial,()=>{}]},
   cloneElement(node,props){return {...node,props:{...node.props,...props}}}
  };
@@ -194,4 +195,110 @@ test('nearby tap can be corrected by tapping far ahead without enlarging the cou
  assert.ok(recorded[1].y>recorded[0].y,'second tap should successfully move the aim toward the green');
  const zoom=f.draw({aimPoint:recorded[1],zoom:true});
  assert.notEqual(zoom.svg.props.viewBox,original,'user-selected green zoom is intentionally preserved');
+});
+
+
+/* Reproduces the screenshot: a loupe stayed visible even with no selected club,
+   and a previously selected green view carried over into the next shot. */
+function magnifierFixture(){
+ const state=[],refs=[],deplist=[],listeners={};
+ let hookIndex=0;
+ const P={
+  useRef(initial){const index=hookIndex++;return refs[index]||(refs[index]={current:initial})},
+  useState(initial){
+   const index=hookIndex++;
+   if(!(index in state))state[index]=initial;
+   return[state[index],v=>{state[index]=typeof v==='function'?v(state[index]):v}];
+  },
+  useEffect(fn,deps){
+   const index=hookIndex++;
+   const prev=deplist[index];
+   if(!prev||!deps||prev.length!==deps.length||deps.some((v,i)=>v!==prev[i])){
+    deplist[index]=deps;
+    fn();
+   }
+  },
+  cloneElement(node,props){return{...node,props:{...node.props,...props}}}
+ };
+ const w={
+  addEventListener(name,fn){(listeners[name]||(listeners[name]=[])).push(fn)},
+  removeEventListener(name,fn){listeners[name]=(listeners[name]||[]).filter(f=>f!==fn)}
+ };
+ const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+ const ctx=vm.createContext({AH,P,window:w,Dt:clamp,
+  se:(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2),
+  bu:()=>28,Yt:()=>0,aimFwWidthAt:()=>56,
+  aimBand:()=>[],aimOrganic:()=>[],setTimeout:()=>{}
+ });
+ vm.runInContext('var AimMap;\n'+courseMapSource,ctx);
+ const p=[{x:-30,y:0},{x:30,y:0},{x:30,y:405},{x:-30,y:405}];
+ const testHole={number:2,par:4,distance:405,terrain:'park',
+  centerline:[{v:0,y:0},{v:10,y:405}],roughPoly:p,fairwayPoly:p,greenPoly:p,apronPoly:p,
+  greenCenter:{x:0,y:392},pin:{x:0,y:392},green:{halfWidth:15,depth:20},
+  water:null,trees:[],bunkers:[],obZones:[]};
+ const prevPos={x:0,y:200};
+ const draw=(opts={})=>{
+  hookIndex=0;
+  return ctx.AimMap({hole:testHole,prevPos,aimPoint:{x:0,y:300},onTap:()=>{},
+   tapEnabled:true,...opts});
+ };
+ return{draw,listeners,ctx};
+}
+test('magnifier exists only for an active aim-marker drag, not before interaction',()=>{
+ const f=magnifierFixture();
+ let view=f.draw();
+ assert.equal(named(view,'aim-target-lens').length,0,'no magnifier on initial load');
+ const marker=collect(view,n=>n.tag==='g'&&typeof n.props.onPointerDown==='function')[0];
+ assert.ok(marker);
+ marker.props.onPointerDown({pointerId:1,stopPropagation(){},preventDefault(){},
+  currentTarget:{setPointerCapture(){}}});
+ view=f.draw();
+ assert.equal(named(view,'aim-target-lens').length,1,'show during real drag');
+ assert.ok(f.listeners.pointerup?.length,'global pointer release guard is installed');
+ f.listeners.pointerup.forEach(fn=>fn());
+ view=f.draw();
+ assert.equal(named(view,'aim-target-lens').length,0,'pointer release hides magnifier');
+});
+test('aborted drags never leave a loupe on next shot with no club/aim',()=>{
+ const f=magnifierFixture();
+ let view=f.draw();
+ const marker=collect(view,n=>n.tag==='g'&&typeof n.props.onPointerDown==='function')[0];
+ marker.props.onPointerDown({pointerId:3,stopPropagation(){},preventDefault(){},
+  currentTarget:{setPointerCapture(){}}});
+ view=f.draw();
+ assert.equal(named(view,'aim-target-lens').length,1);
+ view=f.draw({aimPoint:null,tapEnabled:false});
+ assert.equal(named(view,'aim-target-lens').length,0,'clears immediately on next shot');
+ view=f.draw({aimPoint:{x:0,y:380},tapEnabled:true});
+ assert.equal(named(view,'aim-target-lens').length,0,'stale drag may not revive');
+});
+test('green enlargement resets for every confirmed shot and penalty, not only next hole',()=>{
+ let selected='normal',lastDeps=null,effectCalls=0;
+ const P={
+  useState(){return[selected,v=>{selected=typeof v==='function'?v(selected):v}]},
+  useEffect(fn,deps){
+   const key=JSON.stringify(deps);
+   if(key!==lastDeps){lastDeps=key;effectCalls++;fn()}
+  },
+  Fragment:'fragment'
+ };
+ const ctx=vm.createContext({AH,P,AimMap:'aim-map'});
+ vm.runInContext('var dp;\n'+dpSource,ctx);
+ const options={hole:{...hole,strokes:1,penalty:0},shots:[],tapEnabled:true};
+ let view=ctx.dp(options);
+ named(view,'ga-course-map-toolbar')[0].children[1].props.onClick();
+ view=ctx.dp(options);
+ assert.equal(named(view,'ga-course-zoom').length,1);
+ options.hole={...options.hole,strokes:2};
+ ctx.dp(options); // React schedules another render after the effect.
+ view=ctx.dp(options);
+ assert.equal(named(view,'ga-course-zoom').length,0,'next shot starts without green zoom');
+ named(view,'ga-course-map-toolbar')[0].children[1].props.onClick();
+ view=ctx.dp(options);
+ assert.equal(named(view,'ga-course-zoom').length,1);
+ options.hole={...options.hole,penalty:1};
+ ctx.dp(options);
+ view=ctx.dp(options);
+ assert.equal(named(view,'ga-course-zoom').length,0,'penalty also resets view');
+ assert.ok(effectCalls>=3);
 });
