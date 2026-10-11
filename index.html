@@ -1653,6 +1653,29 @@ function aimFwWidthAt(h,y){return Math.max(0,Math.round(bu(Dt(y,0,h.distance),h)
 rp=function(){return null};
 AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=false,expanded=false,zoom=false}){
  const ref=P.useRef(null),drag=P.useRef(false),justDragged=P.useRef(false),tapStart=P.useRef(null),touchStart=P.useRef(null),suppressClickUntil=P.useRef(0),[dragging,setDragging]=P.useState(false),[dragPoint,setDragPoint]=P.useState(null);
+ const endDrag=function(){
+  drag.current=false;
+  setDragging(false);
+  setDragPoint(null);
+ };
+ P.useEffect(function(){
+  if(tapEnabled&&aimPoint&&!mini&&!pendingPoint)return;
+  endDrag();
+  justDragged.current=false;
+ },[tapEnabled,!!aimPoint,mini,!!pendingPoint]);
+ P.useEffect(function(){
+  if(typeof window==='undefined'||!window.addEventListener)return;
+  const finish=function(){if(drag.current)endDrag()};
+  window.addEventListener('pointerup',finish);
+  window.addEventListener('pointercancel',finish);
+  window.addEventListener('blur',finish);
+  return function(){
+   window.removeEventListener('pointerup',finish);
+   window.removeEventListener('pointercancel',finish);
+   window.removeEventListener('blur',finish);
+  };
+ },[]);
+
  const xs=h.centerline.map(p=>p.v);
  const baseXMin=Math.min(...xs)-72,baseXMax=Math.max(...xs)+72,baseYMin=-22,baseYMax=h.distance+40;
  let xmin=baseXMin,xmax=baseXMax,ymin=baseYMin,ymax=baseYMax;
@@ -1691,11 +1714,11 @@ AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=fals
  circle(prevPos,4*u,{fill:'#fffef2',stroke:'#214632',strokeWidth:1.2*u});
  const local=e=>{const svg=ref.current;if(!svg)return null;const rect=svg.getBoundingClientRect();if(!rect.width||!rect.height)return null;const src=(e.changedTouches&&e.changedTouches[0])||(e.touches&&e.touches[0])||e;const clientX=src.clientX,clientY=src.clientY;if(!Number.isFinite(clientX)||!Number.isFinite(clientY))return null;const vx=(clientX-rect.left)/rect.width*W,vy=(clientY-rect.top)/rect.height*H;return{x:Dt(vx+xmin,xmin,xmax),y:Dt(ymax-vy,ymin,ymax)}};
  const update=e=>{if(!tapEnabled||!onTap)return null;const p=local(e);if(p){onTap(p.x,p.y);setDragPoint(p)}return p};
- if(aimPoint){const [ax,ay]=pt(aimPoint);add('line',{x1:bx,y1:by,x2:ax,y2:ay,stroke:'#e7c878',strokeWidth:1*u,strokeDasharray:`${3*u} ${4*u}`});label(aimPoint,Math.round(se(prevPos.x,prevPos.y,aimPoint.x,aimPoint.y))+'yd','#e7c878');add('g',{style:{touchAction:'none',cursor:tapEnabled?'grab':'default'},onPointerDown:e=>{if(!tapEnabled)return;e.stopPropagation();e.preventDefault();drag.current=true;justDragged.current=false;setDragging(true);setDragPoint(aimPoint);e.currentTarget.setPointerCapture?.(e.pointerId)},onPointerMove:e=>{if(drag.current){e.preventDefault();justDragged.current=true;update(e)}},onPointerUp:e=>{if(drag.current){e.preventDefault();update(e)}drag.current=false;setDragging(false);e.currentTarget.releasePointerCapture?.(e.pointerId);setTimeout(()=>{justDragged.current=false},80)},onPointerCancel:()=>{drag.current=false;setDragging(false)},onClick:e=>{e.stopPropagation();e.preventDefault()}},AH('circle',{cx:ax,cy:ay,r:24*u,fill:'transparent'}),AH('circle',{cx:ax,cy:ay,r:7*u,fill:'none',stroke:'#e7c878',strokeWidth:2*u}),AH('circle',{cx:ax,cy:ay,r:2*u,fill:'#e7c878'}))}
+ if(aimPoint){const [ax,ay]=pt(aimPoint);add('line',{x1:bx,y1:by,x2:ax,y2:ay,stroke:'#e7c878',strokeWidth:1*u,strokeDasharray:`${3*u} ${4*u}`});label(aimPoint,Math.round(se(prevPos.x,prevPos.y,aimPoint.x,aimPoint.y))+'yd','#e7c878');add('g',{style:{touchAction:'none',cursor:tapEnabled?'grab':'default'},onPointerDown:e=>{if(!tapEnabled)return;e.stopPropagation();e.preventDefault();drag.current=true;justDragged.current=false;setDragging(true);setDragPoint(aimPoint);e.currentTarget.setPointerCapture?.(e.pointerId)},onPointerMove:e=>{if(drag.current){e.preventDefault();justDragged.current=true;update(e)}},onPointerUp:e=>{if(drag.current){e.preventDefault();update(e)}endDrag();e.currentTarget.releasePointerCapture?.(e.pointerId);setTimeout(()=>{justDragged.current=false},80)},onPointerCancel:()=>{endDrag();justDragged.current=false},onClick:e=>{e.stopPropagation();e.preventDefault()}},AH('circle',{cx:ax,cy:ay,r:24*u,fill:'transparent'}),AH('circle',{cx:ax,cy:ay,r:7*u,fill:'none',stroke:'#e7c878',strokeWidth:2*u}),AH('circle',{cx:ax,cy:ay,r:2*u,fill:'#e7c878'}))}
  if(pendingPoint){circle(pendingPoint,6*u,{fill:'#9fe7ed',stroke:'#16463b',strokeWidth:1.6*u});add('text',{x:pt(pendingPoint)[0]+9*u,y:pt(pendingPoint)[1]+5*u,fill:'#12382b',stroke:'#f1f5d6',strokeWidth:3*u,paintOrder:'stroke',fontWeight:700,fontSize:13*u},'着弾')}
  const mainSvg=AH('svg',{ref,viewBox:`0 0 ${W} ${H}`,preserveAspectRatio:'xMidYMid meet',className:mini?'aim-mini-svg':'aim-map-v2',style:{aspectRatio:`${W}/${H}`,touchAction:'pan-y',WebkitUserSelect:'none',userSelect:'none'},onPointerDown:e=>{if(!tapEnabled||mini||e.pointerType==='touch')return;tapStart.current={x:e.clientX,y:e.clientY,t:Date.now()}},onPointerUp:e=>{if(!tapEnabled||mini||drag.current||e.pointerType==='touch')return;const st=tapStart.current;tapStart.current=null;if(!st)return;const moved=Math.hypot(e.clientX-st.x,e.clientY-st.y);if(moved<=14&&!justDragged.current)update(e)},onPointerCancel:()=>{tapStart.current=null},onTouchStart:e=>{if(!tapEnabled||mini||drag.current)return;const t=e.touches&&e.touches[0];if(!t)return;touchStart.current={x:t.clientX,y:t.clientY,moved:false}},onTouchMove:e=>{const st=touchStart.current,t=e.touches&&e.touches[0];if(!st||!t)return;if(Math.hypot(t.clientX-st.x,t.clientY-st.y)>14)st.moved=true},onTouchEnd:e=>{suppressClickUntil.current=Date.now()+700;if(!tapEnabled||mini||drag.current||justDragged.current){touchStart.current=null;return}const st=touchStart.current,t=e.changedTouches&&e.changedTouches[0];touchStart.current=null;if(!st||!t||st.moved)return;const moved=Math.hypot(t.clientX-st.x,t.clientY-st.y);if(moved<=14)update(e)},onTouchCancel:()=>{touchStart.current=null;suppressClickUntil.current=Date.now()+700},onClick:e=>{if(!tapEnabled||mini||justDragged.current||Date.now()<suppressClickUntil.current)return;update(e)},overflow:'hidden',role:'img','aria-label':mini?'今回の狙いと仮の着弾位置':'コース図。タップで狙い地点を指定し、金の狙いマーカーはドラッグで微調整できます'},...els);
  const focus=dragPoint||aimPoint;
- const showLens=!!(dragging&&!mini&&focus);
+ const showLens=!!(dragging&&drag.current&&tapEnabled&&aimPoint&&!mini&&!pendingPoint&&focus);
  let lens=null;
  if(showLens){
    const [fx,fy]=pt(focus),span=56;
@@ -2760,7 +2783,7 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
 dp=function(props){
  const h=props.hole;
  const [viewMode,setViewMode]=P.useState('normal');
- P.useEffect(()=>setViewMode('normal'),[h.number]);
+ P.useEffect(()=>setViewMode('normal'),[h.number,h.strokes,h.penalty]);
  const overview=viewMode==='overview',greenZoom=viewMode==='green';
  const effectiveShotNo=(h.strokes||0)+(h.penalty||0)+1;
  const shotLabel=h.strokes===0&&h.penalty===0?'ティーショット':`${effectiveShotNo}打目・${h.lie}`;
