@@ -11,6 +11,10 @@ const end="/* Course aim uses the same enabled shot-style list.";
 const first=html.indexOf(begin),last=html.indexOf(end,first);
 assert.ok(first>=0&&last>first,'random aim code must exist');
 const code=html.slice(first,last);
+const sharedStart=html.indexOf('/* Shared shot-entry header based on the existing Shot log 3-column layout. */');
+const sharedEnd=html.indexOf('/* Approved shot-result input redesign (2026-10-11). */',sharedStart);
+assert.ok(sharedStart>=0&&sharedEnd>sharedStart,'Shared entry header must exist');
+const shared=html.slice(sharedStart,sharedEnd);
 const AH=(tag,props,...children)=>({tag,props:props||{},children});
 function collect(node,match,result=[]){
  if(!node||typeof node!=='object')return result;
@@ -37,21 +41,55 @@ const courseData=[
  {label:'木（右）',value:'枝が張り出し'}
 ];
 function fixture({green=true,fixedClub=null,selectedClub='7I',courseInfo=courseData}={}){
- const changes=[],picked=[],hits=[];
+ const changes=[],picked=[],hits=[],menuEvents=[];
+ const doc={createElement(){return{textContent:'',id:''}},head:{appendChild(){}},querySelector(){return null}};
  const ctx=vm.createContext({
-  AH,gaUseResetViewportOnMount:()=>{},
+  AH,document:doc,window:{__aimQuitToggle:()=>menuEvents.push('open-quit-menu')},gaUseResetViewportOnMount:()=>{},
   gaShotStyleEnabled:()=>['ノーマル','ライン出し','フルスイング'],
   gaAimChoices:(items,value,change,cols)=>AH('div',{className:'ga-random-choice '+cols},...items.map(x=>AH('button',{type:'button','aria-pressed':value===x.value,onClick:()=>change(x.value)},x.label)))
  });
- vm.runInContext('var zp;\n'+code,ctx);
+ vm.runInContext('var zp;\n'+shared+'\n'+code,ctx);
  const target={targetDistance:green?145:220,isGreenShot:green,courseInfo};
  const plan={aimTarget:green?'グリーン中央':'フェアウェイセンター',curveBase:'ストレート',style:'ノーマル'};
  const view=ctx.zp({target,shotIndex:0,totalShots:10,fixedClub,selectedClub,
   clubs:['Dr','7I','8I'],plan,
   onClub:x=>picked.push(x),onPlanField:(field,value)=>changes.push([field,value]),
   onStartShot:()=>hits.push('shot')});
- return {view,changes,picked,hits};
+ return {view,changes,picked,hits,menuEvents};
 }
+test('Shot log style aiming header keeps a safe pause action and separates progress',()=>{
+ const {view,menuEvents}=fixture();
+ const head=named(view,'ga-shot-entry-head')[0];
+ assert.ok(head,'aim entry header');
+ assert.equal(head.tag,'header');
+ assert.equal(head.children.length,3);
+ assert.equal(textOfForHeader(head.children[1]),'狙い入力');
+ assert.equal(textOfForHeader(head.children[2]),'GOLF AiM');
+ assert.equal(head.children[2].tag,'div','Logo is not a navigation button');
+ const back=named(head,'ga-shot-entry-back')[0];
+ assert.equal(textOfForHeader(back),'‹ 戻る');
+ assert.equal(back.props['aria-label'],'中断メニューを開く');
+ back.props.onClick();
+ assert.deepEqual(menuEvents,['open-quit-menu']);
+ assert.equal(named(view,'ga-shot-entry-progress').length,1);
+ const progress=named(view,'ga-shot-entry-progress')[0];
+ assert.equal(textOfForHeader(progress).trim().replace(/\\s+/g,' '),'ランダム練習 1 / 10 球');
+ assert.equal(named(head,'ga-shot-entry-count').length,0);
+});
+function textOfForHeader(x){
+ if(x==null)return '';
+ if(typeof x==='string'||typeof x==='number')return String(x);
+ if(Array.isArray(x))return x.map(textOfForHeader).join(' ');
+ return (x.children||[]).map(textOfForHeader).join(' ');
+}
+test('the shared aim back fallback uses the existing quit control without discarding',()=>{
+ const {ctx}=fixture();
+ const calls=[];
+ ctx.window.__aimQuitToggle=null;
+ ctx.document.querySelector=(selector)=>selector.includes('.aim-quit-open')?{click:()=>calls.push('open-menu')}:null;
+ vm.runInContext('gaOpenRandomQuitMenu()',ctx);
+ assert.deepEqual(calls,['open-menu']);
+});
 test('shot-specific green size, pin and all OB/water/bunker/tree records survive',()=>{
  const {view}=fixture();
  const course=named(view,'ga-random-course-info')[0];
