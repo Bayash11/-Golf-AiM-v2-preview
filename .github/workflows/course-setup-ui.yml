@@ -1,0 +1,26 @@
+name: GOLF AiM course setup UI checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/course-setup-ui.test.cjs'
+      - '.github/workflows/course-setup-ui.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tests/course-setup-ui.test.cjs'
+      - '.github/workflows/course-setup-ui.yml'
+jobs:
+  course-setup-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify course setup behavior and layout
+        run: node --test tests/course-setup-ui.test.cjs
