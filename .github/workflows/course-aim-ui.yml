@@ -1,0 +1,26 @@
+name: GOLF AiM course aim UI checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/course-aim-ui.test.cjs'
+      - '.github/workflows/course-aim-ui.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tests/course-aim-ui.test.cjs'
+      - '.github/workflows/course-aim-ui.yml'
+jobs:
+  course-aim-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify live course aiming screens
+        run: node --test tests/course-aim-ui.test.cjs
