@@ -1,0 +1,26 @@
+name: GOLF AiM course result and scroll checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/course-result-transition.test.cjs'
+      - '.github/workflows/course-result-transition.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tests/course-result-transition.test.cjs'
+      - '.github/workflows/course-result-transition.yml'
+jobs:
+  course-result:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check result inputs and screen scroll behavior
+        run: node --test tests/course-result-transition.test.cjs

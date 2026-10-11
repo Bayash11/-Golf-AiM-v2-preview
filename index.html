@@ -2721,7 +2721,26 @@ function gaOpenCourseQuitMenu(){
  if(button&&typeof button.click==='function')button.click();
 }
 
+function gaCourseTrainingScreenKey(hole){
+ const holeNumber=Number(hole&&hole.number)||1;
+ const shotCount=hole&&Array.isArray(hole.shots)?hole.shots.length:0;
+ const phase=hole&&hole.phase==='done'?'finish':hole&&hole.pendingShot?'result':'aim';
+ return holeNumber+'|'+shotCount+'|'+phase;
+}
+function gaUseCourseTrainingScreenTop(hole){
+ const screen=gaCourseTrainingScreenKey(hole);
+ const previous=P.useRef(null);
+ P.useEffect(function(){
+  if(previous.current===screen)return;
+  previous.current=screen;
+  gaResetViewportTop();
+  requestAnimationFrame(gaResetViewportTop);
+  setTimeout(gaResetViewportTop,60);
+ },[screen]);
+}
+
 mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
+ gaUseCourseTrainingScreenTop(hole);
  const doneScore=completedHoles.reduce((sum,h)=>sum+(Number(h.total)||0),0);
  const donePar=completedHoles.reduce((sum,h)=>sum+(Number(h.par)||0),0);
  const diff=doneScore-donePar;
@@ -2836,6 +2855,10 @@ gaCourseResultStyle.textContent=`
 .ga-course-result .ga-result-record{margin-bottom:14px;}
 `;
 document.head.appendChild(gaCourseResultStyle);
+const gaCourseResultStep03Style=document.createElement('style');
+gaCourseResultStep03Style.id='ga-course-result-step03-20261011';
+gaCourseResultStep03Style.textContent="\n.ga-course-result .ga-result-summary{border:1px solid #E8ECF1;box-shadow:none;}\n.ga-course-result-preview-card{box-shadow:none;}\n.ga-course-result .ga-course-result-lie.penalty{background:#FFF1E9;}\n.ga-course-lie-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:7px 0 2px;}\n.ga-course-lie-actions button{min-height:44px;padding:7px 12px;border:0;border-radius:12px;background:transparent;font-size:12px;font-weight:800;}\n.ga-course-lie-actions .ga-course-lie-edit{color:var(--ga-blue);}\n.ga-course-lie-actions .ga-course-lie-auto{color:#B6501D;}\n.ga-course-lie-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px;border:1px solid #E8ECF1;border-radius:14px;background:#fff;}\n.ga-course-lie-options button{min-width:0;min-height:44px;padding:7px 3px;border:1px solid var(--ga-border);border-radius:10px;background:#F8FAFC;color:var(--ga-text);font-size:11px;font-weight:800;}\n.ga-course-lie-options button[aria-pressed=\"true\"]{border-color:var(--ga-orange);background:#FFF1E9;color:#B6501D;}\n.ga-course-lie-options button.is-penalty[aria-pressed=\"true\"]{background:#FFF1E9;color:#B6501D;}\n.ga-course-result .ga-course-penalty{background:#FFF1E9;border-color:#FFD1BB;color:#B6501D;}\n@media(max-width:360px){.ga-course-lie-options{gap:5px;padding:8px;}.ga-course-lie-options button{font-size:10px;}}";
+document.head.appendChild(gaCourseResultStep03Style);
 
 function gaCourseLandingResult(hole,t){
  const target=t.targetPosition||hole.aimPoint;
@@ -2853,10 +2876,23 @@ function gaCourseLandingResult(hole,t){
        AH('strong',null,lie+' ／ 残り '+t.computed.remaining+'yd')
      )
    ),
-   AH('p',{className:'ga-course-result-note'},'結果ライは着弾位置から自動判定します。')
+   AH('p',{className:'ga-course-result-note'},t.overrideLie!=null?'結果ライを手動で修正しています。':'結果ライは着弾位置から自動判定します。')
  );
 }
 
+
+function gaCourseResultLieOptions(value,onChange){
+ const options=[
+  ['フェアウェイ','FW'],['ラフ（左）','ラフ左'],['ラフ（右）','ラフ右'],['バンカー','バンカー'],
+  ['林（深いラフ）','林'],['グリーン','グリーン'],['OB','OB'],['池','池']
+ ];
+ return AH('div',{className:'ga-course-lie-options',role:'group','aria-label':'結果ライを選択'},
+  ...options.map(function(item){
+   return AH('button',{type:'button',key:item[0],className:item[0]==='OB'||item[0]==='池'?'is-penalty':'',
+    'aria-pressed':value===item[0],onClick:function(){onChange(item[0])}},item[1]);
+  })
+ );
+}
 
 /* refactor: removed shadowed pp assignment #1 */
 
@@ -4303,6 +4339,7 @@ pp=function(props){
  const resultLie=t.overrideLie??t.computed.lie,penalty=resultLie==='OB'||resultLie==='池',shotNo=(hole.strokes||0)+(hole.penalty||0)+1,nextShotNo=shotNo+(penalty?2:1);
  const planText=[t.curveBase||'ストレート',t.style==='普通'?'ノーマル':t.style].filter(Boolean).join(' / ');
  const [curveExpanded,setCurveExpanded]=P.useState(['フック','テンプラ','スライス','チョロ'].includes(t.resultCurve));
+ const [lieOpen,setLieOpen]=P.useState(false);
  return AH('main',{className:'ga-random-result ga-course-result'},
   gaShotEntryHeader('result','結果入力',props.onBackToAim||props.onCancel),
   gaShotEntryProgress('コース想定',shotNo+'打目'),
@@ -4318,6 +4355,13 @@ pp=function(props){
   good.length?gaResultSection('Good','複数選択可',gaResultButtonGrid(gaRowsFromLabels(good,3),t.contactPositive||[],function(label){props.onTogglePositive(label)},true),'ga-result-good'):null,
   miss.length?gaResultSection('ミス','複数選択可',gaResultButtonGrid(gaRowsFromLabels(miss,3),t.contactOther||[],function(label){props.onToggleOther(label)},true),'ga-result-miss'):null,
   gaCourseLandingResult(hole,t),
+  AH('div',{className:'ga-course-lie-actions'},
+   AH('button',{type:'button',className:'ga-course-lie-edit','aria-expanded':lieOpen,
+     onClick:function(){setLieOpen(function(value){return !value})}},lieOpen?'ライ修正を閉じる':'結果ライを修正'),
+   t.overrideLie!=null?AH('button',{type:'button',className:'ga-course-lie-auto',
+     onClick:function(){props.onOverrideLie(null)}},'自動判定に戻す'):null
+  ),
+  lieOpen?gaCourseResultLieOptions(resultLie,props.onOverrideLie):null,
   penalty?AH('div',{className:'ga-course-penalty'},resultLie+'｜1罰打｜同じ位置から'+nextShotNo+'打目'):null,
   gaResultEntryFooter(t,impact,penalty?'記録して'+nextShotNo+'打目へ':'記録して次へ →',props.onConfirm)
  );

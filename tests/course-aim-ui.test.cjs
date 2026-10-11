@@ -37,7 +37,7 @@ function fixture(){
  };
  const window={__aimQuitToggle:()=>actions.push('toggle-quit')};
  let mode='normal';
- const P={Fragment:'fragment',useEffect(){},useState(initial){return[mode,next=>{mode=typeof next==='function'?next(mode):next}]}};
+ const P={Fragment:'fragment',useEffect(){},useRef(initial){return {current:initial}},useState(initial){return[mode,next=>{mode=typeof next==='function'?next(mode):next}]}};
  const ctx=vm.createContext({AH,document,window,P,AimMap:'aim-map',aimScoreText:d=>d===0?'E':d>0?'+'+d:String(d)});
  vm.runInContext('var mp,dp,yp,vp;\n'+mpSource+dpSource+clubSource,ctx);
  return {ctx,actions,document,window,getMode:()=>mode};
