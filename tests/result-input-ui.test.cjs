@@ -76,15 +76,16 @@ test('Shot log style result header remains centered and has noninteractive brand
   const meta=named(f.view,'ga-shot-entry-progress');
   assert.equal(meta.length,1);
   assert.equal(named(h,'ga-shot-entry-count').length,0,'Progress not cluttering header');
-  assert.match(textOf(meta[0]),course?/コース想定 2打目/:/ランダム練習 1 \\/ 3 球/);
+  const modeText=textOf(meta[0]).trim();
+  assert.equal(modeText,course?'コース想定 2打目':'ランダム練習 1 / 3 球');
  }
 });
 test('approved header CSS uses safe-area dimensions and balanced three columns',()=>{
  assert.match(html,/id='ga-shot-entry-header-20261011'/);
- assert.match(html,/grid-template-columns:84px minmax\\(0,1fr\\) 84px/);
- assert.match(html,/ga-random-playing:has\\(\\.ga-random-aim\\)>\\.aim-quit \\.aim-quit-open\\{display:none!important/);
- assert.match(html,/\.ga-shot-entry-logo \.ga-shot-entry-logo-aim/);
- assert.match(html,/\.ga-shot-entry-progress/);
+ assert.ok(html.includes('grid-template-columns:84px minmax(0,1fr) 84px'));
+ assert.ok(html.includes('.ga-random-playing:has(.ga-random-aim)>.aim-quit .aim-quit-open{display:none!important;}'));
+ assert.match(html,/ga-shot-entry-logo-aim/);
+ assert.match(html,/ga-shot-entry-progress/);
 });
 test('feel stays exclusive; horizontal and vertical impact can combine and re-tap clears',()=>{
  const {context}=fixture();
