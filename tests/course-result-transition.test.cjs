@@ -134,7 +134,7 @@ test('course header uses existing safe pause menu and hole score is still displa
  const header=named(view,'ga-course-topbar')[0];
  header.children[0].props.onClick();
  assert.ok(x.events.includes('pause'));
- assert.match(flatten(view),/Hole1Par4405yd現在E/);
+ assert.match(flatten(view),/Hole1Par4\s*405yd現在E/);
 });
 test('lie override offers all supported course terrain names, 44px controls and automatic fallback',()=>{
  const x=resultFixture();
