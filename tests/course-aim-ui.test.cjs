@@ -302,3 +302,108 @@ test('green enlargement resets for every confirmed shot and penalty, not only ne
  assert.equal(named(view,'ga-course-zoom').length,0,'penalty also resets view');
  assert.ok(effectCalls>=3);
 });
+
+
+/* 2026-10-12: auto green zoom must depend on remaining distance, never aim marker taps. */
+function autoZoomFixture(){
+ let currentMode='auto',lastShotKey=null;
+ const P={
+  Fragment:'fragment',
+  useState(){return [currentMode,next=>{currentMode=typeof next==='function'?next(currentMode):next}]},
+  useEffect(fn,deps){
+   const key=JSON.stringify(deps);
+   if(lastShotKey!==key){lastShotKey=key;fn()}
+  }
+ };
+ const ctx=vm.createContext({AH,P,AimMap:'aim-map'});
+ vm.runInContext('var dp;\n'+dpSource,ctx);
+ const h={...hole,number:2,par:4,strokes:1,penalty:0,remaining:150,lie:'フェアウェイ'};
+ const props={hole:h,shots:[],aimPoint:null,tapEnabled:true,prevPos:{x:0,y:240}};
+ const render=()=>{
+  let view=ctx.dp(props);
+  // Effects update the mode for a new shot: rerender to inspect the settled result.
+  view=ctx.dp(props);
+  return view;
+ };
+ const map=view=>collect(view,node=>node.tag==='aim-map')[0];
+ const toolbar=view=>named(view,'ga-course-map-toolbar')[0].children;
+ return {h,props,render,map,toolbar,getMode:()=>currentMode};
+}
+test('auto green zoom activates at 120yd or closer only from the second shot onward',()=>{
+ const f=autoZoomFixture();
+ f.h.remaining=150;
+ assert.equal(f.map(f.render()).props.zoom,false);
+ f.h.remaining=121;
+ assert.equal(f.map(f.render()).props.zoom,false);
+ f.h.remaining=120;
+ assert.equal(f.map(f.render()).props.zoom,true);
+ f.h.remaining=112;
+ assert.equal(f.map(f.render()).props.zoom,true);
+ f.h.remaining=1;
+ assert.equal(f.map(f.render()).props.zoom,true);
+ f.h.remaining=0;
+ assert.equal(f.map(f.render()).props.zoom,false);
+ f.h.remaining=NaN;
+ assert.equal(f.map(f.render()).props.zoom,false);
+ f.h.remaining=95;
+ f.h.strokes=0;
+ assert.equal(f.map(f.render()).props.zoom,false);
+ f.h.strokes=1;
+ assert.equal(f.map(f.render()).props.zoom,true);
+});
+test('nearby accidental taps do not alter auto zoom or move the green viewport',()=>{
+ const f=autoZoomFixture();
+ f.h.remaining=112;
+ let screen=f.render();
+ const first=f.map(screen);
+ assert.equal(first.props.zoom,true);
+ const points=[{x:0,y:245},{x:0,y:360},{x:12,y:395},null];
+ for(const p of points){
+  f.props.aimPoint=p;
+  screen=f.render();
+  assert.equal(f.map(screen).props.zoom,true,'aim tap must not switch auto zoom');
+  assert.equal(f.getMode(),'auto','tapping does not overwrite user view choice');
+ }
+ const course=layoutFixture();
+ const near=course.draw({aimPoint:{x:0,y:205},zoom:true});
+ const far=course.draw({aimPoint:{x:10,y:395},zoom:true});
+ assert.equal(near.svg.props.viewBox,far.svg.props.viewBox,'green viewport is pinned to green and stable');
+});
+test('manual map controls override auto zoom until a new shot resets automatic mode',()=>{
+ const f=autoZoomFixture();
+ f.h.remaining=100;
+ let screen=f.render();
+ assert.equal(f.map(screen).props.zoom,true);
+ assert.equal(f.toolbar(screen)[1].props['aria-pressed'],true);
+ f.toolbar(screen)[1].props.onClick(); // Turn off current auto-zoom.
+ screen=f.render();
+ assert.equal(f.map(screen).props.zoom,false);
+ assert.equal(f.getMode(),'normal');
+ f.props.aimPoint={x:0,y:200}; // Aiming cannot override manual full view.
+ screen=f.render();
+ assert.equal(f.map(screen).props.zoom,false);
+ f.toolbar(screen)[0].props.onClick();
+ screen=f.render();
+ assert.equal(f.map(screen).props.tapEnabled,false,'overview remains a protected read-only mode');
+ f.toolbar(screen)[0].props.onClick();
+ screen=f.render();
+ assert.equal(f.map(screen).props.zoom,false);
+ assert.equal(f.map(screen).props.tapEnabled,true,'normal view permits re-aiming');
+ f.toolbar(screen)[1].props.onClick();
+ screen=f.render();
+ assert.equal(f.map(screen).props.zoom,true,'manual green mode works');
+ f.h.strokes=2;
+ f.h.remaining=180;
+ screen=f.render();
+ assert.equal(f.map(screen).props.zoom,false,'next shot resets to auto based on new remaining');
+ f.h.remaining=75;
+ screen=f.render();
+ assert.equal(f.map(screen).props.zoom,true,'new shot can auto zoom again when near green');
+});
+test('obsolete aim-distance autofocus and unused baseW have been removed',()=>{
+ assert.doesNotMatch(html,/focusCurrent|focusTarget|focusHeight/);
+ assert.doesNotMatch(courseMapSource,/\bbaseW\b/);
+ assert.match(dpSource,/remaining<=120/);
+ assert.match(dpSource,/Number\(h\.strokes\)>0/);
+ assert.doesNotMatch(dpSource,/aimPoint.{0,80}zoom|focusCurrent/);
+});
