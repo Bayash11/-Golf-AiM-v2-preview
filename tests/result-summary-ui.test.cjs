@@ -115,7 +115,7 @@ test('result evaluation is preserved, with explanations collapsed by default',()
  assert.equal(named(course,'ga-course-eval').length,3);
  const explain=all(rand,x=>x.tag==='details'&&(x.props.className||'').includes('ga-final-explain'));
  assert.equal(explain.length,1);
- assert.match(textOf(explain[0]),/総合評価は成功率と距離・方向の精度を50%ずつ反映/);
+ assert.match(textOf(explain[0]),/総合評価は成功率50%＋精度50%/);
  assert.equal(explain[0].props.open,undefined,'Native details starts collapsed');
  assert.equal(named(course,'ga-final-explain').length,1);
  assert.match(textOf(course),/マネジメント/);
@@ -193,4 +193,57 @@ test('HTML inline scripts still parse after summary changes',()=>{
   count++;
  }
  assert.ok(count>=1);
+});
+
+test('multi-axis strike entries count individually; legacy empty arrays still resolve',()=>{
+ const f=fixture();
+ const frequency=vm.runInContext('gaSummaryImpactCounts',f.context);
+ const normalized=vm.runInContext('gaImpactSelections',f.context);
+ const result=frequency(shots);
+ const count=(rows,label)=>rows.find(row=>row.label===label)?.count||0;
+ assert.equal(count(result.feel,'普通'),2);
+ assert.equal(count(result.feel,'悪い'),1);
+ assert.equal(count(result.points,'ヒール'),2);
+ assert.equal(count(result.points,'下目'),2);
+ assert.equal(count(result.points,'トゥ'),1);
+ assert.equal(count(result.points,'上目'),1);
+ assert.equal(count(result.points,'真ん中'),0);
+ const legacy={contactImpact:[],contactVertical:'下目',contactHorizontal:'ヒール'};
+ assert.deepEqual(Array.from(normalized(legacy)),['下目','ヒール']);
+ const mixed=frequency([...shots,legacy]);
+ assert.equal(count(mixed.points,'ヒール'),3);
+ assert.equal(count(mixed.points,'下目'),3);
+ assert.deepEqual(shots[0].contactImpact,['普通','ヒール','下目'],'Summary never mutates stored arrays');
+});
+test('random result includes Good, miss, separate face-feel counts and original combination',()=>{
+ const f=fixture(),view=f.random();
+ assert.match(textOf(view),/今回の傾向/);
+ assert.match(textOf(view),/Good/);
+ assert.equal(named(view,'ga-summary-impact-panel').length,1);
+ assert.match(textOf(view),/普通 2回/);
+ assert.match(textOf(view),/ヒール 2回/);
+ assert.match(textOf(view),/下目 2回/);
+ assert.match(textOf(view),/最多の組み合わせ：普通・ヒール＋下目 2\/3/);
+});
+test('course result shows swing trends and separates session score from historical ability',()=>{
+ const f=fixture();
+ const round={...f.round,holes:f.round.holes.map((h,i)=>({
+  ...h,shots:[{club:'7I',contactImpact:['良い','ヒール','下目'],
+   contactPositive:['テンポが良かった'],contactOther:[],style:'ライン出し',resultCurve:'フェード'}]
+ }))};
+ const view=f.course({round});
+ assert.match(textOf(view),/今回の評価（このラウンドのみ）/);
+ assert.match(textOf(view),/総合点はスコア35%/);
+ assert.match(textOf(view),/ショット傾向・振り返り/);
+ assert.match(textOf(view),/テンポが良かった/);
+ assert.match(textOf(view),/ヒール 3回/);
+ assert.match(textOf(view),/下目 3回/);
+ assert.match(textOf(view),/現在の実力（履歴ベース）/);
+ assert.match(textOf(view),/最大5回の完了履歴/);
+ assert.equal(named(view,'ga-course-hole-result').length,3);
+});
+test('success and failure status tags use compact unshadowed blue/orange pills',()=>{
+ assert.match(html,/min-width:49px;min-height:28px;padding:5px 8px;border:0;border-radius:999px/);
+ assert.match(html,/background:#EEF4FF;color:#2F6FE4/);
+ assert.match(html,/background:#FFF1E9;color:#D96A33/);
 });
