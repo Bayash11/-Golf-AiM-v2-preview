@@ -13,7 +13,7 @@ function extract(begin,end){
 }
 const impactCore=extract('const GA_IMPACT_OPTIONS=', 'function gaImpactText(');
 const grids=extract('const gaImpactRows=[','/* refactor: removed shadowed Cp assignment #0 */');
-const result=extract('/* Approved shot-result input redesign (2026-10-11). */',"const gaDailyAnalysisStyle=document.createElement('style');");
+const result=extract('/* Shared shot-entry header based on the existing Shot log 3-column layout. */',"const gaDailyAnalysisStyle=document.createElement('style');");
 const AH=(tag,props,...children)=>({tag,props:props||{},children});
 function find(root,match,out=[]){
  if(!root||typeof root!=='object')return out;
@@ -59,6 +59,33 @@ function fixture({course=false,approach=false,pending={},good=['振り切れた'
  const view=course?context.pp({...props,hole}):context.Cp(props);
  return{view,t,fields,positive,negative,saves,back,curveState,context,props,hole};
 }
+test('Shot log style result header remains centered and has noninteractive branding',()=>{
+ for(const course of [false,true]){
+  const f=fixture({course});
+  const heads=named(f.view,'ga-shot-entry-head');
+  assert.equal(heads.length,1);
+  const h=heads[0];
+  assert.equal(h.tag,'header');
+  assert.equal(h.children.length,3);
+  assert.equal(textOf(h.children[0]),'‹ 戻る');
+  assert.equal(textOf(h.children[1]),'結果入力');
+  assert.equal(textOf(h.children[2]),'GOLF AiM');
+  assert.equal(h.children[2].tag,'div','Brand is display-only');
+  h.children[0].props.onClick();
+  assert.deepEqual(f.back,['back']);
+  const meta=named(f.view,'ga-shot-entry-progress');
+  assert.equal(meta.length,1);
+  assert.equal(named(h,'ga-shot-entry-count').length,0,'Progress not cluttering header');
+  assert.match(textOf(meta[0]),course?/コース想定 2打目/:/ランダム練習 1 \\/ 3 球/);
+ }
+});
+test('approved header CSS uses safe-area dimensions and balanced three columns',()=>{
+ assert.match(html,/id='ga-shot-entry-header-20261011'/);
+ assert.match(html,/grid-template-columns:84px minmax\\(0,1fr\\) 84px/);
+ assert.match(html,/ga-random-playing:has\\(\\.ga-random-aim\\)>\\.aim-quit \\.aim-quit-open\\{display:none!important/);
+ assert.match(html,/\.ga-shot-entry-logo \.ga-shot-entry-logo-aim/);
+ assert.match(html,/\.ga-shot-entry-progress/);
+});
 test('feel stays exclusive; horizontal and vertical impact can combine and re-tap clears',()=>{
  const {context}=fixture();
  const choose=vm.runInContext('gaResultChooseImpact',context);
