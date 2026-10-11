@@ -120,7 +120,7 @@ test('both result modes show two selected points and footer uses combined names'
   const selected=face.children.filter(x=>x.tag==='button'&&x.props['aria-pressed']);
   assert.deepEqual(selected.map(x=>textOf(x)),['ヒール','下目']);
   assert.match(textOf(named(f.view,'ga-result-face-note')[0]),/ヒール＋下目を選択中/);
-  assert.match(textOf(named(f.view,'ga-result-footer-summary')[0]),/打感：普通.*打点：ヒール＋下目/);
+  assert.match(textOf(named(f.view,'ga-result-footer-summary')[0]),/打感：\s*普通.*打点：\s*ヒール＋下目/);
   const heel=face.children.find(x=>x.tag==='button'&&textOf(x)==='ヒール');
   heel.props.onClick();
   assert.deepEqual([f.fields.at(-1)[0],Array.from(f.fields.at(-1)[1])],['contactImpact',['普通','下目']]);
