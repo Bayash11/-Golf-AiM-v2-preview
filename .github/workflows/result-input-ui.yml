@@ -1,0 +1,24 @@
+name: GOLF AiM result input UI checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/result-input-ui.test.cjs'
+      - '.github/workflows/result-input-ui.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tests/result-input-ui.test.cjs'
+      - '.github/workflows/result-input-ui.yml'
+
+jobs:
+  result-input:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify result entry UI, shot data and touch controls
+        run: node --test tests/result-input-ui.test.cjs
