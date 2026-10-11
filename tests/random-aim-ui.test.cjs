@@ -86,7 +86,7 @@ test('nine-position green aim preserves stored aim values and updates callback',
  const options=named(view,'ga-random-direction-grid')[0].children;
  assert.equal(options.length,9);
  assert.equal(options[4].props['aria-pressed'],true);
- assert.equal(flattenText(options[0]),'↖ 左奥');
+ assert.equal(flattenText(options[0]).trim(),'左奥');
  options[0].props.onClick();
  options[8].props.onClick();
  assert.deepEqual(changes,[['aimTarget','グリーン左奥'],['aimTarget','グリーン右手前']]);
@@ -94,9 +94,30 @@ test('nine-position green aim preserves stored aim values and updates callback',
 test('fairway aim offers left center right without changing original data values',()=>{
  const {view,changes}=fixture({green:false});
  const options=named(view,'ga-random-direction-grid')[0].children;
- assert.deepEqual(options.map(flattenText),['← 左','● 中央','→ 右']);
+ assert.deepEqual(options.map(x=>flattenText(x).trim()),['左','中央','右']);
  options[1].props.onClick();
  assert.deepEqual(changes,[['aimTarget','フェアウェイセンター']]);
+});
+test('three- and nine-way aiming use identical iOS-safe SVG arrow shapes',()=>{
+ const green=named(fixture().view,'ga-random-direction-grid')[0].children;
+ const fairway=named(fixture({green:false}).view,'ga-random-direction-grid')[0].children;
+ const svgOf=button=>named(button,'ga-random-direction-svg')[0];
+ assert.deepEqual(green.map(button=>svgOf(button).children[0].props.transform||'center'),[
+  'rotate(-45 12 12)','rotate(0 12 12)','rotate(45 12 12)',
+  'rotate(-90 12 12)','center','rotate(90 12 12)',
+  'rotate(-135 12 12)','rotate(180 12 12)','rotate(135 12 12)'
+ ]);
+ assert.deepEqual(fairway.map(button=>svgOf(button).children[0].props.transform||'center'),[
+  'rotate(-90 12 12)','center','rotate(90 12 12)'
+ ]);
+ const icons=green.concat(fairway).map(svgOf);
+ assert.equal(icons.length,12);
+ assert.ok(icons.every(icon=>icon.tag==='svg'));
+ assert.ok(icons.every(icon=>icon.props.stroke==='currentColor'&&icon.props.strokeWidth===1.9));
+ assert.equal(icons.filter(icon=>icon.children[0].tag==='circle').length,2);
+ assert.ok(icons.filter(icon=>icon.children[0].tag==='g').every(icon=>icon.children[0].children[0].props.d==='M12 19 V5 M6 11 L12 5 L18 11'));
+ assert.ok(!/[↖↗↙↘⬅➡⬆⬇]/.test(flattenText(green)+flattenText(fairway)),'No emoji-prone arrow glyphs rendered');
+ assert.match(html,/ga-random-direction-svg\{display:block;width:22px;height:22px/);
 });
 test('registered clubs, curve, styles and hit callback remain working',()=>{
  const {view,changes,picked,hits}=fixture();
