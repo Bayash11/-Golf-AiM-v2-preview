@@ -1,0 +1,26 @@
+name: GOLF AiM course next-hole UI checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/course-next-hole-ui.test.cjs'
+      - '.github/workflows/course-next-hole-ui.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tests/course-next-hole-ui.test.cjs'
+      - '.github/workflows/course-next-hole-ui.yml'
+jobs:
+  course-next-hole-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify next shot and hole finish flow
+        run: node --test tests/course-next-hole-ui.test.cjs
