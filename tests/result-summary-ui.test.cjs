@@ -134,7 +134,7 @@ test('short shot list displays blue success and orange failure badges with dista
  assert.match(html,/\.ga-random-history-shot-mark\.ng/);
 });
 test('expanded shot list remains accessible and uses same status texts',()=>{
- const f=fixture(),root=f.random();
+ const f=fixture(),root=f.random({session:{...f.props.session,totalShots:10}});
  const toggle=named(root,'ga-random-all-toggle')[0];
  assert.match(textOf(toggle),/全ショットを確認する/);
  toggle.props.onClick();
