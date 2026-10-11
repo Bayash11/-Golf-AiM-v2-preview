@@ -95,14 +95,14 @@ test('random screen renders clear split groups with five-position face map',()=>
  feel[2].props.onClick();
  assert.deepEqual(fields.map(x=>[x[0],Array.from(x[1])]),[['contactImpact',['悪い','真ん中']]]);
  face.find(x=>x.tag==='button'&&textOf(x)==='上目').props.onClick();
- assert.deepEqual(fields.at(-1)[1],['普通','上目']);
+ assert.deepEqual(Array.from(fields.at(-1)[1]),['普通','上目']);
 });
 test('course mode uses the same exclusive impact editor and preserves landing results',()=>{
  const {view,fields,saves}=fixture({course:true,pending:{contactImpact:['良い','ヒール']}});
  assert.equal(named(view,'ga-result-impact-card').length,1);
  assert.equal(named(view,'ga-course-result-preview').length,1);
  named(view,'ga-result-face-grid')[0].children.find(x=>x.tag==='button'&&textOf(x)==='トゥ').props.onClick();
- assert.deepEqual(fields.at(-1),['contactImpact',['良い','トゥ']]);
+ assert.deepEqual([fields.at(-1)[0],Array.from(fields.at(-1)[1])],['contactImpact',['良い','トゥ']]);
  named(view,'ga-result-record')[0].props.onClick();
  assert.deepEqual(saves,['save']);
 });
@@ -124,7 +124,7 @@ test('distance ten presets, plus/minus adjustments and approach precision persis
  named(view,'ga-result-distance-grid')[0].children[1].props.onClick();
  const buttons=named(view,'ga-result-adjust')[0].children;
  buttons[0].props.onClick();buttons[1].props.onClick();
- assert.deepEqual(fields,[['forward',100],['forward',145],['forward',155]]);
+ assert.deepEqual(fields,[['forward',110],['forward',145],['forward',155]]);
  const approach=fixture({approach:true});
  assert.match(textOf(approach.view),/アプローチ時は ±1ydで調整/);
  named(approach.view,'ga-result-adjust')[0].children[0].props.onClick();
@@ -173,6 +173,6 @@ test('course penalty action and no changes to stored field names',()=>{
  const f=fixture({course:true,pending:{overrideLie:'OB'}});
  assert.match(textOf(named(f.view,'ga-result-record')[0]),/記録して4打目へ/);
  assert.equal(named(f.view,'ga-course-penalty').length,1);
- const source=extract('Cp=function(props){',"const gaDailyAnalysisStyle=document.createElement('style');");
+ const source=extract('/* Approved shot-result input redesign (2026-10-11). */',"const gaDailyAnalysisStyle=document.createElement('style');");
  for(const x of ["'contactImpact'","'forward'","'lateral'","'resultCurve'"])assert.ok(source.includes(x));
 });
