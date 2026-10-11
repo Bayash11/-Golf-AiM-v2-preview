@@ -2726,28 +2726,32 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
  const donePar=completedHoles.reduce((sum,h)=>sum+(Number(h.par)||0),0);
  const diff=doneScore-donePar;
  const score=completedHoles.length?aimScoreText(diff):'E';
- const pin=(current.pinLabel||hole.pinLabel||((hole.features||[]).find(f=>/ピン/.test(f.text||''))?.text||'—')).replace(/^ピン[:：]?\s*/,'');
+ const pin=(current.pinLabel||hole.pinLabel||((hole.features||[]).find(f=>/ピン/.test(f.text||''))?.text||'—')).replace(/^ピン[:：]?\\s*/,'');
  const gw=Math.round((hole.green?.halfWidth||0)*2),gd=Math.round((hole.green?.depth||0)*2);
  return AH('div',{className:'ga-course-fixed'},
-   AH('div',{className:'ga-course-topbar'},
-     AH('h1',null,'コース想定モード'),
-     AH('div',{className:'ga-course-topbar-progress'},`${holeIdx+1} / ${totalHoles}`)
+   AH('header',{className:'ga-course-topbar'},
+     AH('button',{type:'button',className:'ga-course-entry-back',onClick:gaOpenCourseQuitMenu,'aria-label':'中断メニューを開く'},'‹ 戻る'),
+     AH('h1',null,'狙い入力'),
+     AH('div',{className:'ga-course-entry-logo','aria-label':'GOLF AiM'},AH('span',null,'GOLF'),AH('b',null,'AiM'))
+   ),
+   AH('div',{className:'ga-course-topbar-progress'},
+     AH('span',null,'コース想定'),
+     AH('strong',null,(holeIdx+1)+' / '+totalHoles+' H')
    ),
    AH('section',{className:'ga-course-hole-card'},
      AH('div',{className:'ga-course-hole-primary'},
        AH('div',null,AH('small',null,'Hole'),AH('strong',null,holeIdx+1)),
        AH('div',null,AH('small',null,'Par'),AH('strong',null,hole.par)),
-       AH('div',{className:'yard'},AH('small',{'aria-hidden':true},'\u00A0'),AH('strong',null,`${hole.distance}yd`)),
+       AH('div',{className:'yard'},AH('small',{'aria-hidden':true},'\\u00A0'),AH('strong',null,hole.distance+'yd')),
        AH('div',{className:'score'},AH('small',null,'現在'),AH('strong',null,score))
      ),
      AH('div',{className:'ga-course-hole-meta'},
        AH('span',null,'ピン位置 ',AH('b',null,pin)),
-       AH('span',null,'グリーン幅 ',AH('b',null,`${gw}yd × ${gd}yd`))
+       AH('span',null,'グリーン幅 ',AH('b',null,gw+'yd × '+gd+'yd'))
      )
    )
  );
 };
-
 dp=function(props){
  const h=props.hole;
  const [viewMode,setViewMode]=P.useState('normal');
@@ -2758,8 +2762,8 @@ dp=function(props){
  return AH(P.Fragment,null,
    AH('section',{className:`ga-course-map-card ga-course-par${h.par}${greenZoom?' ga-course-zoom':''}${overview?' ga-course-overview':''}`},
      AH('div',{className:'ga-course-map-toolbar'},
-       AH('button',{type:'button','aria-pressed':overview,onClick:()=>setViewMode(v=>v==='overview'?'normal':'overview')},'全体図'),
-       AH('button',{type:'button','aria-pressed':greenZoom,onClick:()=>setViewMode(v=>v==='green'?'normal':'green')},'グリーン拡大')
+       AH('button',{type:'button','aria-label':'コース全体図を切り替え','aria-pressed':overview,onClick:()=>setViewMode(v=>v==='overview'?'normal':'overview')},'全体図'),
+       AH('button',{type:'button','aria-label':'グリーン拡大を切り替え','aria-pressed':greenZoom,onClick:()=>setViewMode(v=>v==='green'?'normal':'green')},'グリーン拡大')
      ),
      AH(AimMap,{...props,zoom:greenZoom,focusCurrent:effectiveShotNo>1&&!overview&&!greenZoom,tapEnabled:overview?false:props.tapEnabled}),
      AH('p',{className:'ga-course-map-help'},
