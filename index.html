@@ -2721,7 +2721,26 @@ function gaOpenCourseQuitMenu(){
  if(button&&typeof button.click==='function')button.click();
 }
 
+function gaCourseTrainingScreenKey(hole){
+ const holeNumber=Number(hole&&hole.number)||1;
+ const shotCount=hole&&Array.isArray(hole.shots)?hole.shots.length:0;
+ const phase=hole&&hole.phase==='done'?'finish':hole&&hole.pendingShot?'result':'aim';
+ return holeNumber+'|'+shotCount+'|'+phase;
+}
+function gaUseCourseTrainingScreenTop(hole){
+ const screen=gaCourseTrainingScreenKey(hole);
+ const previous=P.useRef(null);
+ P.useEffect(function(){
+  if(previous.current===screen)return;
+  previous.current=screen;
+  gaResetViewportTop();
+  requestAnimationFrame(gaResetViewportTop);
+  setTimeout(gaResetViewportTop,60);
+ },[screen]);
+}
+
 mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
+ gaUseCourseTrainingScreenTop(hole);
  const doneScore=completedHoles.reduce((sum,h)=>sum+(Number(h.total)||0),0);
  const donePar=completedHoles.reduce((sum,h)=>sum+(Number(h.par)||0),0);
  const diff=doneScore-donePar;
