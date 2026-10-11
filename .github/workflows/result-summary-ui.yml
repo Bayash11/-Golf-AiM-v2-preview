@@ -1,0 +1,24 @@
+name: GOLF AiM result summary UI checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/result-summary-ui.test.cjs'
+      - '.github/workflows/result-summary-ui.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tests/result-summary-ui.test.cjs'
+      - '.github/workflows/result-summary-ui.yml'
+
+jobs:
+  result-summary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify result summary visual structure, accuracy and navigation
+        run: node --test tests/result-summary-ui.test.cjs

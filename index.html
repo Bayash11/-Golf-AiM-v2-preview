@@ -2364,14 +2364,16 @@ function gaRandomToleranceScore(shots,key){
  const avg=rows.reduce(function(a,b){return a+b},0)/rows.length;
  return Math.round(gaRandomClamp(100-50*avg));
 }
+function gaRandomImpactLabel(shot){
+ const parts=gaImpactSelections(shot||{});
+ const feel=['良い','普通','悪い'].find(function(x){return parts.includes(x)})||null;
+ const horizontal=['ヒール','トゥ'].find(function(x){return parts.includes(x)})||null;
+ const vertical=['上目','下目'].find(function(x){return parts.includes(x)})||null;
+ const point=[horizontal,vertical].filter(Boolean).join('＋')||(parts.includes('真ん中')?'真ん中':'');
+ return [feel,point].filter(Boolean).join('・')||'—';
+}
 function gaRandomTopPair(shots){
- const values=[];
- (shots||[]).forEach(function(x){
-   const v=x.contactVertical==='良い当たり'?'良い':x.contactVertical;
-   const h=x.contactHorizontal==='センター'?'普通':x.contactHorizontal;
-   if(v)values.push(v);if(h)values.push(h);
- });
- return gaTopValue(values,'—');
+ return gaTopValue((shots||[]).map(gaRandomImpactLabel).filter(function(x){return x!=='—'}),'—');
 }
 function gaRandomShotScene(x){
  const aim=String(x.aimTarget||'');
@@ -2415,17 +2417,22 @@ Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
  const miss=gaTopValue(misses,'大きなミスなし');
  const style=gaTopValue(shots.map(function(x){return x.style==='普通'?'ノーマル':x.style}),'—');
  const curveCount=curve==='—'?0:shots.filter(function(x){return x.resultCurve===curve}).length;
- const contactCount=contact==='—'?0:shots.filter(function(x){return [x.contactVertical==='良い当たり'?'良い':x.contactVertical,x.contactHorizontal==='センター'?'普通':x.contactHorizontal].includes(contact)}).length;
+ const contactCount=contact==='—'?0:shots.filter(function(x){return gaRandomImpactLabel(x)===contact}).length;
  const missCount=miss==='大きなミスなし'?0:misses.filter(function(x){return x===miss}).length;
  const styleCount=style==='—'?0:shots.filter(function(x){return (x.style==='普通'?'ノーマル':x.style)===style}).length;
  const copyJson=async function(){const ok=await Lg(my(session));setCopyState(ok?'copied':'failed');setTimeout(function(){setCopyState('idle')},1800)};
  const preview=shots.slice(0,3);
  return AH('main',{className:'ga-random-summary-page ga-random-summary-adopted'},
-   AH('header',{className:'ga-random-summary-head'},AH('h1',null,'ランダムモード 結果'),AH('span',null,total+'球')),
+   gaFinalSummaryHeader('ランダム結果',onMenu||onHome),
+   gaFinalSummaryProgress('ランダム練習',total+'球 完了'),
    warning?AH('div',{className:'ga-random-summary-warning'},'⚠️ '+warning):null,
-   AH('section',{className:'ga-random-summary-card'},AH('h2',null,'今回の結果'),
+   AH('section',{className:'ga-random-summary-card ga-final-hero'},
+     AH('small',{className:'ga-final-hero-label'},'今回の成功ショット'),
+     AH('strong',{className:'ga-final-hero-value'},String(success),AH('em',null,' / '+total)),
+     AH('div',{className:'ga-final-hero-rate'},'成功率 '+successRate+'%'),
+     AH('div',{className:'ga-final-hero-bar',role:'progressbar','aria-valuemin':0,'aria-valuemax':100,'aria-valuenow':successRate,'aria-label':'成功率'},
+      AH('i',{style:{width:successRate+'%'}})),
      AH('div',{className:'ga-random-result-grid'},
-       AH('div',{className:'ga-random-result-cell'},AH('small',null,'成功数'),AH('strong',{className:'orange'},success),AH('em',null,' / '+total)),
        AH('div',{className:'ga-random-result-cell'},AH('small',null,'平均距離誤差'),AH('strong',null,avgD),AH('em',null,'yd')),
        AH('div',{className:'ga-random-result-cell'},AH('small',null,'平均横ズレ'),AH('strong',null,avgL),AH('em',null,'yd'))
      )
@@ -2436,7 +2443,10 @@ Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
        AH('div',{className:'ga-random-eval-card'},AH('small',null,'距離'),AH('strong',null,distanceGrade)),
        AH('div',{className:'ga-random-eval-card'},AH('small',null,'方向'),AH('strong',null,directionGrade))
      ),
-     AH('p',{className:'ga-random-eval-note'},'成功率と、各ショットの設定済み許容誤差に対する距離・方向の誤差から今回の出来を評価')
+     AH('details',{className:'ga-final-explain'},
+       AH('summary',null,'評価基準を見る'),
+       AH('p',null,'総合評価は成功率と距離・方向の精度を50%ずつ反映。距離・方向は各ショットの目標距離と設定済み許容誤差に対する実際のズレから判定します。')
+     )
    ),
    AH('section',{className:'ga-random-summary-card'},AH('h2',null,'今回の傾向'),
      AH('div',{className:'ga-random-tendency-grid'},
@@ -2447,9 +2457,33 @@ Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
      )
    ),
    AH('section',{className:'ga-random-summary-card'},AH('h2',null,total+'球の記録'),
-     !showAll&&preview.length?AH('div',{className:'ga-random-preview-list'},...preview.map(function(x,idx){const ok=!!(x.success||x.resultSuccess);return AH('div',{className:'ga-random-preview-row',key:x.num||idx},AH('span',{className:'num'},(idx+1)+'球目'),AH('strong',{className:'target'},x.targetDistance+'yd・'+gaRandomShotScene(x)),AH('span',{className:'club'},x.club||'—'),AH('span',{className:'mark '+(ok?'':'ng')},ok?'○':'△'))})):null,
-     total>preview.length?AH('button',{type:'button',className:'ga-random-all-toggle',onClick:function(){setShowAll(function(v){return !v})}},showAll?'3球プレビューに戻す':'残り'+(total-preview.length)+'球を見る'):null,
-     showAll?AH('div',{className:'ga-random-shot-list'},...shots.map(function(x,idx){const ok=!!(x.success||x.resultSuccess);const lat=Number(x.lateral)||0;const latText=lat===0?'中央':(lat<0?'左':'右')+Math.abs(lat)+'yd';const details=['実距離 '+x.forward+'yd','距離誤差 '+x.distanceError+'yd','横 '+latText,x.resultCurve,x.contactVertical,(x.contactOther||[]).join('・')].filter(Boolean).join(' / ');return AH('div',{className:'ga-random-shot-card '+(ok?'ok':'ng'),key:x.num||idx},AH('div',{className:'ga-random-shot-top'},AH('strong',null,(idx+1)+'. '+x.club+' / 目標'+x.targetDistance+'yd'),AH('b',null,ok?'成功':'失敗')),AH('div',{className:'ga-random-shot-sub'},details))})):null
+     !showAll&&preview.length?AH('div',{className:'ga-random-preview-list'},...preview.map(function(x,idx){
+       const ok=!!(x.success||x.resultSuccess);
+       const lateral=Number(x.lateral)||0;
+       const lateralText=Math.abs(lateral)<.5?'中央':(lateral<0?'左':'右')+Math.abs(Math.round(lateral*10)/10)+'yd';
+       return AH('div',{className:'ga-random-preview-row',key:x.num||idx},
+         AH('span',{className:'num'},(idx+1)+'球目'),
+         AH('div',{className:'ga-random-preview-shot-info'},
+           AH('strong',null,x.club||'—'),
+           AH('small',null,x.targetDistance+'yd → '+x.forward+'yd / '+lateralText)
+         ),
+         AH('span',{className:'mark '+(ok?'':'ng')},ok?'成功':'失敗')
+       );
+     })):null,
+     total>preview.length?AH('button',{type:'button',className:'ga-random-all-toggle',onClick:function(){setShowAll(function(v){return !v})}},showAll?'3球プレビューに戻す':'全ショットを確認する ›'):null,
+     showAll?AH('div',{className:'ga-random-shot-list'},...shots.map(function(x,idx){
+       const ok=!!(x.success||x.resultSuccess);
+       const lat=Number(x.lateral)||0;
+       const latText=Math.abs(lat)<.5?'中央':(lat<0?'左':'右')+Math.abs(Math.round(lat*10)/10)+'yd';
+       const details=['実距離 '+x.forward+'yd','距離誤差 '+x.distanceError+'yd','横 '+latText,x.resultCurve,gaRandomImpactLabel(x),(x.contactOther||[]).join('・')].filter(function(v){return !!v&&v!=='—'}).join(' / ');
+       return AH('div',{className:'ga-random-shot-card '+(ok?'ok':'ng'),key:x.num||idx},
+         AH('div',{className:'ga-random-shot-top'},
+           AH('strong',null,(idx+1)+'. '+x.club+' / 目標'+x.targetDistance+'yd'),
+           AH('b',null,ok?'成功':'失敗')
+         ),
+         AH('div',{className:'ga-random-shot-sub'},details)
+       );
+     })):null
    ),
    AH('div',{className:'ga-random-summary-actions'},AH('button',{type:'button',className:'primary',onClick:onRestart},'もう一度練習する'),AH('button',{type:'button',className:'secondary',onClick:onData||onMenu},'データを見る'),AH('button',{type:'button',className:'copy',onClick:copyJson},copyState==='copied'?'コピーしました':copyState==='failed'?'コピーに失敗しました':'JSONデータをコピー')),
    AH(GaBottomNav,{active:'practice',onHome:onHome||onMenu,onPractice:onPractice||onMenu,onData:onData||onMenu,onSettings})
@@ -2941,12 +2975,13 @@ xp=function({round:t,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
  const misses=Object.entries(missCount).sort(function(a,b){return b[1]-a[1]});
  const getData=function(){return sp(t)};
  return AH('main',{className:'ga-course-final'},
-   AH('header',{className:'ga-course-final-head'},AH('h1',null,'コース想定 結果'),AH('span',null,(t.holeCount||u.length)+'H')),
+   gaFinalSummaryHeader('コース結果',onMenu||onHome),
+   gaFinalSummaryProgress('コース想定',(t.holeCount||u.length)+'H 完了'),
    a?AH('div',{className:'ga-course-final-warning'},'⚠️ '+a):null,
    AH('section',{className:'ga-course-final-card'},
      AH('h2',null,'今回の結果'),
      AH('div',{className:'ga-course-final-score'},
-       AH('small',null,'TOTAL SCORE'),
+       AH('small',null,(t.holeCount||u.length)+'ホールのトータルスコア'),
        AH('strong',null,c),
        AH('p',null,'PAR '+o+' / ',AH('b',null,(f>0?'+':'')+f))
      ),
@@ -2962,6 +2997,10 @@ xp=function({round:t,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
        AH('div',{className:'ga-course-eval'},AH('small',null,'総合'),AH('strong',null,current.score===null?'—':current.score)),
        AH('div',{className:'ga-course-eval'},AH('small',null,'ショット精度'),AH('strong',null,shotScore===null?'—':shotScore)),
        AH('div',{className:'ga-course-eval'},AH('small',null,'マネジメント'),AH('strong',null,managementScore===null?'—':managementScore))
+     ),
+     AH('details',{className:'ga-final-explain'},
+       AH('summary',null,'評価内容を見る'),
+       AH('p',null,'総合・ショット精度・マネジメントは現行のコース想定評価に基づきます。今回のスコアとは別に、目標に対するショットの実行結果と狙い方を振り返れます。')
      ),
      AH('div',{className:'ga-course-quality'},
        AH('div',{className:'ga-course-quality-row'},AH('span',null,'距離・横誤差の中央値'),AH('strong',null,ratioText)),
@@ -4005,6 +4044,25 @@ function gaShotEntryProgress(mode,count){
   AH('span',{className:'ga-shot-entry-mode'},mode),
   AH('strong',{className:'ga-shot-entry-count'},count)
  );
+}
+
+/* Approved result-summary redesign: use the same safe-area header as input screens. */
+const gaFinalSummaryStyle=document.createElement('style');
+gaFinalSummaryStyle.id='ga-final-summary-20261011';
+gaFinalSummaryStyle.textContent="\n/* Shot log-style result summary (2026-10-11): display-only brand and aligned title. */\n.ga-final-summary-head.ga-shot-entry-head{\n position:fixed;top:0;left:50%;z-index:80;width:min(100vw,390px);\n height:var(--ga-header-total);transform:translateX(-50%);\n display:grid;grid-template-columns:84px minmax(0,1fr) 84px;align-items:center;\n padding:calc(var(--ga-header-total) - 54px) 14px 7px;box-sizing:border-box;\n background:rgba(248,250,252,.97);border-bottom:1px solid rgba(221,227,234,.9);\n backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);\n}\n.ga-final-progress-wrap{\n margin:-12px -14px 12px;padding:6px 14px 7px;\n background:#fff;border-bottom:1px solid #EDF0F4;\n}\n.ga-final-progress-wrap .ga-shot-entry-progress{margin:0;min-height:33px;}\n.ga-random-summary-adopted .ga-random-summary-card,.ga-course-final-card{\n border:1px solid #E8ECF1;box-shadow:none;\n}\n.ga-final-hero{padding:18px 14px 16px;text-align:center;}\n.ga-final-hero-label{display:block;font-size:11px;font-weight:750;color:#8190A1;}\n.ga-final-hero-value{display:block;margin:6px 0 3px;color:var(--ga-orange);font-size:58px;\n line-height:1.1;font-weight:900;letter-spacing:-2px;font-variant-numeric:tabular-nums;}\n.ga-final-hero-value em{color:#84909E;font-size:23px;font-style:normal;letter-spacing:0;}\n.ga-final-hero-rate{font-size:13px;font-weight:800;color:#283952;}\n.ga-final-hero-bar{height:7px;margin:16px 7px 14px;overflow:hidden;border-radius:10px;background:#F0E8E3;}\n.ga-final-hero-bar>i{display:block;height:100%;border-radius:10px;background:var(--ga-orange);}\n.ga-final-hero .ga-random-result-grid{grid-template-columns:repeat(2,minmax(0,1fr));\n border-top:1px solid #EBEEF3;padding-top:13px;}\n.ga-final-hero .ga-random-result-cell strong{font-size:21px;}\n.ga-final-hero .ga-random-result-cell small{min-height:26px;font-size:10px;}\n.ga-final-explain{margin:10px 0 0;padding:0;}\n.ga-final-explain>summary{list-style:none;display:flex;align-items:center;justify-content:center;\n min-height:38px;cursor:pointer;color:var(--ga-blue);font-size:11px;font-weight:800;}\n.ga-final-explain>summary::-webkit-details-marker{display:none;}\n.ga-final-explain>summary:after{content:'⌄';margin-left:7px;font-size:17px;}\n.ga-final-explain[open]>summary:after{content:'⌃';}\n.ga-final-explain>p{margin:4px 0 0;padding:11px 12px;border-radius:10px;\n background:#F2F6FC;color:#526580;font-size:11px;font-weight:650;line-height:1.7;}\n/* Shot statuses: blue success, orange failure; never generic green/red tags. */\n.ga-random-summary-adopted .ga-random-preview-list{display:grid;gap:8px;border:0;border-radius:0;overflow:visible;}\n.ga-random-summary-adopted .ga-random-preview-row{\n display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:9px;\n min-height:72px;padding:10px 11px;align-items:center;\n border:1px solid #E2E8F0;border-radius:12px;background:#fff;\n}\n.ga-random-summary-adopted .ga-random-preview-row+.ga-random-preview-row{border-top:1px solid #E2E8F0;}\n.ga-random-summary-adopted .ga-random-preview-row .num{font-size:11px;}\n.ga-random-preview-shot-info{display:grid;gap:4px;min-width:0;}\n.ga-random-preview-shot-info strong{color:var(--ga-text);font-size:13px;font-weight:850;}\n.ga-random-preview-shot-info small{color:#65768A;font-size:11px;font-weight:650;line-height:1.45;}\n.ga-final-shot-status,.ga-random-summary-adopted .ga-random-preview-row .mark,\n.ga-random-shot-card .ga-random-shot-top b,\n.ga-random-history-shot-mark{\n display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;\n min-width:49px;min-height:28px;padding:5px 8px;border:0;border-radius:10px;\n box-sizing:border-box;background:#EEF4FF;color:#2F6FE4;font-size:11px;\n font-weight:800;line-height:1.3;box-shadow:none;white-space:nowrap;\n}\n.ga-final-shot-status.ng,.ga-random-summary-adopted .ga-random-preview-row .mark.ng,\n.ga-random-shot-card.ng .ga-random-shot-top b,.ga-random-history-shot-mark.ng{\n background:#FFF1E9;color:#D96A33;\n}\n.ga-random-summary-adopted .ga-random-shot-card{\n padding:12px 13px;background:#fff;border:1px solid #E2E8F0;border-radius:12px;\n}\n.ga-random-shot-card.ok .ga-random-shot-top b{background:#EEF4FF;color:#2F6FE4;}\n.ga-random-shot-card.ng .ga-random-shot-top b{background:#FFF1E9;color:#D96A33;}\n.ga-random-summary-adopted .ga-random-all-toggle{\n border:0;border-radius:10px;background:#fff;color:var(--ga-blue);box-shadow:none;\n}\n.ga-random-summary-adopted .ga-random-summary-actions{display:grid;grid-template-columns:1fr;gap:8px;}\n.ga-random-summary-adopted .ga-random-summary-actions .primary{grid-column:1/-1;\n border-radius:12px;box-shadow:none;}\n.ga-random-summary-adopted .ga-random-summary-actions .secondary{\n background:#fff;color:var(--ga-blue);border:1px solid var(--ga-blue);}\n.ga-random-summary-adopted .ga-random-summary-actions .copy{border:0;color:#748395;}\n.ga-random-summary-adopted .ga-random-summary-actions>button{width:100%;}\n.ga-course-final-score small{font-size:11px;}\n.ga-course-final-score strong{font-variant-numeric:tabular-nums;}\n.ga-course-hole-result.good{background:#EEF4FF;}\n.ga-course-hole-result.good strong{color:#2F6FE4;}\n.ga-course-hole-result.bad{background:#FFF1E9;}\n.ga-course-hole-result.bad strong{color:#D96A33;}\n.ga-course-final-actions .secondary{background:#fff;color:var(--ga-blue);}\n.ga-course-final-actions .primary{border-radius:12px;box-shadow:none;}\n@media(max-width:350px){\n .ga-final-summary-head.ga-shot-entry-head{grid-template-columns:76px minmax(0,1fr) 76px;padding-left:12px;padding-right:12px;}\n .ga-final-summary-head .ga-shot-entry-back{width:76px!important;}\n .ga-random-summary-adopted .ga-random-preview-row{grid-template-columns:42px minmax(0,1fr) auto;gap:6px;padding:9px 7px;}\n .ga-random-preview-shot-info small{font-size:10px;}\n}\n";
+document.head.appendChild(gaFinalSummaryStyle);
+function gaFinalSummaryHeader(title,onBack){
+ return AH('header',{className:'ga-final-summary-head ga-shot-entry-head'},
+  AH('button',{type:'button',className:'ga-shot-entry-back ga-final-summary-back',
+    'aria-label':'練習メニューへ戻る',onClick:onBack},'‹ 戻る'),
+  AH('h1',{className:'ga-shot-entry-title'},title),
+  AH('div',{className:'ga-shot-entry-logo','aria-hidden':'true'},
+   AH('span',null,'GOLF'),AH('span',{className:'ga-shot-entry-logo-aim'},'AiM')
+  )
+ );
+}
+function gaFinalSummaryProgress(mode,count){
+ return AH('div',{className:'ga-final-progress-wrap'},gaShotEntryProgress(mode,count));
 }
 
 /* Approved shot-result input redesign (2026-10-11). */
