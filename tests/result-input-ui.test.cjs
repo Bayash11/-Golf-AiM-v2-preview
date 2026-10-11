@@ -59,7 +59,7 @@ function fixture({course=false,approach=false,pending={},good=['振り切れた'
  const view=course?context.pp({...props,hole}):context.Cp(props);
  return{view,t,fields,positive,negative,saves,back,curveState,context,props,hole};
 }
-test('feel buttons are exclusive, point buttons are exclusive, and re-tap clears each group',()=>{
+test('feel stays exclusive; horizontal and vertical impact can combine and re-tap clears',()=>{
  const {context}=fixture();
  const choose=vm.runInContext('gaResultChooseImpact',context);
  let chosen=choose([],'良い');
@@ -69,11 +69,65 @@ test('feel buttons are exclusive, point buttons are exclusive, and re-tap clears
  chosen=choose(chosen,'ヒール');
  assert.deepEqual(Array.from(chosen),['悪い','ヒール']);
  chosen=choose(chosen,'上目');
- assert.deepEqual(Array.from(chosen),['悪い','上目']);
+ assert.deepEqual(Array.from(chosen),['悪い','ヒール','上目']);
  chosen=choose(chosen,'上目');
+ assert.deepEqual(Array.from(chosen),['悪い','ヒール']);
+ chosen=choose(chosen,'ヒール');
  assert.deepEqual(Array.from(chosen),['悪い']);
  chosen=choose(chosen,'悪い');
  assert.deepEqual(Array.from(chosen),[]);
+});
+test('all four diagonal face combinations are valid and order-independent',()=>{
+ const choose=vm.runInContext('gaResultChooseImpact',fixture().context);
+ for(const horizontal of ['ヒール','トゥ']){
+  for(const vertical of ['上目','下目']){
+   const first=choose(choose(['普通'],horizontal),vertical);
+   const reverse=choose(choose(['普通'],vertical),horizontal);
+   assert.deepEqual(Array.from(first),['普通',horizontal,vertical]);
+   assert.deepEqual(Array.from(reverse),['普通',horizontal,vertical]);
+  }
+ }
+});
+test('opposite sides never coexist, and center remains standalone',()=>{
+ const choose=vm.runInContext('gaResultChooseImpact',fixture().context);
+ let selected=choose(['良い','ヒール','下目'],'トゥ');
+ assert.deepEqual(Array.from(selected),['良い','トゥ','下目']);
+ selected=choose(selected,'上目');
+ assert.deepEqual(Array.from(selected),['良い','トゥ','上目']);
+ selected=choose(selected,'真ん中');
+ assert.deepEqual(Array.from(selected),['良い','真ん中']);
+ selected=choose(selected,'下目');
+ assert.deepEqual(Array.from(selected),['良い','下目']);
+ selected=choose(selected,'真ん中');
+ assert.deepEqual(Array.from(selected),['良い','真ん中']);
+ selected=choose(selected,'真ん中');
+ assert.deepEqual(Array.from(selected),['良い']);
+});
+test('legacy contradictory impact choices are normalized only on user edit',()=>{
+ const ctx=fixture().context;
+ const choose=vm.runInContext('gaResultChooseImpact',ctx);
+ const normalize=vm.runInContext('gaResultNormalizeImpact',ctx);
+ const input=['良い','悪い','ヒール','トゥ','下目','上目','真ん中'];
+ assert.deepEqual(Array.from(normalize(input)),['良い','ヒール','下目']);
+ assert.deepEqual(Array.from(choose(input,'普通')),['普通','ヒール','下目']);
+ assert.deepEqual(Array.from(choose(input,'真ん中')),['良い','真ん中']);
+ assert.deepEqual(Array.from(input),['良い','悪い','ヒール','トゥ','下目','上目','真ん中']);
+});
+test('both result modes show two selected points and footer uses combined names',()=>{
+ for(const course of [false,true]){
+  const f=fixture({course,pending:{contactImpact:['普通','ヒール','下目']}});
+  const face=named(f.view,'ga-result-face-grid')[0];
+  const selected=face.children.filter(x=>x.tag==='button'&&x.props['aria-pressed']);
+  assert.deepEqual(selected.map(x=>textOf(x)),['ヒール','下目']);
+  assert.match(textOf(named(f.view,'ga-result-face-note')[0]),/ヒール＋下目を選択中/);
+  assert.match(textOf(named(f.view,'ga-result-footer-summary')[0]),/打感：\s*普通.*打点：\s*ヒール＋下目/);
+  const heel=face.children.find(x=>x.tag==='button'&&textOf(x)==='ヒール');
+  heel.props.onClick();
+  assert.deepEqual([f.fields.at(-1)[0],Array.from(f.fields.at(-1)[1])],['contactImpact',['普通','下目']]);
+  const center=face.children.find(x=>x.tag==='button'&&textOf(x)==='真ん中');
+  center.props.onClick();
+  assert.deepEqual([f.fields.at(-1)[0],Array.from(f.fields.at(-1)[1])],['contactImpact',['普通','真ん中']]);
+ }
 });
 test('invalid prior combinations are normalized when any feel or point is changed',()=>{
  const choose=vm.runInContext('gaResultChooseImpact',fixture().context);
