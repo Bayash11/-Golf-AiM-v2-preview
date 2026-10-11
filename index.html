@@ -1679,7 +1679,7 @@ AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled,mini=fals
  const xs=h.centerline.map(p=>p.v);
  const baseXMin=Math.min(...xs)-72,baseXMax=Math.max(...xs)+72,baseYMin=-22,baseYMax=h.distance+40;
  let xmin=baseXMin,xmax=baseXMax,ymin=baseYMin,ymax=baseYMax;
- const baseW=baseXMax-baseXMin,baseH=baseYMax-baseYMin;
+ const baseH=baseYMax-baseYMin;
  const clampYWindow=function(lo,hi){
    let height=Math.min(baseH,Math.max(1,hi-lo));
    let y0=lo,y1=y0+height;
@@ -2782,9 +2782,13 @@ mp=function({hole,current,holeIdx,totalHoles,completedHoles=[]}){
 };
 dp=function(props){
  const h=props.hole;
- const [viewMode,setViewMode]=P.useState('normal');
- P.useEffect(()=>setViewMode('normal'),[h.number,h.strokes,h.penalty]);
- const overview=viewMode==='overview',greenZoom=viewMode==='green';
+ /* Only the remaining pin distance controls auto zoom. Aim taps must not affect it. */
+ const remaining=Number(h.remaining);
+ const autoGreen=Number(h.strokes)>0&&Number.isFinite(remaining)&&remaining>0&&remaining<=120;
+ const [viewMode,setViewMode]=P.useState('auto');
+ P.useEffect(()=>setViewMode('auto'),[h.number,h.strokes,h.penalty]);
+ const overview=viewMode==='overview';
+ const greenZoom=viewMode==='green'||(viewMode==='auto'&&autoGreen);
  const effectiveShotNo=(h.strokes||0)+(h.penalty||0)+1;
  const shotLabel=h.strokes===0&&h.penalty===0?'ティーショット':`${effectiveShotNo}打目・${h.lie}`;
  const prevShot=Array.isArray(props.shots)&&props.shots.length?props.shots[props.shots.length-1]:null;
@@ -2793,7 +2797,7 @@ dp=function(props){
    AH('section',{className:`ga-course-map-card ga-course-par${h.par}${greenZoom?' ga-course-zoom':''}${overview?' ga-course-overview':''}`},
      AH('div',{className:'ga-course-map-toolbar'},
        AH('button',{type:'button','aria-label':'コース全体図を切り替え','aria-pressed':overview,onClick:()=>setViewMode(v=>v==='overview'?'normal':'overview')},'全体図'),
-       AH('button',{type:'button','aria-label':'グリーン拡大を切り替え','aria-pressed':greenZoom,onClick:()=>setViewMode(v=>v==='green'?'normal':'green')},'グリーン拡大')
+       AH('button',{type:'button','aria-label':'グリーン拡大を切り替え','aria-pressed':greenZoom,onClick:()=>setViewMode(greenZoom?'normal':'green')},'グリーン拡大')
      ),
      AH(AimMap,{...props,zoom:greenZoom,tapEnabled:overview?false:props.tapEnabled}),
      AH('p',{className:'ga-course-map-help'},
