@@ -126,3 +126,72 @@ test('phone-safe map and club controls, progress and target distance remain',()=
  assert.match(html,/ga-course-playing.*?onTap:ll/);
  assert.match(html,/hp=\s*function\(\{club,targetDistance,isApproach,plan,onPlanField,onStartHit,onClearAim\}\)/);
 });
+
+/* Regression: a mistaken short tap must not collapse the playable map window. */
+const courseMapSource=extract("AimMap=function({hole:h,prevPos,aimPoint,pendingPoint,onTap,tapEnabled","/* ===== 2026-09-16 field usability patch ===== */");
+function layoutFixture(){
+ const P={
+  useRef(initial){return {current:initial}},
+  useState(initial){return [initial,()=>{}]},
+  cloneElement(node,props){return {...node,props:{...node.props,...props}}}
+ };
+ const clamp=(v,lo,hi)=>Math.max(lo,Math.min(hi,v));
+ const ctx=vm.createContext({
+  AH,P,Dt:clamp,
+  se:(x1,y1,x2,y2)=>Math.hypot(x1-x2,y1-y2),
+  bu:()=>28,Yt:()=>0,aimFwWidthAt:()=>56,
+  aimBand:()=>[],aimOrganic:()=>[],setTimeout:()=>{}
+ });
+ vm.runInContext('var AimMap;\n'+courseMapSource,ctx);
+ const polygon=[{x:-30,y:0},{x:30,y:0},{x:30,y:405},{x:-30,y:405}];
+ const hole={
+  distance:405,par:4,terrain:'park',
+  centerline:[{v:0,y:0},{v:10,y:405}],
+  roughPoly:polygon,fairwayPoly:polygon,greenPoly:polygon,apronPoly:polygon,
+  greenCenter:{x:0,y:392},pin:{x:0,y:392},
+  green:{halfWidth:15,depth:20},
+  water:null,trees:[],bunkers:[],obZones:[]
+ };
+ const prevPos={x:0,y:220};
+ const draw=({aimPoint=null,zoom=false,tap=()=>{}}={})=>{
+  const root=ctx.AimMap({hole,prevPos,aimPoint,onTap:tap,tapEnabled:true,zoom});
+  const svg=collect(root,x=>x.tag==='svg'&&x.props.className==='aim-map-v2')[0];
+  assert.ok(svg,'course map must render as an SVG');
+  return {root,svg};
+ };
+ return {draw,hole,prevPos};
+}
+test('2nd-shot aim markers near or far preserve exactly the same entire course viewBox',()=>{
+ const f=layoutFixture();
+ const initial=f.draw();
+ const nearby=f.draw({aimPoint:{x:8,y:225}});
+ const toFairway=f.draw({aimPoint:{x:0,y:355}});
+ const toGreen=f.draw({aimPoint:{x:0,y:392}});
+ assert.equal(nearby.svg.props.viewBox,initial.svg.props.viewBox);
+ assert.equal(toFairway.svg.props.viewBox,initial.svg.props.viewBox);
+ assert.equal(toGreen.svg.props.viewBox,initial.svg.props.viewBox);
+ assert.equal(nearby.svg.props.style.aspectRatio,initial.svg.props.style.aspectRatio);
+ assert.equal(toGreen.svg.props.style.aspectRatio,initial.svg.props.style.aspectRatio);
+ assert.ok(toFairway.svg.props.viewBox.endsWith('467'),'full hole height should stay visible');
+ assert.doesNotMatch(courseMapSource,/focusCurrent|focusTarget|focusHeight/);
+ assert.doesNotMatch(dpSource,/focusCurrent/);
+});
+test('nearby tap can be corrected by tapping far ahead without enlarging the course',()=>{
+ const f=layoutFixture(),recorded=[];
+ let view=f.draw({tap:(x,y)=>recorded.push({x,y})});
+ const original=view.svg.props.viewBox;
+ // Approximate iPhone map pixel geometry; the map element gives exact bounds.
+ function tap(x,y){
+  view.svg.props.ref.current={getBoundingClientRect:()=>({left:0,top:0,width:360,height:500})};
+  view.svg.props.onClick({clientX:x,clientY:y});
+  assert.equal(recorded.length>0,true);
+  view=f.draw({aimPoint:recorded[recorded.length-1],tap:(xx,yy)=>recorded.push({x:xx,y:yy})});
+  assert.equal(view.svg.props.viewBox,original,'tap must not resize/recenter the view');
+ }
+ tap(180,230);
+ tap(180,38);
+ assert.equal(recorded.length,2);
+ assert.ok(recorded[1].y>recorded[0].y,'second tap should successfully move the aim toward the green');
+ const zoom=f.draw({aimPoint:recorded[1],zoom:true});
+ assert.notEqual(zoom.svg.props.viewBox,original,'user-selected green zoom is intentionally preserved');
+});
