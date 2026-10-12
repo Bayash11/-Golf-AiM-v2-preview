@@ -2514,6 +2514,7 @@ Dp=function({session,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
         AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'−'),AH('div',null,AH('small',null,'ミス'),AH('strong',null,miss==='大きなミスなし'?miss:miss+' '+missCount+'回'))),
         AH('div',{className:'ga-random-tendency-card'},AH('div',{className:'ga-random-tendency-icon'},'○'),AH('div',null,AH('small',null,'打ち方'),AH('strong',null,style==='—'?'—':style+(styleCount?' '+styleCount+'/'+total:''))))
       ),
+      gaQualityCoverageRow(shots),
       gaSummaryImpactPanel(shots,contact,contactCount,total)
     ),
     AH('section',{className:'ga-random-summary-card'},AH('h2',null,total+'球の記録'),
@@ -3183,6 +3184,7 @@ xp=function({round:t,onRestart,onMenu,onHome,onPractice,onData,onSettings,warnin
         AH('div',{className:'ga-course-trend'},AH('small',null,'ミス（最多）'),AH('strong',null,misses.length?misses[0][0]+' '+misses[0][1]+'回':'記録なし')),
         AH('div',{className:'ga-course-trend'},AH('small',null,'打ち方'),AH('strong',null,courseStyle))
       ),
+      gaQualityCoverageRow(courseShots),
       gaSummaryImpactPanel(courseShots,coursePair,coursePairCount,courseShots.length)
     ),
     misses.length?AH('section',{className:'ga-course-final-card'},AH('h2',null,'ミス傾向'),AH('div',{className:'ga-course-chip-wrap'},...misses.slice(0,8).map(function(item){return AH('span',{className:'ga-course-chip miss',key:item[0]},item[0]+' ×'+item[1])}))):null,
@@ -4236,6 +4238,10 @@ gaSummaryImpactStyle.textContent=`
 .ga-course-trend strong{display:block;margin-top:5px;color:#24334B;font-size:12px;font-weight:850;line-height:1.4;overflow-wrap:anywhere;}
 .ga-course-skill-note{margin:0 0 10px;color:#64768C;font-size:11px;line-height:1.6;}
 .ga-course-chip.miss{background:#FFF1E9;color:#D96A33;}
+.ga-clean-quality-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:12px;padding:11px 12px;border:1px solid #E8ECF1;border-radius:12px;background:#F8FAFC;}
+.ga-clean-quality-row>span{color:#65768A;font-size:12px;font-weight:800;white-space:nowrap;}
+.ga-clean-quality-row strong{color:#2F6FE4;font-size:20px;font-weight:850;text-align:right;line-height:1.2;}
+.ga-clean-quality-row strong small{display:block;margin-top:4px;color:#65768A;font-size:10px;font-weight:700;line-height:1.4;}
 `;
 document.head.appendChild(gaSummaryImpactStyle);
 function gaFinalSummaryHeader(title,onBack){
