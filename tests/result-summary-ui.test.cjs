@@ -247,3 +247,30 @@ test('success and failure status tags use compact unshadowed blue/orange pills',
  assert.match(html,/background:#EEF4FF;color:#2F6FE4/);
  assert.match(html,/background:#FFF1E9;color:#D96A33/);
 });
+
+
+test('JSON copy feedback is concise and does not mention ChatGPT or paste instructions',async()=>{
+ const copySource=extract('function sn({getData:t,label:l})','function Sp({quit:t,onMenu:l})');
+ let state='idle',copiedData=null;
+ const create=(type,props)=>({tag:type,props:props||{},children:props?.children===undefined?[]:[props.children]});
+ const ctx=vm.createContext({
+  P:{useState(){return[state,next=>{state=next}]}},
+  i:{jsx:create,jsxs:create,Fragment:'fragment'},
+  E1:'check-icon',M1:'copy-icon',
+  s:{ink:'#000',panel:'#fff'},
+  Lg:async data=>{copiedData=data;return true},
+  setTimeout:()=>{}
+ });
+ vm.runInContext('var sn;\n'+copySource,ctx);
+ const sample={mode:'course',totalScore:14,unifiedShots:[{id:'test'}]};
+ let button=ctx.sn({getData:()=>sample,label:'この記録をJSONでコピー'});
+ assert.match(textOf(button),/この記録をJSONでコピー/);
+ await button.props.onClick();
+ assert.equal(copiedData,sample,'original JSON data must be passed unchanged');
+ button=ctx.sn({getData:()=>sample,label:'この記録をJSONでコピー'});
+ assert.match(textOf(button),/コピーしました/);
+ assert.doesNotMatch(textOf(button),/ChatGPT|貼り付け|共有できます/);
+ assert.doesNotMatch(copySource,/ChatGPT/);
+ assert.match(copySource,/Lg\(t\(\)\)/,'clipboard behavior remains unchanged');
+ assert.match(copySource,/e==="failed"/,'copy failure feedback remains');
+});
