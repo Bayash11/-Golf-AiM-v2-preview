@@ -1,0 +1,26 @@
+name: GOLF AiM optional impact and Clean rate checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/optional-impact-quality.test.cjs'
+      - '.github/workflows/optional-impact-quality.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'tests/optional-impact-quality.test.cjs'
+      - '.github/workflows/optional-impact-quality.yml'
+jobs:
+  optional-impact-quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate quality evaluation and export consistency
+        run: node --test tests/optional-impact-quality.test.cjs
