@@ -1866,15 +1866,37 @@ function gaCurveMatch(aim,result){
 }
 function gaIsReverseCurve(aim,result){const a=gaCurveSide(aim),r=gaCurveSide(result);return !!(a&&r&&a!==r)}
 function gaShotQualityEvaluation(t){
- const misses=ra(t),strike=yf(t),curveMatch=t?.isApproach?'unknown':gaCurveMatch(t?.curveBase||t?.aimCurve,t?.resultCurve),impact=gaImpactSelections(t);
+ const misses=ra(t),curveMatch=t?.isApproach?'unknown':gaCurveMatch(t?.curveBase||t?.aimCurve,t?.resultCurve),impact=gaImpactSelections(t);
+ // Optional impact fields do not imply a miss. Explicit misses and チョロ remain evaluable.
+ const evaluated=impact.length>0||misses.length>0||t?.resultCurve==='チョロ';
+ const strike=evaluated?yf(t):'unknown';
  const impactPoor=impact.includes('悪い'),impactMinor=impact.some(v=>['普通','上目','ヒール','トゥ','下目'].includes(v)),cleanSignal=impact.includes('良い')||impact.includes('真ん中');
- let tier='clean';
- if(strike==='poor'||impactPoor||curveMatch==='major')tier='majorMiss';
- else if(misses.length||impactMinor||curveMatch==='minor'||!cleanSignal)tier='minorMiss';
- return{tier,clean:tier==='clean',strikeQuality:strike,curveMatch,reverseCurve:!t?.isApproach&&gaIsReverseCurve(t?.curveBase||t?.aimCurve,t?.resultCurve),missSelected:misses.length>0,majorMisses:misses,impact};
+ let tier='unrated';
+ if(evaluated){
+  tier='clean';
+  if(strike==='poor'||impactPoor||curveMatch==='major')tier='majorMiss';
+  else if(misses.length||impactMinor||curveMatch==='minor'||!cleanSignal)tier='minorMiss';
+ }
+ return{tier,evaluated,clean:tier==='clean',strikeQuality:strike,curveMatch,reverseCurve:!t?.isApproach&&gaIsReverseCurve(t?.curveBase||t?.aimCurve,t?.resultCurve),missSelected:misses.length>0,majorMisses:misses,impact};
 }
-function gaShotQualityLabel(tier){return tier==='clean'?'Clean':tier==='minorMiss'?'軽微なミス':'ミスあり'}
-function gaCleanShotRate(shots){const list=shots||[],clean=list.filter(s=>(s.shotQualityEvaluation||gaShotQualityEvaluation(s)).tier==='clean').length;return{cleanShots:clean,cleanShotRate:list.length?Math.round(clean/list.length*100):0}}
+function gaShotQualityLabel(tier){return tier==='unrated'?'未評価':tier==='clean'?'Clean':tier==='minorMiss'?'軽微なミス':'ミスあり'}
+function gaCleanShotRate(shots){
+ const list=Array.isArray(shots)?shots:[];
+ // Recompute from raw input; historical stored quality snapshots may contain the previous misclassification.
+ const quality=list.map(gaShotQualityEvaluation);
+ const evaluatedShots=quality.filter(q=>q.evaluated).length;
+ const cleanShots=quality.filter(q=>q.tier==='clean').length;
+ return{cleanShots,evaluatedShots,unratedShots:list.length-evaluatedShots,totalShots:list.length,
+  cleanShotRate:evaluatedShots?Math.round(cleanShots/evaluatedShots*100):null};
+}
+function gaQualityCoverageRow(shots){
+ const q=gaCleanShotRate(shots);
+ return AH('div',{className:'ga-clean-quality-row'},
+  AH('span',null,'Clean率'),
+  AH('strong',null,q.cleanShotRate===null?'未評価':q.cleanShotRate+'%',
+   AH('small',null,'Clean '+q.cleanShots+'/'+q.evaluatedShots+'球 ・ 評価済み '+q.evaluatedShots+'/'+q.totalShots+'球'))
+ );
+}
 function gaDegradeResultTier(tier){if(tier==='perfect')return 'acceptable';if(tier==='acceptable')return 'poor';return tier}
 function gaEvaluateResult({baseTier,aimCurve,resultCurve,contactOther,penalty=false,hazardReverse=false,isApproach=false}){
  let tier=baseTier;
