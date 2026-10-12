@@ -58,6 +58,7 @@ function fixture(){
   _gaRecentAssessment:()=>({status:'確定',sessionsUsed:5,shotLevel:'90切り',managementLevel:'90切り',approachLevel:'90切り',overallLevel:'90切り',metrics:{bigMissRate:15}}),
   _gaLevelText:x=>x,_gaPct:x=>x,
   ra:s=>s.contactOther||[],sp:r=>JSON.stringify(r),
+  gaQualityCoverageRow:shots=>AH('div',{className:'ga-clean-quality-row'},'評価済み '+shots.length+'球'),
   sn:()=>null
  });
  vm.runInContext('var Dp,xp;\n'+impact+'\n'+progress+'\n'+shared+'\n'+random+'\n'+course,context);
