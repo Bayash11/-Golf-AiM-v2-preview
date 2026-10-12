@@ -34,7 +34,7 @@ function fixture(){
 }
 function shot(contactImpact,other={}){
  return {mode:'course',num:1,club:'7I',isApproach:false,curveBase:'ストレート',resultCurve:'ストレート',
-  contactImpact,contactOther:[],contactPositive:[],forward:150,lateral:0,lie:'フェアウェイ',
+  contactImpact,contactOther:[],contactPositive:[],resultTier:'perfect',resultSuccess:true,success:true,forward:150,lateral:0,lie:'フェアウェイ',
   remaining:25,penalty:false,before:{club:'7I',targetDistance:150},
   evaluation:{resultTier:'perfect',shotQualityTier:'minorMiss',
    shotQualityEvaluation:{tier:'minorMiss',strikeQuality:'fair'},strikeQuality:'fair'},
